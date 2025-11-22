@@ -1,0 +1,13 @@
+{
+  "loading_checking_connection": "Checking connection...",
+  "loading_config": "Loading configuration...",
+  "loading_dependencies": "Initializing dependencies...",
+  "loading_storage": "Initializing storage...",
+  "loading_connectivity": "Initializing connectivity...",
+  "loading_notifications": "Initializing notifications...",
+  "loading_auth": "Initializing authentication...",
+  "loading_radio": "Initializing radio...",
+  "loading_preparing": "Preparing app...",
+  "loading_complete": "Complete"
+}
+

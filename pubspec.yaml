@@ -1,0 +1,69 @@
+name: tujuhcahaya_wprs
+description: "7C Flutter Radio WordPress - Hybrid Media Application"
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.9.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  flutter_bloc: ^9.1.1
+  bloc: ^9.1.0
+  dartz: ^0.10.1
+  get_it: ^8.2.0
+  freezed_annotation: ^2.4.4
+  equatable: ^2.0.7
+
+  dio: ^5.0.3
+  connectivity_plus: ^6.0.3
+  hive: ^2.0.5
+  hive_flutter: ^1.1.0
+  sqflite: ^2.3.0
+  path_provider: ^2.0.9
+  path: ^1.8.1
+
+  adaptive_theme: ^3.4.1
+  easy_localization: ^3.0.2
+
+  firebase_core: ^3.1.1
+  onesignal_flutter: ^5.2.1
+
+  radio_player: ^2.2.1
+  volume_regulator: ^2.4.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^5.0.0
+  build_runner: ^2.1.5
+  freezed: ^2.5.2
+
+# For information on the generic Dart part of this file, see the
+# following page: https://dart.dev/tools/pub/pubspec
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/translations/
+    - assets/images/
+    - assets/others/
+
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Inter-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Inter-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Inter-Light.ttf
+          weight: 300

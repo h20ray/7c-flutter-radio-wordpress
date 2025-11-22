@@ -1,0 +1,13 @@
+{
+  "loading_checking_connection": "Memeriksa koneksi...",
+  "loading_config": "Memuat konfigurasi...",
+  "loading_dependencies": "Menginisialisasi dependensi...",
+  "loading_storage": "Menginisialisasi penyimpanan...",
+  "loading_connectivity": "Menginisialisasi konektivitas...",
+  "loading_notifications": "Menginisialisasi notifikasi...",
+  "loading_auth": "Menginisialisasi autentikasi...",
+  "loading_radio": "Menginisialisasi radio...",
+  "loading_preparing": "Mempersiapkan aplikasi...",
+  "loading_complete": "Selesai"
+}
+
