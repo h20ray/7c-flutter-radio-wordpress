@@ -4,13 +4,31 @@ import 'package:get_it/get_it.dart';
 import '../network/api_client.dart';
 import '../network/network_info.dart';
 import '../../config/wp_config.dart';
+import '../audio/audio_focus_manager.dart';
+import '../services/system_volume_service.dart';
+import '../services/network_status_service.dart';
+import '../utils/debug_logger.dart';
 
+// Radio feature imports
 import '../../features/radio/data/datasources/radio_remote_datasource.dart';
+import '../../features/radio/data/datasources/radio_player_remote_datasource.dart';
 import '../../features/radio/data/repositories/radio_repository_impl.dart';
+import '../../features/radio/data/repositories/radio_player_repository_impl.dart';
+import '../../features/radio/data/repositories/album_art_repository_impl.dart';
+import '../../features/radio/data/services/album_art_service.dart';
 import '../../features/radio/domain/repositories/radio_repository.dart';
+import '../../features/radio/domain/repositories/radio_player_repository.dart';
+import '../../features/radio/domain/repositories/album_art_repository.dart';
 import '../../features/radio/domain/usecases/get_radio_config.dart';
+import '../../features/radio/domain/usecases/initialize_radio_player.dart';
+import '../../features/radio/domain/usecases/play_radio.dart';
+import '../../features/radio/domain/usecases/pause_radio.dart';
+import '../../features/radio/domain/usecases/reset_radio_player.dart';
+import '../../features/radio/domain/usecases/get_album_art_url.dart';
 import '../../features/radio/presentation/bloc/radio_bloc.dart';
+import '../../features/radio/presentation/bloc/radio_player_bloc.dart';
 
+// Shoutbox feature imports
 import '../../features/shoutbox/data/datasources/shoutbox_remote_datasource.dart';
 import '../../features/shoutbox/data/repositories/shoutbox_repository_impl.dart';
 import '../../features/shoutbox/domain/repositories/shoutbox_repository.dart';
@@ -19,6 +37,7 @@ import '../../features/shoutbox/domain/usecases/send_shoutbox_message.dart';
 import '../../features/shoutbox/domain/usecases/delete_shoutbox_message.dart';
 import '../../features/shoutbox/presentation/bloc/shoutbox_bloc.dart';
 
+// WordPress feature imports
 import '../../features/wordpress/data/datasources/wordpress_remote_datasource.dart';
 import '../../features/wordpress/data/repositories/wordpress_repository_impl.dart';
 import '../../features/wordpress/domain/repositories/wordpress_repository.dart';
@@ -28,10 +47,15 @@ import '../../features/wordpress/presentation/bloc/wordpress_bloc.dart';
 final getIt = GetIt.instance;
 
 Future<void> initDependencies() async {
+  // Guard to avoid double initialization
   if (getIt.isRegistered<Dio>()) {
+    DebugLogger.log('[DI] Dependencies already initialized, skipping', tag: 'DI');
     return;
   }
 
+  DebugLogger.log('[DI] Initializing dependencies...', tag: 'DI');
+
+  // External dependencies
   getIt.registerLazySingleton<Dio>(() {
     final dio = Dio();
     dio.options.baseUrl = 'https://${WPConfig.url}';
@@ -47,24 +71,83 @@ Future<void> initDependencies() async {
     () => NetworkInfoImpl(connectivity),
   );
 
+  // Core services
+  getIt.registerLazySingleton<AudioFocusManager>(
+    () => AudioFocusManager.instance,
+  );
+  getIt.registerLazySingleton<SystemVolumeService>(() {
+    final svc = SystemVolumeService();
+    svc.ensureInitialized();
+    return svc;
+  });
+  getIt.registerLazySingleton<NetworkStatusService>(
+    () => NetworkStatusService.instance,
+  );
+
+  // Initialize features
   _initRadio();
   _initShoutbox();
   _initWordPress();
+
+  // Initialize network status service
+  await getIt<NetworkStatusService>().initialize();
+
+  DebugLogger.log('[DI] Dependencies initialized successfully', tag: 'DI');
 }
 
 void _initRadio() {
+  // Data sources
   getIt.registerLazySingleton<RadioRemoteDataSource>(
     () => RadioRemoteDataSourceImpl(apiClient: getIt()),
   );
+  getIt.registerLazySingleton<RadioPlayerRemoteDataSource>(
+    () => RadioPlayerRemoteDataSourceImpl(),
+  );
 
+  // Services
+  getIt.registerLazySingleton<AlbumArtService>(
+    () => AlbumArtService.instance,
+  );
+
+  // Repositories
   getIt.registerLazySingleton<RadioRepository>(
     () => RadioRepositoryImpl(remoteDataSource: getIt()),
   );
+  getIt.registerLazySingleton<RadioPlayerRepository>(
+    () => RadioPlayerRepositoryImpl(
+      remoteDataSource: getIt(),
+      albumArtService: getIt(),
+    ),
+  );
+  getIt.registerLazySingleton<AlbumArtRepository>(
+    () => AlbumArtRepositoryImpl(
+      dio: getIt(),
+      azuracastBaseUrl: null,
+      azuracastStationId: null,
+    ),
+  );
 
+  // Use cases
   getIt.registerLazySingleton(() => GetRadioConfig(getIt()));
+  getIt.registerLazySingleton(() => InitializeRadioPlayer(getIt()));
+  getIt.registerLazySingleton(() => PlayRadio(getIt()));
+  getIt.registerLazySingleton(() => PauseRadio(getIt()));
+  getIt.registerLazySingleton(() => ResetRadioPlayer(getIt()));
+  getIt.registerLazySingleton(() => GetAlbumArtUrl(getIt()));
 
-  getIt.registerFactory(
+  // BLoCs
+  getIt.registerLazySingleton(
     () => RadioBloc(getRadioConfig: getIt()),
+  );
+  getIt.registerLazySingleton(
+    () => RadioPlayerBloc(
+      initializeRadioPlayer: getIt(),
+      playRadio: getIt(),
+      pauseRadio: getIt(),
+      resetRadioPlayer: getIt(),
+      repository: getIt(),
+      radioConfigBloc: getIt<RadioBloc>(),
+    ),
   );
 }
 

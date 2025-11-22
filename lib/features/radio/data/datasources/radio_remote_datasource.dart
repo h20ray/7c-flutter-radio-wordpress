@@ -12,7 +12,7 @@ class RadioRemoteDataSourceImpl implements RadioRemoteDataSource {
 
   @override
   Future<RadioModel> getRadioConfig() async {
-    final response = await apiClient.get('/wp-json/tujuhcahaya/v2/radio/config');
+    final response = await apiClient.get('/wp-json/tujuhcahaya/v2/radio-config');
     return RadioModel.fromJson(response.data as Map<String, dynamic>);
   }
 }

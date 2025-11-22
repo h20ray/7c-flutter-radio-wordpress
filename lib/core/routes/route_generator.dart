@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../pages/loading_app_page.dart';
+import '../../features/radio/presentation/pages/radio_page.dart';
 import 'app_routes.dart';
 
 class RouteGenerator {
@@ -16,6 +17,10 @@ class RouteGenerator {
           builder: (_) => const Scaffold(
             body: Center(child: Text('Home Page')),
           ),
+        );
+      case AppRoutes.radio:
+        return MaterialPageRoute(
+          builder: (_) => const RadioPage(),
         );
       default:
         return MaterialPageRoute(

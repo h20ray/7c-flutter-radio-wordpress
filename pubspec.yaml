@@ -37,6 +37,11 @@ dependencies:
   radio_player: ^2.2.1
   volume_regulator: ^2.4.2
 
+  palette_generator: ^0.3.3
+
+  cached_network_image: ^3.2.0
+  url_launcher: ^6.2.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

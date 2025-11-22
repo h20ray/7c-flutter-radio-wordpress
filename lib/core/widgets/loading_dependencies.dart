@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 import '../app/loading_state_provider.dart';
+import '../services/palette_service.dart';
 import '../../config/wp_config.dart';
 
 class LoadingDependencies extends StatefulWidget {
@@ -17,8 +18,64 @@ class LoadingDependencies extends StatefulWidget {
 }
 
 class _LoadingDependenciesState extends State<LoadingDependencies> {
-  final Color _textColor = Colors.white.withValues(alpha: 0.9);
-  final Color _progressBarColor = WPConfig.primaryColor;
+  Color? _textColor;
+  Color? _progressBarColor;
+  final PaletteService _paletteService = PaletteService();
+
+  @override
+  void initState() {
+    super.initState();
+    _analyzeImageColors();
+  }
+
+  double _calculateLuminance(Color color) {
+    return color.computeLuminance();
+  }
+
+  bool _isLightColor(Color color) {
+    return _calculateLuminance(color) > 0.5;
+  }
+
+  Color _getContrastingTextColor(Color backgroundColor) {
+    final isLight = _isLightColor(backgroundColor);
+    return isLight 
+        ? Colors.black.withValues(alpha: 0.9)
+        : Colors.white.withValues(alpha: 0.9);
+  }
+
+  Color _getProgressBarColor(Color backgroundColor) {
+    final isLight = _isLightColor(backgroundColor);
+    if (isLight) {
+      final hsl = HSLColor.fromColor(WPConfig.primaryColor);
+      return hsl.withLightness((hsl.lightness * 0.7).clamp(0.0, 1.0)).toColor();
+    }
+    return WPConfig.primaryColor;
+  }
+
+  Future<void> _analyzeImageColors() async {
+    try {
+      final palette = await _paletteService.fetchForImage(
+        const AssetImage('assets/others/loading.png'),
+        cacheKey: 'loading_image',
+      );
+
+      final dominantColor = palette.dominant;
+      
+      if (mounted) {
+        setState(() {
+          _textColor = _getContrastingTextColor(dominantColor);
+          _progressBarColor = _getProgressBarColor(dominantColor);
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _textColor = Colors.white.withValues(alpha: 0.9);
+          _progressBarColor = WPConfig.primaryColor;
+        });
+      }
+    }
+  }
 
   String _getStatusTranslationKey(LoadingStatus status) {
     switch (status) {
@@ -49,6 +106,9 @@ class _LoadingDependenciesState extends State<LoadingDependencies> {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final statusKey = _getStatusTranslationKey(widget.loadingState.status);
+    
+    final textColor = _textColor ?? Colors.white.withValues(alpha: 0.9);
+    final progressColor = _progressBarColor ?? WPConfig.primaryColor;
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -97,7 +157,7 @@ class _LoadingDependenciesState extends State<LoadingDependencies> {
                     Text(
                       statusKey.tr(),
                       style: TextStyle(
-                        color: _textColor,
+                        color: textColor,
                         fontSize: 14,
                         fontWeight: FontWeight.w400,
                         letterSpacing: 0.5,
@@ -108,7 +168,7 @@ class _LoadingDependenciesState extends State<LoadingDependencies> {
                       value: widget.loadingState.progress,
                       minHeight: 2.0,
                       backgroundColor: Colors.white.withValues(alpha: 0.2),
-                      valueColor: AlwaysStoppedAnimation<Color>(_progressBarColor),
+                      valueColor: AlwaysStoppedAnimation<Color>(progressColor),
                     ),
                   ],
                 ),
