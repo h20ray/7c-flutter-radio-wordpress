@@ -11,6 +11,8 @@ import 'core/routes/app_routes.dart';
 import 'core/routes/route_generator.dart';
 import 'core/themes/app_theme.dart';
 
+final RouteObserver<ModalRoute<void>> routeObserver = RouteObserver<ModalRoute<void>>();
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
@@ -52,6 +54,7 @@ class TujuhCahayaApp extends StatelessWidget {
         locale: context.locale,
         theme: theme,
         darkTheme: darkTheme,
+        navigatorObservers: [routeObserver],
         onGenerateRoute: RouteGenerator.onGenerate,
         initialRoute: AppRoutes.initial,
         debugShowCheckedModeBanner: false,

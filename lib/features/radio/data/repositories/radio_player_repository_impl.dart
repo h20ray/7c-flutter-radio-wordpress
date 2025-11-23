@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:dartz/dartz.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../config/radio_config.dart';
+import '../../../../core/models/notification_update_state.dart';
+import '../../../../core/utils/exponential_backoff.dart';
 import '../../domain/entities/radio_entity.dart';
 import '../../domain/entities/radio_player_entity.dart';
 import '../../domain/repositories/radio_player_repository.dart';
@@ -22,10 +24,15 @@ class RadioPlayerRepositoryImpl implements RadioPlayerRepository {
   StreamSubscription<PlaybackState>? _playbackStateSubscription;
   StreamSubscription<Metadata>? _metadataSubscription;
   StreamSubscription<RemoteCommand>? _remoteCommandSubscription;
+  StreamSubscription? _albumArtSubscription;
 
   // Guard against duplicate initialization
   bool _isInitializing = false;
   RadioEntity? _currentConfig;
+
+  // Enhanced notification update tracking
+  NotificationUpdateState _notificationState = NotificationUpdateState.initial();
+  Timer? _notificationUpdateTimer;
 
   // Idempotent play mechanism
   Future<void>? _pendingPlayOperation;
@@ -50,6 +57,7 @@ class RadioPlayerRepositoryImpl implements RadioPlayerRepository {
     required this.albumArtService,
   }) {
     _setupStreamListeners();
+    _setupAlbumArtListener();
   }
 
   /// Set up stream listeners to convert data source events to domain entities
@@ -117,17 +125,13 @@ class RadioPlayerRepositoryImpl implements RadioPlayerRepository {
           errorMessage: null,
         ));
 
-        // Fetch album art for new metadata
+        // Fetch album art for new metadata using centralized service
+        // Only fetch album art if audio has actually started playing (not during pre-buffering)
         if ((_currentConfig?.showAlbumCover ?? false) &&
             (newArtist.isNotEmpty || newTitle.isNotEmpty) &&
             _currentConfig != null &&
             (!RadioConfig.delayMetadataUntilAudioStarts || _isAudioActuallyPlaying)) {
-          final albumArtUrl = await albumArtService.getAlbumArtUrl(newArtist, newTitle, _currentConfig!);
-          if (albumArtUrl != null && albumArtUrl.isNotEmpty) {
-            _updateState(_currentState.copyWith(
-              currentAlbumArtUrl: albumArtUrl,
-            ));
-          }
+          await albumArtService.fetchAndBroadcast(newArtist, newTitle, _currentConfig!);
         }
       },
       onError: (error) {
@@ -154,6 +158,153 @@ class RadioPlayerRepositoryImpl implements RadioPlayerRepository {
         ));
       },
     );
+  }
+
+  /// Set up album art listener to update state when album art changes
+  void _setupAlbumArtListener() {
+    _albumArtSubscription = albumArtService.albumArtStream.listen(
+      (albumArtState) async {
+        // Update state with new album art URL
+        String? albumArtUrl;
+        if (albumArtState.hasUrl) {
+          albumArtUrl = albumArtState.url;
+        }
+        
+        _updateState(_currentState.copyWith(
+          currentAlbumArtUrl: albumArtUrl,
+        ));
+
+        // Update notification with new album art using exponential backoff
+        // Only update notifications if audio has actually started playing (not during pre-buffering)
+        if (_currentConfig != null && 
+            albumArtState.artist != null && 
+            albumArtState.title != null &&
+            (!RadioConfig.delayMetadataUntilAudioStarts || _isAudioActuallyPlaying)) {
+          await _updateNotificationWithBackoff(
+            artist: albumArtState.artist!,
+            title: albumArtState.title!,
+            artworkUrl: albumArtUrl,
+          );
+        }
+      },
+      onError: (error) {
+        // Album art errors are not critical, just log them
+        DebugLogger.log('[RadioPlayerRepository] Album art error: $error', tag: 'RadioPlayerRepository');
+      },
+    );
+  }
+
+  /// Update notification with exponential backoff retry logic
+  Future<void> _updateNotificationWithBackoff({
+    required String artist,
+    required String title,
+    String? artworkUrl,
+  }) async {
+    // Create new notification state
+    final newNotificationState = NotificationUpdateState(
+      artist: artist,
+      title: title,
+      artworkUrl: artworkUrl,
+    );
+
+    // Check if this is the same content as current state
+    if (_notificationState.isSameContent(newNotificationState) && 
+        !_notificationState.isStale) {
+      if (RadioConfig.logNotificationUpdates) {
+        DebugLogger.log('[RadioPlayerRepository] Skipping notification update - same content and not stale', tag: 'RadioPlayerRepository');
+      }
+      return;
+    }
+
+    // Cancel any pending notification update
+    _notificationUpdateTimer?.cancel();
+
+    // Start new notification update with exponential backoff
+    _notificationState = NotificationUpdateState.updating(
+      artist: artist,
+      title: title,
+      artworkUrl: artworkUrl,
+      maxAttempts: RadioConfig.notificationMaxRetries,
+    );
+
+    final backoff = ExponentialBackoff(
+      maxRetries: RadioConfig.notificationMaxRetries,
+      initialDelayMs: RadioConfig.notificationInitialDelayMs,
+      multiplier: RadioConfig.notificationBackoffMultiplier,
+      maxDelayMs: RadioConfig.notificationMaxDelayMs,
+    );
+
+    try {
+      await backoff.execute(
+        () async {
+          if (RadioConfig.logNotificationUpdates) {
+            DebugLogger.log('[RadioPlayerRepository] Updating notification (attempt ${_notificationState.attemptCount + 1}):', tag: 'RadioPlayerRepository');
+            DebugLogger.log('  - Artist: $artist', tag: 'RadioPlayerRepository');
+            DebugLogger.log('  - Title: $title', tag: 'RadioPlayerRepository');
+            DebugLogger.log('  - Artwork URL: $artworkUrl', tag: 'RadioPlayerRepository');
+          }
+
+          await remoteDataSource.setCustomMetadata(
+            artist: artist,
+            title: title,
+            artworkUrl: artworkUrl,
+          );
+
+          if (RadioConfig.logNotificationUpdates) {
+            DebugLogger.log('[RadioPlayerRepository] Notification update successful', tag: 'RadioPlayerRepository');
+          }
+        },
+        shouldRetry: (error) {
+          // Retry on network errors, timeouts, but not on validation errors
+          return error.toString().contains('timeout') ||
+                 error.toString().contains('network') ||
+                 error.toString().contains('connection');
+        },
+        onRetry: (attempt, error) {
+          if (RadioConfig.logNotificationUpdates) {
+            DebugLogger.log('[RadioPlayerRepository] Notification update failed (attempt $attempt): $error', tag: 'RadioPlayerRepository');
+            DebugLogger.log('[RadioPlayerRepository] Retrying in ${backoff.getDelayForAttempt(attempt - 1)}ms...', tag: 'RadioPlayerRepository');
+          }
+          
+          _notificationState = _notificationState.copyWith(
+            attemptCount: attempt,
+            lastError: error.toString(),
+            isUpdating: true,
+            hasFailed: false,
+          );
+        },
+      );
+
+      // Success
+      _notificationState = NotificationUpdateState.success(
+        artist: artist,
+        title: title,
+        artworkUrl: artworkUrl,
+        attemptCount: _notificationState.attemptCount,
+        maxAttempts: RadioConfig.notificationMaxRetries,
+        lastAttemptTime: _notificationState.lastAttemptTime,
+      );
+
+      if (RadioConfig.logNotificationUpdates) {
+        DebugLogger.log('[RadioPlayerRepository] Notification update completed successfully', tag: 'RadioPlayerRepository');
+      }
+
+    } catch (error) {
+      // Final failure
+      _notificationState = NotificationUpdateState.failed(
+        artist: artist,
+        title: title,
+        artworkUrl: artworkUrl,
+        attemptCount: _notificationState.attemptCount,
+        maxAttempts: RadioConfig.notificationMaxRetries,
+        error: error.toString(),
+        lastAttemptTime: _notificationState.lastAttemptTime,
+      );
+
+      if (RadioConfig.logNotificationUpdates) {
+        DebugLogger.log('[RadioPlayerRepository] Notification update failed after all retries: $error', tag: 'RadioPlayerRepository');
+      }
+    }
   }
 
   /// Update the current state and emit to stream with debouncing
@@ -652,9 +803,11 @@ class RadioPlayerRepositoryImpl implements RadioPlayerRepository {
   void dispose() {
     _retryTimer?.cancel();
     _debounceTimer?.cancel();
+    _notificationUpdateTimer?.cancel();
     _playbackStateSubscription?.cancel();
     _metadataSubscription?.cancel();
     _remoteCommandSubscription?.cancel();
+    _albumArtSubscription?.cancel();
     _playerStateController.close();
   }
 }

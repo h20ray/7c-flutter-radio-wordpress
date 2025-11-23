@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class WPConfig {
   static const String appName = 'Tujuh Cahaya Radio';
 
-  static const String url = 'upradio.id';
+  static const String url = 'tujuhcahaya.com';
 
   static const String oneSignalId = '';
 
@@ -13,4 +13,3 @@ class WPConfig {
 
   static bool enableHomeTabCache = true;
 }
-

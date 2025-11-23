@@ -22,22 +22,6 @@ class RadioBannerSection extends StatelessWidget {
       builder: (context, state) {
         return state.maybeWhen(
           loaded: (radioEntity) {
-            if (radioEntity.banners.isEmpty) {
-              return Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Center(
-                  child: Text(
-                    'No banners configured',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                  ),
-                ),
-              );
-            }
             return RadioBannerWidget(banners: radioEntity.banners);
           },
           orElse: () => Container(

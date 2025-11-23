@@ -5,7 +5,7 @@ publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.9.2
+  sdk: ^3.10.0
 
 dependencies:
   flutter:
@@ -16,12 +16,12 @@ dependencies:
   flutter_bloc: ^9.1.1
   bloc: ^9.1.0
   dartz: ^0.10.1
-  get_it: ^8.2.0
-  freezed_annotation: ^2.4.4
+  get_it: ^9.1.0
+  freezed_annotation: ^3.1.0
   equatable: ^2.0.7
 
   dio: ^5.0.3
-  connectivity_plus: ^6.0.3
+  connectivity_plus: ^7.0.0
   hive: ^2.0.5
   hive_flutter: ^1.1.0
   sqflite: ^2.3.0
@@ -31,24 +31,27 @@ dependencies:
   adaptive_theme: ^3.4.1
   easy_localization: ^3.0.2
 
-  firebase_core: ^3.1.1
+  firebase_core: ^4.2.1
   onesignal_flutter: ^5.2.1
 
   radio_player: ^2.2.1
   volume_regulator: ^2.4.2
 
-  palette_generator: ^0.3.3
-
   cached_network_image: ^3.2.0
   url_launcher: ^6.2.0
+
+  material_color_utilities: ^0.13.0
+
+dependency_overrides:
+  material_color_utilities: ^0.13.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  flutter_lints: ^5.0.0
-  build_runner: ^2.1.5
-  freezed: ^2.5.2
+  flutter_lints: ^6.0.0
+  build_runner: ^2.10.4
+  freezed: ^3.2.3
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
