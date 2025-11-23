@@ -1,5 +1,6 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 import '../app/initialization_provider.dart';
 import '../app/loading_state_provider.dart';
@@ -93,46 +94,21 @@ class _LoadingAppPageState extends State<LoadingAppPage> {
   }
 
   void _navigateToAppropriateScreen() {
-    final radioState = _appInitializer.radioState;
-    DebugLogger.log('Determining navigation target...', tag: 'LoadingPage');
-    DebugLogger.log('Radio state: ${radioState?.runtimeType}', tag: 'LoadingPage');
-    
-    if (radioState == null) {
-      DebugLogger.log('Radio state is null, defaulting to home', tag: 'LoadingPage');
-      DebugLogger.logNavigation(AppRoutes.home, reason: 'Radio state null');
-      Navigator.of(context).pushReplacementNamed(AppRoutes.home);
-      return;
-    }
-    
-    radioState.maybeWhen(
-      loaded: (radioEntity) {
-        DebugLogger.log('Radio config loaded - enabled: ${radioEntity.enabled}', tag: 'LoadingPage');
-        if (radioEntity.enabled) {
-          DebugLogger.logNavigation(AppRoutes.radio, reason: 'Radio enabled');
-          Navigator.of(context).pushReplacementNamed(AppRoutes.radio);
-        } else {
-          DebugLogger.logNavigation(AppRoutes.home, reason: 'Radio disabled');
-          Navigator.of(context).pushReplacementNamed(AppRoutes.home);
-        }
-      },
-      error: (failure) {
-        DebugLogger.logError('Radio config error: ${failure.message}', tag: 'LoadingPage');
-        DebugLogger.logNavigation(AppRoutes.home, reason: 'Radio config error');
-        Navigator.of(context).pushReplacementNamed(AppRoutes.home);
-      },
-      orElse: () {
-        DebugLogger.log('Radio state not loaded, defaulting to home', tag: 'LoadingPage');
-        DebugLogger.logNavigation(AppRoutes.home, reason: 'Radio state not available');
-        Navigator.of(context).pushReplacementNamed(AppRoutes.home);
-      },
-    );
+    DebugLogger.log('Navigating to home screen', tag: 'LoadingPage');
+    DebugLogger.logNavigation(AppRoutes.home, reason: 'Default landing page');
+    Navigator.of(context).pushReplacementNamed(AppRoutes.home);
   }
 
   @override
   Widget build(BuildContext context) {
     if (_isCheckingConnectivity) {
       _loadingNotifier.updateProgress(0.0, LoadingStatus.checkingConnection);
-      return LoadingDependencies(loadingState: _loadingNotifier.state);
+      return ListenableBuilder(
+        listenable: _loadingNotifier,
+        builder: (context, _) {
+          return LoadingDependencies(loadingState: _loadingNotifier.state);
+        },
+      );
     }
 
     if (_connectivityResult == ConnectivityResult.none) {
@@ -141,7 +117,7 @@ class _LoadingAppPageState extends State<LoadingAppPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.wifi_off, size: 64, color: Colors.grey),
+              const Icon(LucideIcons.wifi_off, size: 64, color: Colors.grey),
               const SizedBox(height: 16),
               const Text('No Internet Connection'),
               const SizedBox(height: 16),
@@ -161,7 +137,12 @@ class _LoadingAppPageState extends State<LoadingAppPage> {
       );
     }
 
-    return LoadingDependencies(loadingState: _loadingNotifier.state);
+    return ListenableBuilder(
+      listenable: _loadingNotifier,
+      builder: (context, _) {
+        return LoadingDependencies(loadingState: _loadingNotifier.state);
+      },
+    );
   }
 }
 

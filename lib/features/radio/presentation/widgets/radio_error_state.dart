@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../../core/error/failures.dart';
 import '../bloc/radio_bloc.dart';
 
@@ -33,7 +34,7 @@ class RadioErrorState extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, size: 48, color: Colors.red),
+            const Icon(LucideIcons.circle_alert, size: 48, color: Colors.red),
             const SizedBox(height: 12),
             Text(
               'radio_error_title'.tr(),
@@ -53,7 +54,7 @@ class RadioErrorState extends StatelessWidget {
               onPressed: () {
                 context.read<RadioBloc>().add(RadioEvent.getRadioConfig());
               },
-              icon: const Icon(Icons.refresh),
+              icon: const Icon(LucideIcons.refresh_cw),
               label: Text('radio_retry'.tr()),
             ),
           ],

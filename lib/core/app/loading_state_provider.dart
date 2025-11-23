@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 enum LoadingStatus {
   checkingConnection,
   loadingConfig,
@@ -35,7 +37,7 @@ class LoadingState {
   }
 }
 
-class LoadingStateNotifier {
+class LoadingStateNotifier extends ChangeNotifier {
   LoadingState _state = const LoadingState();
 
   LoadingState get state => _state;
@@ -45,14 +47,17 @@ class LoadingStateNotifier {
       progress: progress.clamp(0.0, 1.0),
       status: status,
     );
+    notifyListeners();
   }
 
   void setError(String errorMessage) {
     _state = _state.copyWith(errorMessage: errorMessage);
+    notifyListeners();
   }
 
   void reset() {
     _state = const LoadingState();
+    notifyListeners();
   }
 }
 

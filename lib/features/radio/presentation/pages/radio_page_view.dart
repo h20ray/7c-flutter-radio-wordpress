@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:adaptive_theme/adaptive_theme.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import '../bloc/radio_bloc.dart';
 import '../widgets/radio_hero_section.dart';
 import '../widgets/radio_now_playing_card.dart';
@@ -41,7 +42,7 @@ class RadioPageView extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.radio_button_off, size: 48, color: Colors.grey),
+          const Icon(LucideIcons.radio, size: 48, color: Colors.grey),
           const SizedBox(height: 12),
           Text(
             'radio_disabled_title'.tr(),
@@ -69,7 +70,6 @@ class _RadioHeroLayout extends StatefulWidget {
 class _RadioHeroLayoutState extends State<_RadioHeroLayout> {
   @override
   Widget build(BuildContext context) {
-    // M3 Responsive Layout using CustomScrollView with overlay
     return Stack(
       children: [
         CustomScrollView(
@@ -82,21 +82,27 @@ class _RadioHeroLayoutState extends State<_RadioHeroLayout> {
               backgroundColor: Theme.of(context).colorScheme.surface,
               surfaceTintColor: Theme.of(context).colorScheme.surfaceTint,
               leading: Padding(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsetsDirectional.only(
+                  start: 16,
+                  end: 8,
+                  top: 8,
+                  bottom: 8,
+                ),
                 child: Image.asset(
                   Theme.of(context).brightness == Brightness.dark
                       ? 'assets/others/horizontal_logo_dark.png'
                       : 'assets/others/horizontal_logo_light.png',
                   fit: BoxFit.contain,
+                  height: 32,
                 ),
               ),
-              leadingWidth: 120,
+              leadingWidth: 140,
               actions: [
                 IconButton(
                   onPressed: () {
                     // TODO: Navigate to notifications page
                   },
-                  icon: const Icon(Icons.notifications_outlined, size: 20),
+                  icon: const Icon(LucideIcons.bell, size: 20),
                   tooltip: 'Notifications',
                   padding: EdgeInsets.zero,
                   visualDensity: VisualDensity.compact,
@@ -121,8 +127,8 @@ class _RadioHeroLayoutState extends State<_RadioHeroLayout> {
                           Theme.of(context).brightness == Brightness.dark;
                       return Icon(
                         isDark
-                            ? Icons.light_mode_outlined
-                            : Icons.dark_mode_outlined,
+                            ? LucideIcons.sun
+                            : LucideIcons.moon,
                         size: 20,
                       );
                     },
@@ -139,7 +145,7 @@ class _RadioHeroLayoutState extends State<_RadioHeroLayout> {
                   padding: const EdgeInsets.only(right: 4),
                   child: IconButton(
                     onPressed: () => _showInfoDialog(context),
-                    icon: const Icon(Icons.info_outline, size: 20),
+                    icon: const Icon(LucideIcons.info, size: 20),
                     tooltip: 'Info',
                     padding: EdgeInsets.zero,
                     visualDensity: VisualDensity.compact,
@@ -151,10 +157,7 @@ class _RadioHeroLayoutState extends State<_RadioHeroLayout> {
                 ),
               ],
               flexibleSpace: FlexibleSpaceBar(
-                stretchModes: const [
-                  StretchMode.zoomBackground,
-                  StretchMode.blurBackground,
-                ],
+                stretchModes: const [],
                 titlePadding: const EdgeInsetsDirectional.only(
                   start: 12,
                   bottom: 28,
@@ -169,31 +172,21 @@ class _RadioHeroLayoutState extends State<_RadioHeroLayout> {
               ),
             ),
 
-            // Content Adapter
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const SizedBox(height: 12),
-
-                    // Greeting (Moved from Hero)
+                    const SizedBox(height: 80),
                     buildGreeting(context),
-
                     const SizedBox(height: 12),
-
-                    // Banner / Ads Section
                     const AspectRatio(
                       aspectRatio: 5 / 4,
                       child: RadioBannerSection(),
                     ),
-
                     const SizedBox(height: 16),
-
-                    // Placeholder content for scroll testing
                     _PlaceholderScrollContent(),
-
                     const SizedBox(height: 60),
                   ],
                 ),
@@ -201,11 +194,10 @@ class _RadioHeroLayoutState extends State<_RadioHeroLayout> {
             ),
           ],
         ),
-        // Radio card overlay between FlexibleSpaceBar and content
         Positioned(
-          left: 12,
-          right: 12,
-          top: 120,
+          left: 16,
+          right: 16,
+          top: 80,
           child: const RadioNowPlayingCard(compact: false),
         ),
       ],
@@ -272,7 +264,7 @@ class _RadioHeroLayoutState extends State<_RadioHeroLayout> {
               Row(
                 children: [
                   Icon(
-                    Icons.info_outline,
+                    LucideIcons.info,
                     color: theme.colorScheme.primary,
                     size: 24,
                   ),
@@ -286,7 +278,7 @@ class _RadioHeroLayoutState extends State<_RadioHeroLayout> {
                   const Spacer(),
                   IconButton(
                     onPressed: () => Navigator.of(dialogContext).pop(),
-                    icon: const Icon(Icons.close),
+                    icon: const Icon(LucideIcons.x),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(
                       minWidth: 32,

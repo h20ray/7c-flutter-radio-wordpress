@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/services/system_volume_service.dart';
@@ -94,10 +95,10 @@ class _RadioPlayerControlsState extends State<RadioPlayerControls> {
                       onPressed: _toggleMute,
                       icon: Icon(
                         _isMuted || _volume == 0
-                            ? Icons.volume_off
+                            ? LucideIcons.volume_x
                             : _volume < 0.5
-                                ? Icons.volume_down
-                                : Icons.volume_up,
+                                ? LucideIcons.volume_1
+                                : LucideIcons.volume_2,
                         color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
                       ),
                       tooltip: _isMuted ? 'Unmute' : 'Mute',
@@ -145,7 +146,7 @@ class _RadioPlayerControlsState extends State<RadioPlayerControls> {
                       );
                     },
                     iconSize: 28,
-                    icon: const Icon(Icons.featured_play_list_outlined),
+                    icon: const Icon(LucideIcons.list_music),
                     tooltip: RadioConfig.requestWebViewTitle,
                   ),
                   BlocBuilder<RadioPlayerBloc, RadioPlayerState>(
@@ -197,7 +198,7 @@ class _RadioPlayerControlsState extends State<RadioPlayerControls> {
                                     ),
                                   )
                                 : Icon(
-                                    isPlaying ? Icons.pause : Icons.play_arrow,
+                                    isPlaying ? LucideIcons.pause : LucideIcons.play,
                                     key: const ValueKey('center-pp'),
                                     size: 32,
                                   ),
@@ -211,7 +212,7 @@ class _RadioPlayerControlsState extends State<RadioPlayerControls> {
                       Navigator.pushNamed(context, AppRoutes.shoutbox);
                     },
                     iconSize: 28,
-                    icon: const Icon(Icons.chat_bubble_outline),
+                    icon: const Icon(LucideIcons.message_circle),
                     tooltip: 'Shoutbox',
                   ),
                 ],

@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/widgets/album_art_widget.dart';
+import '../../../../core/services/palette_service.dart';
 import '../../../../main.dart';
 import '../bloc/radio_player_bloc.dart';
 import '../bloc/radio_player_state.dart';
@@ -195,15 +196,57 @@ class _CachedHeroContent extends StatelessWidget {
               ),
             ),
           ),
-          // Dark Gradient Overlay
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
+          BlocBuilder<RadioPlayerBloc, RadioPlayerState>(
+            builder: (context, state) {
+              String? artUrl;
+              state.maybeWhen(
+                ready: (playing, p2, p3, p4, currentAlbumArtUrl, p6, p7) =>
+                    artUrl = currentAlbumArtUrl,
+                orElse: () {},
+              );
+              
+              final paletteService = PaletteService();
+              final defaultGradient = LinearGradient(
                 begin: Alignment.topCenter,
-                end: Alignment(0, 0.6),
-                colors: [Color(0xCC0B1216), Color(0x000B1216)],
-              ),
-            ),
+                end: Alignment.bottomCenter,
+                colors: [
+                  const Color(0xCC0B1216),
+                  const Color(0x000B1216),
+                ],
+              );
+              
+              if (artUrl == null || artUrl!.isEmpty) {
+                return Container(decoration: BoxDecoration(gradient: defaultGradient));
+              }
+              
+              return FutureBuilder(
+                future: paletteService.fetchForUrl(artUrl!),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return Container(decoration: BoxDecoration(gradient: defaultGradient));
+                  }
+                  
+                  final palette = snapshot.data!;
+                  final gradientColors = [
+                    palette.darkVibrant.withValues(alpha: 0.9),
+                    palette.dominant.withValues(alpha: 0.85),
+                    palette.vibrant.withValues(alpha: 0.8),
+                    palette.muted.withValues(alpha: 0.75),
+                  ];
+                  
+                  return Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: gradientColors,
+                        stops: const [0.0, 0.3, 0.7, 1.0],
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
           ),
           // Content (Greeting) - Removed for strict M3 AppBar
           // The title is now handled by the SliverAppBar.large title property

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'dart:math';
 import '../../domain/entities/radio_entity.dart';
 
@@ -76,7 +77,7 @@ class RadioBannerWidget extends StatelessWidget {
               color: const Color(0xFF625191),
               child: const Center(
                 child: Icon(
-                  Icons.error_outline,
+                  LucideIcons.circle_alert,
                   color: Colors.white70,
                   size: 32,
                 ),

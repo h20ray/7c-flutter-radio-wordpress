@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../config/wp_config.dart';
+import 'design_tokens.dart';
 
 class AppTheme {
   static ThemeData get lightTheme {
@@ -8,13 +9,27 @@ class AppTheme {
       brightness: Brightness.light,
     );
 
+    final m3ExpressiveColorScheme = ColorScheme.light(
+      primary: DesignTokens.colorHeaderGradientStart,
+      secondary: DesignTokens.colorSecondaryAccent,
+      tertiary: DesignTokens.colorPrimaryAccent,
+      surface: DesignTokens.colorCard,
+      error: Colors.red,
+      onPrimary: Colors.white,
+      onSecondary: Colors.white,
+      onTertiary: Colors.white,
+      onSurface: DesignTokens.colorTextPrimary,
+      onError: Colors.white,
+      outline: DesignTokens.colorBorderSubtle,
+    );
+
     return ThemeData(
       useMaterial3: true,
-      colorScheme: colorScheme,
+      colorScheme: m3ExpressiveColorScheme,
       fontFamily: 'Inter',
-      scaffoldBackgroundColor: colorScheme.surface,
-      // Material 3 Typography Scale
-      textTheme: _buildTextTheme(colorScheme, Brightness.light),
+      scaffoldBackgroundColor: m3ExpressiveColorScheme.surface,
+      // Material 3 Typography Scale - M3 Expressive
+      textTheme: _buildTextTheme(m3ExpressiveColorScheme, Brightness.light),
       
       // Material 3 Elevation System
       cardTheme: CardThemeData(
@@ -109,25 +124,40 @@ class AppTheme {
       brightness: Brightness.dark,
     );
 
+    final m3ExpressiveColorScheme = ColorScheme.dark(
+      primary: DesignTokens.colorHeaderGradientStart,
+      secondary: DesignTokens.colorSecondaryAccent,
+      tertiary: DesignTokens.colorPrimaryAccent,
+      surface: const Color(0xFF1E1E1E),
+      error: Colors.red,
+      onPrimary: Colors.white,
+      onSecondary: Colors.white,
+      onTertiary: Colors.white,
+      onSurface: Colors.white,
+      onError: Colors.white,
+      outline: const Color(0xFF3A3A3A),
+    );
+
     return ThemeData(
       useMaterial3: true,
-      colorScheme: colorScheme,
+      colorScheme: m3ExpressiveColorScheme,
       fontFamily: 'Inter',
-      scaffoldBackgroundColor: colorScheme.surface,
+      scaffoldBackgroundColor: m3ExpressiveColorScheme.surface,
       
-      // Material 3 Typography Scale
-      textTheme: _buildTextTheme(colorScheme, Brightness.dark),
+      // Material 3 Typography Scale - M3 Expressive
+      textTheme: _buildTextTheme(m3ExpressiveColorScheme, Brightness.dark),
       
-      // Material 3 Elevation System
+      // Material 3 Elevation System - M3 Expressive with floating cards
       cardTheme: CardThemeData(
-        elevation: 1,
+        elevation: DesignTokens.elevationCard,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
           side: BorderSide.none,
         ),
         clipBehavior: Clip.antiAlias,
-        color: colorScheme.surfaceContainer,
+        color: m3ExpressiveColorScheme.surface,
         margin: EdgeInsets.zero,
+        shadowColor: Colors.black.withValues(alpha: 0.3),
       ),
       
       // AppBar Theme
@@ -231,10 +261,10 @@ class AppTheme {
         fontFamily: 'Inter',
       ),
       
-      // Headline styles (for section headers)
+      // Headline styles (for section headers) - M3 Expressive
       headlineLarge: TextStyle(
-        fontSize: 28,
-        fontWeight: FontWeight.w600,
+        fontSize: DesignTokens.fontSizeH1,
+        fontWeight: DesignTokens.fontWeightH1,
         letterSpacing: 0,
         color: colorScheme.onSurface,
         fontFamily: 'Inter',
@@ -254,10 +284,10 @@ class AppTheme {
         fontFamily: 'Inter',
       ),
       
-      // Title styles (for card titles)
+      // Title styles (for card titles) - M3 Expressive
       titleLarge: TextStyle(
-        fontSize: 20,
-        fontWeight: FontWeight.w600,
+        fontSize: DesignTokens.fontSizeNumbers,
+        fontWeight: DesignTokens.fontWeightNumbers,
         letterSpacing: 0,
         color: colorScheme.onSurface,
         fontFamily: 'Inter',
@@ -270,24 +300,24 @@ class AppTheme {
         fontFamily: 'Inter',
       ),
       titleSmall: TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.w600,
+        fontSize: DesignTokens.fontSizeH2,
+        fontWeight: DesignTokens.fontWeightH2,
         letterSpacing: 0.1,
         color: colorScheme.onSurface,
         fontFamily: 'Inter',
       ),
       
-      // Body styles (for content text)
+      // Body styles (for content text) - M3 Expressive
       bodyLarge: TextStyle(
-        fontSize: 14,
-        fontWeight: FontWeight.w400,
+        fontSize: DesignTokens.fontSizeBody,
+        fontWeight: DesignTokens.fontWeightBody,
         letterSpacing: 0.5,
         color: colorScheme.onSurface,
         fontFamily: 'Inter',
       ),
       bodyMedium: TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.w400,
+        fontSize: DesignTokens.fontSizeCaption,
+        fontWeight: DesignTokens.fontWeightCaption,
         letterSpacing: 0.25,
         color: colorScheme.onSurface,
         fontFamily: 'Inter',

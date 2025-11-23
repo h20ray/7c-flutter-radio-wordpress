@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:ui';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../../core/widgets/album_art_widget.dart';
 import '../../../../core/widgets/smooth_marquee_text.dart';
 import '../../../../core/services/palette_service.dart';
@@ -9,6 +10,8 @@ import '../../../../core/utils/palette_cache.dart';
 import '../../../../config/radio_config.dart';
 import '../../../../core/utils/debug_logger.dart';
 import '../../../../core/routes/app_routes.dart';
+import '../../../../core/models/album_art_state.dart';
+import '../../data/services/album_art_service.dart';
 import '../bloc/radio_player_bloc.dart';
 import '../bloc/radio_player_state.dart';
 import '../bloc/radio_player_event.dart';
@@ -350,12 +353,6 @@ class _CachedNowPlayingContentState extends State<_CachedNowPlayingContent> {
 
                     return Container(
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: gradientColors,
-                          stops: const [0.0, 0.3, 0.7, 1.0],
-                        ),
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
@@ -369,78 +366,106 @@ class _CachedNowPlayingContentState extends State<_CachedNowPlayingContent> {
                           ),
                         ],
                       ),
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: widget.artSize,
-                      height: widget.artSize,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.2),
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
                       clipBehavior: Clip.antiAlias,
-                      child: AlbumArtWidget.roundedRect(
-                        width: widget.artSize,
-                        height: widget.artSize,
-                        borderRadius: 12,
-                        filterQuality: FilterQuality.high,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      child: Stack(
                         children: [
-                          SmoothMarqueeAuto(
-                            text: widget.title?.trim().isNotEmpty == true
-                                ? widget.title!.trim()
-                                : RadioConfig.fallbackTitle,
-                            style: Theme.of(context).textTheme.titleMedium
-                                ?.copyWith(
-                                  color: _stableTextColor,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: -0.5,
+                          Positioned.fill(
+                            child: ImageFiltered(
+                              imageFilter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                              child: Transform.scale(
+                                scale: 1.2,
+                                child: _BlurredAlbumArtBackground(
+                                  filterQuality: FilterQuality.low,
                                 ),
-                            scrollDuration: const Duration(seconds: 12),
-                            pauseDuration: const Duration(seconds: 3),
+                              ),
+                            ),
                           ),
-                          const SizedBox(height: 4),
-                          SmoothMarqueeAuto(
-                            text: widget.artist?.trim().isNotEmpty == true
-                                ? widget.artist!.trim()
-                                : RadioConfig.fallbackArtist,
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(
-                                  color: _stableTextColor.withValues(
-                                    alpha: 0.8,
+                          Positioned.fill(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: gradientColors,
+                                  stops: const [0.0, 0.3, 0.7, 1.0],
+                                ),
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Container(
+                                  width: widget.artSize,
+                                  height: widget.artSize,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(8),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(alpha: 0.2),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ],
                                   ),
-                                  fontWeight: FontWeight.w500,
+                                  clipBehavior: Clip.antiAlias,
+                                  child: AlbumArtWidget.roundedRect(
+                                    width: widget.artSize,
+                                    height: widget.artSize,
+                                    borderRadius: 8,
+                                    filterQuality: FilterQuality.high,
+                                  ),
                                 ),
-                            scrollDuration: const Duration(seconds: 10),
-                            pauseDuration: const Duration(seconds: 3),
-                          ),
-                          const SizedBox(height: 8),
-                          _PlayerControlsRow(
-                            bgColor: dominant,
-                            textColor: _stableTextColor,
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      SmoothMarqueeAuto(
+                                        text: widget.title?.trim().isNotEmpty == true
+                                            ? widget.title!.trim()
+                                            : RadioConfig.fallbackTitle,
+                                        style: Theme.of(context).textTheme.titleMedium
+                                            ?.copyWith(
+                                              color: _stableTextColor,
+                                              fontWeight: FontWeight.w700,
+                                              letterSpacing: -0.5,
+                                            ),
+                                        scrollDuration: const Duration(seconds: 12),
+                                        pauseDuration: const Duration(seconds: 3),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      SmoothMarqueeAuto(
+                                        text: widget.artist?.trim().isNotEmpty == true
+                                            ? widget.artist!.trim()
+                                            : RadioConfig.fallbackArtist,
+                                        style: Theme.of(context).textTheme.bodyMedium
+                                            ?.copyWith(
+                                              color: _stableTextColor.withValues(
+                                                alpha: 0.8,
+                                              ),
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                        scrollDuration: const Duration(seconds: 10),
+                                        pauseDuration: const Duration(seconds: 3),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      _PlayerControlsRow(
+                                        bgColor: dominant,
+                                        textColor: _stableTextColor,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
-                    ),
-                  ],
-                ),
-              ),
-            );
+                    );
                   },
                 );
               },
@@ -499,7 +524,7 @@ class _PlayerControlsRow extends StatelessWidget {
               MaterialPageRoute(builder: (_) => _RequestWebViewPage()),
             );
           },
-          icon: Icons.featured_play_list_outlined,
+          icon: LucideIcons.list_music,
           bgColor: bgColor,
           textColor: textColor,
           size: buttonSize,
@@ -524,7 +549,7 @@ class _PlayerControlsRow extends StatelessWidget {
               ),
               icon: isLoading
                   ? null
-                  : (isPlaying ? Icons.pause : Icons.play_arrow),
+                  : (isPlaying ? LucideIcons.pause : LucideIcons.play),
               bgColor: bgColor,
               textColor: textColor,
               size: buttonSize,
@@ -538,7 +563,7 @@ class _PlayerControlsRow extends StatelessWidget {
           onPressed: () {
             Navigator.pushNamed(context, AppRoutes.shoutbox);
           },
-          icon: Icons.chat_bubble_outline,
+          icon: LucideIcons.message_circle,
           bgColor: bgColor,
           textColor: textColor,
           size: buttonSize,
@@ -628,6 +653,60 @@ class _GlassButton extends StatelessWidget {
     } else {
       return Colors.black;
     }
+  }
+}
+
+class _BlurredAlbumArtBackground extends StatelessWidget {
+  final FilterQuality filterQuality;
+
+  const _BlurredAlbumArtBackground({
+    this.filterQuality = FilterQuality.low,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<AlbumArtState>(
+      stream: AlbumArtService.instance.albumArtStream,
+      initialData: AlbumArtService.instance.currentState,
+      builder: (context, snapshot) {
+        final albumArtState = snapshot.data ?? AlbumArtService.instance.currentState;
+        
+        if (albumArtState.hasUrl) {
+          return Image.network(
+            albumArtState.url!,
+            fit: BoxFit.cover,
+            filterQuality: filterQuality,
+            errorBuilder: (context, error, stackTrace) {
+              return _buildFallbackImage(context);
+            },
+          );
+        }
+        
+        return _buildFallbackImage(context);
+      },
+    );
+  }
+
+  Widget _buildFallbackImage(BuildContext context) {
+    return Image.asset(
+      RadioConfig.fallbackArtworkPath,
+      fit: BoxFit.cover,
+      filterQuality: filterQuality,
+      errorBuilder: (context, error, stackTrace) {
+        return Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
+                Theme.of(context).colorScheme.primary.withValues(alpha: 0.4),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 }
 

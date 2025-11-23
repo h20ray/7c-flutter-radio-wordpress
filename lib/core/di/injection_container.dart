@@ -44,6 +44,9 @@ import '../../features/wordpress/domain/repositories/wordpress_repository.dart';
 import '../../features/wordpress/domain/usecases/get_posts.dart';
 import '../../features/wordpress/presentation/bloc/wordpress_bloc.dart';
 
+// Home feature imports
+import '../../features/home/presentation/bloc/home_bloc.dart';
+
 final getIt = GetIt.instance;
 
 Future<void> initDependencies() async {
@@ -88,6 +91,7 @@ Future<void> initDependencies() async {
   _initRadio();
   _initShoutbox();
   _initWordPress();
+  _initHome();
 
   // Initialize network status service
   await getIt<NetworkStatusService>().initialize();
@@ -186,6 +190,12 @@ void _initWordPress() {
 
   getIt.registerFactory(
     () => WordPressBloc(getPosts: getIt()),
+  );
+}
+
+void _initHome() {
+  getIt.registerFactory(
+    () => HomeBloc(),
   );
 }
 

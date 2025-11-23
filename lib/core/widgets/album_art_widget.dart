@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import '../models/album_art_state.dart';
 import '../../features/radio/data/services/album_art_service.dart';
 import '../../config/radio_config.dart';
@@ -216,7 +217,7 @@ class _AlbumArtWidgetState extends State<AlbumArtWidget> {
               ),
             ),
             child: Icon(
-              Icons.music_note,
+              LucideIcons.music,
               color: Colors.white,
               size: widget.width * 0.4,
             ),
