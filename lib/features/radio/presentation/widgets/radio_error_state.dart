@@ -28,13 +28,14 @@ class RadioErrorState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final errorColor = Theme.of(context).colorScheme.error;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(LucideIcons.circle_alert, size: 48, color: Colors.red),
+            Icon(LucideIcons.circle_alert, size: 48, color: errorColor),
             const SizedBox(height: 12),
             Text(
               'radio_error_title'.tr(),

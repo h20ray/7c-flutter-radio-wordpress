@@ -1,35 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../../core/themes/component_tokens.dart';
 import '../../../../core/themes/design_tokens.dart';
 import '../../data/models/mock_user_profile.dart';
+import 'radio_game_tabs.dart';
 
 class HeaderSection extends StatelessWidget {
   final MockUserProfile? userProfile;
+  final int selectedGameTab;
+  final ValueChanged<int> onGameTabChanged;
 
   const HeaderSection({
     super.key,
     this.userProfile,
+    required this.selectedGameTab,
+    required this.onGameTabChanged,
   });
 
   @override
   Widget build(BuildContext context) {
     final profile = userProfile ?? MockUserProfile.defaultProfile;
+    final tokens = HomeHeaderTokens.of(context);
+    final statusBarHeight = MediaQuery.of(context).padding.top;
 
     return Container(
-      height: 140,
+      height: 170 + statusBarHeight,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            DesignTokens.colorHeaderGradientStart,
-            DesignTokens.colorHeaderGradientEnd,
-          ],
+          colors: [tokens.backgroundStart, tokens.backgroundEnd],
         ),
       ),
       padding: EdgeInsets.only(
-        top: 32,
+        top: statusBarHeight + 32,
         left: DesignTokens.spacingL,
         right: DesignTokens.spacingL,
         bottom: DesignTokens.spacingL,
@@ -48,9 +53,9 @@ class HeaderSection extends StatelessWidget {
                       height: 40,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Colors.white.withValues(alpha: 0.2),
+                        color: tokens.avatarFill,
                         border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.3),
+                          color: tokens.avatarBorder,
                           width: 2,
                         ),
                       ),
@@ -63,7 +68,7 @@ class HeaderSection extends StatelessWidget {
                             )
                           : Icon(
                               LucideIcons.user,
-                              color: Colors.white,
+                              color: tokens.primaryText,
                               size: 20,
                             ),
                     ),
@@ -74,11 +79,13 @@ class HeaderSection extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            'home_header_listener_id'.tr(namedArgs: {'id': profile.listenerId}),
+                            'home_header_listener_id'.tr(
+                              namedArgs: {'id': profile.listenerId},
+                            ),
                             style: TextStyle(
                               fontSize: DesignTokens.fontSizeH2,
                               fontWeight: DesignTokens.fontWeightH2,
-                              color: Colors.white,
+                              color: tokens.primaryText,
                             ),
                             overflow: TextOverflow.ellipsis,
                             maxLines: 1,
@@ -87,7 +94,9 @@ class HeaderSection extends StatelessWidget {
                           Text(
                             profile.favoriteStation != null
                                 ? 'home_header_favorite_station'.tr(
-                                    namedArgs: {'station': profile.favoriteStation!},
+                                    namedArgs: {
+                                      'station': profile.favoriteStation!,
+                                    },
                                   )
                                 : 'home_header_now_playing'.tr(
                                     namedArgs: {'show': 'Radio Show'},
@@ -95,7 +104,7 @@ class HeaderSection extends StatelessWidget {
                             style: TextStyle(
                               fontSize: DesignTokens.fontSizeCaption,
                               fontWeight: DesignTokens.fontWeightCaption,
-                              color: Colors.white.withValues(alpha: 0.7),
+                              color: tokens.secondaryText,
                             ),
                             overflow: TextOverflow.ellipsis,
                             maxLines: 1,
@@ -116,8 +125,10 @@ class HeaderSection extends StatelessWidget {
                       horizontal: DesignTokens.spacingM,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusButton),
+                      color: tokens.badgeBackground,
+                      borderRadius: BorderRadius.circular(
+                        DesignTokens.cornerRadiusButton,
+                      ),
                     ),
                     child: Center(
                       child: Text(
@@ -125,7 +136,7 @@ class HeaderSection extends StatelessWidget {
                         style: TextStyle(
                           fontSize: DesignTokens.fontSizeCaption,
                           fontWeight: FontWeight.w600,
-                          color: Colors.white,
+                          color: tokens.badgeText,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -136,13 +147,13 @@ class HeaderSection extends StatelessWidget {
                     width: 32,
                     height: 32,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: tokens.tileBackground,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: IconButton(
                       padding: EdgeInsets.zero,
                       iconSize: 20,
-                      icon: Icon(LucideIcons.bell),
+                      icon: Icon(LucideIcons.bell, color: tokens.tileIcon),
                       onPressed: () {},
                     ),
                   ),
@@ -151,16 +162,43 @@ class HeaderSection extends StatelessWidget {
             ],
           ),
           SizedBox(height: DesignTokens.spacingL),
-          Text(
-            'home_header_your_radio_plan'.tr(),
-            style: TextStyle(
-              fontSize: DesignTokens.fontSizeBody,
-              color: Colors.white.withValues(alpha: 0.8),
-            ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.only(left: DesignTokens.spacingL),
+                  child: Text(
+                    _getGreeting().tr(),
+                    style: TextStyle(
+                      fontSize: DesignTokens.fontSizeBody,
+                      color: tokens.secondaryText,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(width: DesignTokens.spacingM),
+              RadioGameTabs(
+                selectedIndex: selectedGameTab,
+                onChanged: onGameTabChanged,
+              ),
+            ],
           ),
         ],
       ),
     );
   }
-}
 
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour >= 5 && hour < 11) {
+      return 'greeting_morning';
+    } else if (hour >= 11 && hour < 15) {
+      return 'greeting_midday';
+    } else if (hour >= 15 && hour < 19) {
+      return 'greeting_evening';
+    } else {
+      return 'greeting_night';
+    }
+  }
+}

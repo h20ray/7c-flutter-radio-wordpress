@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
+import '../../../../core/themes/component_tokens.dart';
 import '../../../../core/themes/design_tokens.dart';
 
 class ModeTabs extends StatefulWidget {
@@ -16,7 +17,8 @@ class ModeTabs extends StatefulWidget {
   State<ModeTabs> createState() => _ModeTabsState();
 }
 
-class _ModeTabsState extends State<ModeTabs> with SingleTickerProviderStateMixin {
+class _ModeTabsState extends State<ModeTabs>
+    with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
 
   @override
@@ -52,6 +54,8 @@ class _ModeTabsState extends State<ModeTabs> with SingleTickerProviderStateMixin
       'home_tab_podcasts'.tr(),
     ];
 
+    final tokens = ModeTabsTokens.of(context);
+
     return Container(
       margin: EdgeInsets.only(
         top: DesignTokens.spacingS,
@@ -60,14 +64,10 @@ class _ModeTabsState extends State<ModeTabs> with SingleTickerProviderStateMixin
       ),
       height: 44,
       decoration: BoxDecoration(
-        color: DesignTokens.colorCard,
+        color: tokens.container,
         borderRadius: BorderRadius.circular(22),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 8,
-            offset: Offset(0, 2),
-          ),
+          BoxShadow(color: tokens.shadow, blurRadius: 8, offset: Offset(0, 2)),
         ],
       ),
       child: Row(
@@ -82,11 +82,13 @@ class _ModeTabsState extends State<ModeTabs> with SingleTickerProviderStateMixin
                 curve: DesignTokens.animationCurveSpring,
                 height: 36,
                 margin: EdgeInsets.all(4),
-                padding: EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
+                padding: EdgeInsets.symmetric(
+                  horizontal: DesignTokens.spacingL,
+                ),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? DesignTokens.colorHeaderGradientStart
-                      : Colors.transparent,
+                      ? tokens.selectedBackground
+                      : tokens.unselectedBackground,
                   borderRadius: BorderRadius.circular(18),
                 ),
                 child: Center(
@@ -98,8 +100,8 @@ class _ModeTabsState extends State<ModeTabs> with SingleTickerProviderStateMixin
                           ? DesignTokens.fontWeightH2
                           : FontWeight.w500,
                       color: isSelected
-                          ? Colors.white
-                          : DesignTokens.colorTextSecondary,
+                          ? tokens.selectedText
+                          : tokens.unselectedText,
                     ),
                   ),
                 ),
@@ -111,4 +113,3 @@ class _ModeTabsState extends State<ModeTabs> with SingleTickerProviderStateMixin
     );
   }
 }
-

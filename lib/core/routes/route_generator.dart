@@ -5,6 +5,7 @@ import '../pages/loading_app_page.dart';
 import '../../features/radio/presentation/pages/radio_page.dart';
 import '../../features/radio/presentation/bloc/radio_bloc.dart';
 import '../../features/radio/presentation/bloc/radio_player_bloc.dart';
+import '../../features/gamification/presentation/bloc/gamification_bloc.dart';
 import '../../features/home/presentation/pages/home_screen.dart';
 import '../../features/home/presentation/bloc/home_bloc.dart';
 import '../../features/wordpress/presentation/bloc/wordpress_bloc.dart';
@@ -34,6 +35,10 @@ class RouteGenerator {
               ),
               BlocProvider(
                 create: (_) => getIt<HomeBloc>(),
+              ),
+              BlocProvider(
+                create: (_) => getIt<GamificationBloc>()
+                  ..add(const GamificationEvent.started()),
               ),
             ],
             child: const HomeScreen(),

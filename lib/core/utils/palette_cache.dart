@@ -41,4 +41,3 @@ class PaletteLruCache {
 
   void clear() => _map.clear();
 }
-

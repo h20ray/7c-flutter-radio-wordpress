@@ -11,7 +11,12 @@ class DebugLogger {
     }
   }
 
-  static void logError(String message, {Object? error, StackTrace? stackTrace, String? tag}) {
+  static void logError(
+    String message, {
+    Object? error,
+    StackTrace? stackTrace,
+    String? tag,
+  }) {
     if (kDebugMode) {
       final timestamp = DateTime.now().toIso8601String();
       final logTag = tag != null ? '$_tag[$tag]' : _tag;
@@ -27,7 +32,9 @@ class DebugLogger {
 
   static void logInit(String step, {double? progress}) {
     if (kDebugMode) {
-      final progressStr = progress != null ? ' (${(progress * 100).toStringAsFixed(0)}%)' : '';
+      final progressStr = progress != null
+          ? ' (${(progress * 100).toStringAsFixed(0)}%)'
+          : '';
       log('Initialization: $step$progressStr', tag: 'INIT');
     }
   }
@@ -46,4 +53,3 @@ class DebugLogger {
     }
   }
 }
-

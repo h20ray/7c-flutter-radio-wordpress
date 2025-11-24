@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'dart:math';
+import '../../../../core/themes/component_tokens.dart';
 import '../../domain/entities/radio_entity.dart';
 
 class RadioBannerWidget extends StatelessWidget {
@@ -15,25 +16,26 @@ class RadioBannerWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = RadioBannerTokens.of(context);
     // If no banners configured, show placeholder
     if (banners.isEmpty) {
       return Container(
         decoration: BoxDecoration(
-          color: const Color(0xFF625191),
+          color: tokens.placeholderBackground,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.15),
+              color: tokens.shadow,
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
           ],
         ),
-        child: const Center(
+        child: Center(
           child: Text(
             'No banners configured',
             style: TextStyle(
-              color: Colors.white70,
+              color: tokens.placeholderText,
               fontSize: 16,
               fontWeight: FontWeight.w500,
             ),
@@ -53,7 +55,7 @@ class RadioBannerWidget extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.15),
+              color: tokens.shadow,
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -65,20 +67,20 @@ class RadioBannerWidget extends StatelessWidget {
             imageUrl: selectedBanner.imageUrl,
             fit: BoxFit.cover,
             placeholder: (context, url) => Container(
-              color: const Color(0xFF625191),
-              child: const Center(
+              color: tokens.placeholderBackground,
+              child: Center(
                 child: CircularProgressIndicator(
-                  color: Colors.white70,
+                  color: tokens.progressColor,
                   strokeWidth: 2,
                 ),
               ),
             ),
             errorWidget: (context, url, error) => Container(
-              color: const Color(0xFF625191),
-              child: const Center(
+              color: tokens.placeholderBackground,
+              child: Center(
                 child: Icon(
                   LucideIcons.circle_alert,
-                  color: Colors.white70,
+                  color: tokens.placeholderText,
                   size: 32,
                 ),
               ),

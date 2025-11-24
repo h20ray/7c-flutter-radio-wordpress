@@ -55,13 +55,15 @@ extension HomeEventPatterns on HomeEvent {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( TabChangedEvent value)?  tabChanged,TResult Function( FilterChipSelectedEvent value)?  filterChipSelected,TResult Function( LoadFeaturedContentEvent value)?  loadFeaturedContent,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( TabChangedEvent value)?  tabChanged,TResult Function( FilterChipSelectedEvent value)?  filterChipSelected,TResult Function( LoadFeaturedContentEvent value)?  loadFeaturedContent,TResult Function( NowPlayingUpdatedEvent value)?  nowPlayingUpdated,TResult Function( NowPlayingErrorEvent value)?  nowPlayingError,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case TabChangedEvent() when tabChanged != null:
 return tabChanged(_that);case FilterChipSelectedEvent() when filterChipSelected != null:
 return filterChipSelected(_that);case LoadFeaturedContentEvent() when loadFeaturedContent != null:
-return loadFeaturedContent(_that);case _:
+return loadFeaturedContent(_that);case NowPlayingUpdatedEvent() when nowPlayingUpdated != null:
+return nowPlayingUpdated(_that);case NowPlayingErrorEvent() when nowPlayingError != null:
+return nowPlayingError(_that);case _:
   return orElse();
 
 }
@@ -79,13 +81,15 @@ return loadFeaturedContent(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( TabChangedEvent value)  tabChanged,required TResult Function( FilterChipSelectedEvent value)  filterChipSelected,required TResult Function( LoadFeaturedContentEvent value)  loadFeaturedContent,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( TabChangedEvent value)  tabChanged,required TResult Function( FilterChipSelectedEvent value)  filterChipSelected,required TResult Function( LoadFeaturedContentEvent value)  loadFeaturedContent,required TResult Function( NowPlayingUpdatedEvent value)  nowPlayingUpdated,required TResult Function( NowPlayingErrorEvent value)  nowPlayingError,}){
 final _that = this;
 switch (_that) {
 case TabChangedEvent():
 return tabChanged(_that);case FilterChipSelectedEvent():
 return filterChipSelected(_that);case LoadFeaturedContentEvent():
-return loadFeaturedContent(_that);case _:
+return loadFeaturedContent(_that);case NowPlayingUpdatedEvent():
+return nowPlayingUpdated(_that);case NowPlayingErrorEvent():
+return nowPlayingError(_that);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -102,13 +106,15 @@ return loadFeaturedContent(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( TabChangedEvent value)?  tabChanged,TResult? Function( FilterChipSelectedEvent value)?  filterChipSelected,TResult? Function( LoadFeaturedContentEvent value)?  loadFeaturedContent,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( TabChangedEvent value)?  tabChanged,TResult? Function( FilterChipSelectedEvent value)?  filterChipSelected,TResult? Function( LoadFeaturedContentEvent value)?  loadFeaturedContent,TResult? Function( NowPlayingUpdatedEvent value)?  nowPlayingUpdated,TResult? Function( NowPlayingErrorEvent value)?  nowPlayingError,}){
 final _that = this;
 switch (_that) {
 case TabChangedEvent() when tabChanged != null:
 return tabChanged(_that);case FilterChipSelectedEvent() when filterChipSelected != null:
 return filterChipSelected(_that);case LoadFeaturedContentEvent() when loadFeaturedContent != null:
-return loadFeaturedContent(_that);case _:
+return loadFeaturedContent(_that);case NowPlayingUpdatedEvent() when nowPlayingUpdated != null:
+return nowPlayingUpdated(_that);case NowPlayingErrorEvent() when nowPlayingError != null:
+return nowPlayingError(_that);case _:
   return null;
 
 }
@@ -125,12 +131,14 @@ return loadFeaturedContent(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( int tabIndex)?  tabChanged,TResult Function( String category)?  filterChipSelected,TResult Function()?  loadFeaturedContent,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( int tabIndex)?  tabChanged,TResult Function( String category)?  filterChipSelected,TResult Function()?  loadFeaturedContent,TResult Function( NowPlayingEntity nowPlaying)?  nowPlayingUpdated,TResult Function( String message)?  nowPlayingError,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case TabChangedEvent() when tabChanged != null:
 return tabChanged(_that.tabIndex);case FilterChipSelectedEvent() when filterChipSelected != null:
 return filterChipSelected(_that.category);case LoadFeaturedContentEvent() when loadFeaturedContent != null:
-return loadFeaturedContent();case _:
+return loadFeaturedContent();case NowPlayingUpdatedEvent() when nowPlayingUpdated != null:
+return nowPlayingUpdated(_that.nowPlaying);case NowPlayingErrorEvent() when nowPlayingError != null:
+return nowPlayingError(_that.message);case _:
   return orElse();
 
 }
@@ -148,12 +156,14 @@ return loadFeaturedContent();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( int tabIndex)  tabChanged,required TResult Function( String category)  filterChipSelected,required TResult Function()  loadFeaturedContent,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( int tabIndex)  tabChanged,required TResult Function( String category)  filterChipSelected,required TResult Function()  loadFeaturedContent,required TResult Function( NowPlayingEntity nowPlaying)  nowPlayingUpdated,required TResult Function( String message)  nowPlayingError,}) {final _that = this;
 switch (_that) {
 case TabChangedEvent():
 return tabChanged(_that.tabIndex);case FilterChipSelectedEvent():
 return filterChipSelected(_that.category);case LoadFeaturedContentEvent():
-return loadFeaturedContent();case _:
+return loadFeaturedContent();case NowPlayingUpdatedEvent():
+return nowPlayingUpdated(_that.nowPlaying);case NowPlayingErrorEvent():
+return nowPlayingError(_that.message);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -170,12 +180,14 @@ return loadFeaturedContent();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( int tabIndex)?  tabChanged,TResult? Function( String category)?  filterChipSelected,TResult? Function()?  loadFeaturedContent,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( int tabIndex)?  tabChanged,TResult? Function( String category)?  filterChipSelected,TResult? Function()?  loadFeaturedContent,TResult? Function( NowPlayingEntity nowPlaying)?  nowPlayingUpdated,TResult? Function( String message)?  nowPlayingError,}) {final _that = this;
 switch (_that) {
 case TabChangedEvent() when tabChanged != null:
 return tabChanged(_that.tabIndex);case FilterChipSelectedEvent() when filterChipSelected != null:
 return filterChipSelected(_that.category);case LoadFeaturedContentEvent() when loadFeaturedContent != null:
-return loadFeaturedContent();case _:
+return loadFeaturedContent();case NowPlayingUpdatedEvent() when nowPlayingUpdated != null:
+return nowPlayingUpdated(_that.nowPlaying);case NowPlayingErrorEvent() when nowPlayingError != null:
+return nowPlayingError(_that.message);case _:
   return null;
 
 }
@@ -348,6 +360,138 @@ String toString() {
 
 
 /// @nodoc
+
+
+class NowPlayingUpdatedEvent implements HomeEvent {
+  const NowPlayingUpdatedEvent(this.nowPlaying);
+  
+
+ final  NowPlayingEntity nowPlaying;
+
+/// Create a copy of HomeEvent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$NowPlayingUpdatedEventCopyWith<NowPlayingUpdatedEvent> get copyWith => _$NowPlayingUpdatedEventCopyWithImpl<NowPlayingUpdatedEvent>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NowPlayingUpdatedEvent&&(identical(other.nowPlaying, nowPlaying) || other.nowPlaying == nowPlaying));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,nowPlaying);
+
+@override
+String toString() {
+  return 'HomeEvent.nowPlayingUpdated(nowPlaying: $nowPlaying)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $NowPlayingUpdatedEventCopyWith<$Res> implements $HomeEventCopyWith<$Res> {
+  factory $NowPlayingUpdatedEventCopyWith(NowPlayingUpdatedEvent value, $Res Function(NowPlayingUpdatedEvent) _then) = _$NowPlayingUpdatedEventCopyWithImpl;
+@useResult
+$Res call({
+ NowPlayingEntity nowPlaying
+});
+
+
+
+
+}
+/// @nodoc
+class _$NowPlayingUpdatedEventCopyWithImpl<$Res>
+    implements $NowPlayingUpdatedEventCopyWith<$Res> {
+  _$NowPlayingUpdatedEventCopyWithImpl(this._self, this._then);
+
+  final NowPlayingUpdatedEvent _self;
+  final $Res Function(NowPlayingUpdatedEvent) _then;
+
+/// Create a copy of HomeEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? nowPlaying = null,}) {
+  return _then(NowPlayingUpdatedEvent(
+null == nowPlaying ? _self.nowPlaying : nowPlaying // ignore: cast_nullable_to_non_nullable
+as NowPlayingEntity,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class NowPlayingErrorEvent implements HomeEvent {
+  const NowPlayingErrorEvent(this.message);
+  
+
+ final  String message;
+
+/// Create a copy of HomeEvent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$NowPlayingErrorEventCopyWith<NowPlayingErrorEvent> get copyWith => _$NowPlayingErrorEventCopyWithImpl<NowPlayingErrorEvent>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NowPlayingErrorEvent&&(identical(other.message, message) || other.message == message));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,message);
+
+@override
+String toString() {
+  return 'HomeEvent.nowPlayingError(message: $message)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $NowPlayingErrorEventCopyWith<$Res> implements $HomeEventCopyWith<$Res> {
+  factory $NowPlayingErrorEventCopyWith(NowPlayingErrorEvent value, $Res Function(NowPlayingErrorEvent) _then) = _$NowPlayingErrorEventCopyWithImpl;
+@useResult
+$Res call({
+ String message
+});
+
+
+
+
+}
+/// @nodoc
+class _$NowPlayingErrorEventCopyWithImpl<$Res>
+    implements $NowPlayingErrorEventCopyWith<$Res> {
+  _$NowPlayingErrorEventCopyWithImpl(this._self, this._then);
+
+  final NowPlayingErrorEvent _self;
+  final $Res Function(NowPlayingErrorEvent) _then;
+
+/// Create a copy of HomeEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? message = null,}) {
+  return _then(NowPlayingErrorEvent(
+null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+/// @nodoc
 mixin _$HomeState {
 
 
@@ -464,12 +608,12 @@ return error(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( int selectedTabIndex,  String? selectedCategory)?  loaded,TResult Function( String message)?  error,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( int selectedTabIndex,  String? selectedCategory,  NowPlayingEntity nowPlaying,  String? nowPlayingError)?  loaded,TResult Function( String message)?  error,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Initial() when initial != null:
 return initial();case _Loading() when loading != null:
 return loading();case _Loaded() when loaded != null:
-return loaded(_that.selectedTabIndex,_that.selectedCategory);case _Error() when error != null:
+return loaded(_that.selectedTabIndex,_that.selectedCategory,_that.nowPlaying,_that.nowPlayingError);case _Error() when error != null:
 return error(_that.message);case _:
   return orElse();
 
@@ -488,12 +632,12 @@ return error(_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( int selectedTabIndex,  String? selectedCategory)  loaded,required TResult Function( String message)  error,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( int selectedTabIndex,  String? selectedCategory,  NowPlayingEntity nowPlaying,  String? nowPlayingError)  loaded,required TResult Function( String message)  error,}) {final _that = this;
 switch (_that) {
 case _Initial():
 return initial();case _Loading():
 return loading();case _Loaded():
-return loaded(_that.selectedTabIndex,_that.selectedCategory);case _Error():
+return loaded(_that.selectedTabIndex,_that.selectedCategory,_that.nowPlaying,_that.nowPlayingError);case _Error():
 return error(_that.message);case _:
   throw StateError('Unexpected subclass');
 
@@ -511,12 +655,12 @@ return error(_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( int selectedTabIndex,  String? selectedCategory)?  loaded,TResult? Function( String message)?  error,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( int selectedTabIndex,  String? selectedCategory,  NowPlayingEntity nowPlaying,  String? nowPlayingError)?  loaded,TResult? Function( String message)?  error,}) {final _that = this;
 switch (_that) {
 case _Initial() when initial != null:
 return initial();case _Loading() when loading != null:
 return loading();case _Loaded() when loaded != null:
-return loaded(_that.selectedTabIndex,_that.selectedCategory);case _Error() when error != null:
+return loaded(_that.selectedTabIndex,_that.selectedCategory,_that.nowPlaying,_that.nowPlayingError);case _Error() when error != null:
 return error(_that.message);case _:
   return null;
 
@@ -593,11 +737,13 @@ String toString() {
 
 
 class _Loaded implements HomeState {
-  const _Loaded({required this.selectedTabIndex, required this.selectedCategory});
+  const _Loaded({required this.selectedTabIndex, required this.selectedCategory, required this.nowPlaying, this.nowPlayingError});
   
 
  final  int selectedTabIndex;
  final  String? selectedCategory;
+ final  NowPlayingEntity nowPlaying;
+ final  String? nowPlayingError;
 
 /// Create a copy of HomeState
 /// with the given fields replaced by the non-null parameter values.
@@ -609,16 +755,16 @@ _$LoadedCopyWith<_Loaded> get copyWith => __$LoadedCopyWithImpl<_Loaded>(this, _
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Loaded&&(identical(other.selectedTabIndex, selectedTabIndex) || other.selectedTabIndex == selectedTabIndex)&&(identical(other.selectedCategory, selectedCategory) || other.selectedCategory == selectedCategory));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Loaded&&(identical(other.selectedTabIndex, selectedTabIndex) || other.selectedTabIndex == selectedTabIndex)&&(identical(other.selectedCategory, selectedCategory) || other.selectedCategory == selectedCategory)&&(identical(other.nowPlaying, nowPlaying) || other.nowPlaying == nowPlaying)&&(identical(other.nowPlayingError, nowPlayingError) || other.nowPlayingError == nowPlayingError));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,selectedTabIndex,selectedCategory);
+int get hashCode => Object.hash(runtimeType,selectedTabIndex,selectedCategory,nowPlaying,nowPlayingError);
 
 @override
 String toString() {
-  return 'HomeState.loaded(selectedTabIndex: $selectedTabIndex, selectedCategory: $selectedCategory)';
+  return 'HomeState.loaded(selectedTabIndex: $selectedTabIndex, selectedCategory: $selectedCategory, nowPlaying: $nowPlaying, nowPlayingError: $nowPlayingError)';
 }
 
 
@@ -629,7 +775,7 @@ abstract mixin class _$LoadedCopyWith<$Res> implements $HomeStateCopyWith<$Res> 
   factory _$LoadedCopyWith(_Loaded value, $Res Function(_Loaded) _then) = __$LoadedCopyWithImpl;
 @useResult
 $Res call({
- int selectedTabIndex, String? selectedCategory
+ int selectedTabIndex, String? selectedCategory, NowPlayingEntity nowPlaying, String? nowPlayingError
 });
 
 
@@ -646,10 +792,12 @@ class __$LoadedCopyWithImpl<$Res>
 
 /// Create a copy of HomeState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? selectedTabIndex = null,Object? selectedCategory = freezed,}) {
+@pragma('vm:prefer-inline') $Res call({Object? selectedTabIndex = null,Object? selectedCategory = freezed,Object? nowPlaying = null,Object? nowPlayingError = freezed,}) {
   return _then(_Loaded(
 selectedTabIndex: null == selectedTabIndex ? _self.selectedTabIndex : selectedTabIndex // ignore: cast_nullable_to_non_nullable
 as int,selectedCategory: freezed == selectedCategory ? _self.selectedCategory : selectedCategory // ignore: cast_nullable_to_non_nullable
+as String?,nowPlaying: null == nowPlaying ? _self.nowPlaying : nowPlaying // ignore: cast_nullable_to_non_nullable
+as NowPlayingEntity,nowPlayingError: freezed == nowPlayingError ? _self.nowPlayingError : nowPlayingError // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }

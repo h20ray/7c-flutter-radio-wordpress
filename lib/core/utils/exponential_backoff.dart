@@ -34,7 +34,7 @@ class ExponentialBackoff {
         return await operation();
       } catch (error) {
         lastError = error;
-        
+
         // Check if we should retry this error
         if (shouldRetry != null && !shouldRetry(error)) {
           rethrow;
@@ -47,7 +47,7 @@ class ExponentialBackoff {
 
         // Calculate delay for next attempt
         final delayMs = _calculateDelay(attempt);
-        
+
         // Notify about retry
         if (onRetry != null) {
           onRetry(attempt + 1, error);
@@ -65,18 +65,19 @@ class ExponentialBackoff {
   /// Calculate delay for the given attempt number
   int _calculateDelay(int attempt) {
     // Calculate exponential delay
-    final exponentialDelay = (initialDelayMs * pow(multiplier, attempt)).round();
-    
+    final exponentialDelay = (initialDelayMs * pow(multiplier, attempt))
+        .round();
+
     // Cap at maximum delay
     final cappedDelay = min(exponentialDelay, maxDelayMs);
-    
+
     // Add jitter if enabled (random variation of ±25%)
     if (useJitter) {
       final jitterRange = (cappedDelay * 0.25).round();
       final jitter = _random.nextInt(jitterRange * 2) - jitterRange;
       return max(0, cappedDelay + jitter);
     }
-    
+
     return cappedDelay;
   }
 
@@ -107,4 +108,3 @@ class ExponentialBackoff {
     );
   }
 }
-

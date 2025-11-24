@@ -1,12 +1,12 @@
 import 'package:dio/dio.dart';
 import '../error/exceptions.dart';
-import '../../config/wp_config.dart';
+import '../../config/app_config.dart';
 
 class ApiClient {
   final Dio dio;
 
   ApiClient(this.dio) {
-    dio.options.baseUrl = 'https://${WPConfig.url}';
+    dio.options.baseUrl = 'https://${AppConfig.url}';
     dio.options.connectTimeout = const Duration(seconds: 30);
     dio.options.receiveTimeout = const Duration(seconds: 30);
     dio.options.headers = {

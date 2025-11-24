@@ -20,4 +20,3 @@ class MockFeaturedShow {
     nextUpIn: '15 min',
   );
 }
-

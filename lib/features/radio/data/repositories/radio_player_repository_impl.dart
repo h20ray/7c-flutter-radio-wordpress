@@ -9,6 +9,8 @@ import '../../domain/entities/radio_player_entity.dart';
 import '../../domain/repositories/radio_player_repository.dart';
 import '../datasources/radio_player_remote_datasource.dart';
 import '../services/album_art_service.dart';
+import '../services/azuracast_detection_service.dart';
+import '../services/now_playing_polling_service.dart';
 import 'package:radio_player/radio_player.dart';
 import '../../../../core/utils/debug_logger.dart';
 
@@ -16,6 +18,7 @@ import '../../../../core/utils/debug_logger.dart';
 class RadioPlayerRepositoryImpl implements RadioPlayerRepository {
   final RadioPlayerRemoteDataSource remoteDataSource;
   final AlbumArtService albumArtService;
+  final NowPlayingPollingService nowPlayingPollingService;
 
   final StreamController<RadioPlayerEntity> _playerStateController =
       StreamController<RadioPlayerEntity>.broadcast();
@@ -52,9 +55,14 @@ class RadioPlayerRepositoryImpl implements RadioPlayerRepository {
   List<String> _availableUrls = [];
   int _currentUrlIndex = 0;
 
+  String? _azuracastBaseUrl;
+  String? _azuracastStationId;
+  bool _isMetadataPollingActive = false;
+
   RadioPlayerRepositoryImpl({
     required this.remoteDataSource,
     required this.albumArtService,
+    required this.nowPlayingPollingService,
   }) {
     _setupStreamListeners();
     _setupAlbumArtListener();
@@ -72,11 +80,16 @@ class RadioPlayerRepositoryImpl implements RadioPlayerRepository {
           if (RadioConfig.logNotificationUpdates) {
             DebugLogger.log('[RadioPlayerRepository] Audio playback started', tag: 'RadioPlayerRepository');
           }
+          _stopMetadataPolling();
         } else if (!isPlaying && _isAudioActuallyPlaying) {
           _isAudioActuallyPlaying = false;
           if (RadioConfig.logNotificationUpdates) {
             DebugLogger.log('[RadioPlayerRepository] Audio playback stopped', tag: 'RadioPlayerRepository');
           }
+          _startMetadataPolling();
+        }
+        if (!isPlaying && !_isAudioActuallyPlaying) {
+          _startMetadataPolling();
         }
         
         _updateState(_currentState.copyWith(
@@ -94,30 +107,9 @@ class RadioPlayerRepositoryImpl implements RadioPlayerRepository {
 
     _metadataSubscription = remoteDataSource.metadataStream.listen(
       (metadata) async {
-        String? sanitizedArtist = metadata.artist;
-        String? sanitizedTitle = metadata.title;
-
-        // Sanitize metadata by removing configured phrases (case-insensitive)
-        for (final phrase in RadioConfig.metadataRemovePhrases) {
-          final regex = RegExp(RegExp.escape(phrase), caseSensitive: false);
-          if (sanitizedArtist != null) {
-            sanitizedArtist = sanitizedArtist.replaceAll(regex, '');
-          }
-          if (sanitizedTitle != null) {
-            sanitizedTitle = sanitizedTitle.replaceAll(regex, '');
-          }
-        }
-
-        // Trim and collapse spaces
-        sanitizedArtist = sanitizedArtist?.replaceAll('\n', ' ').replaceAll('\t', ' ').replaceAll(RegExp(r'\s+'), ' ').trim();
-        sanitizedTitle = sanitizedTitle?.replaceAll('\n', ' ').replaceAll('\t', ' ').replaceAll(RegExp(r'\s+'), ' ').trim();
-
-        final newArtist = (sanitizedArtist != null && sanitizedArtist.isNotEmpty)
-            ? sanitizedArtist
-            : RadioConfig.fallbackArtist;
-        final newTitle = (sanitizedTitle != null && sanitizedTitle.isNotEmpty)
-            ? sanitizedTitle
-            : RadioConfig.fallbackTitle;
+        final normalized = _normalizeMetadata(metadata.artist, metadata.title);
+        final newArtist = normalized.artist;
+        final newTitle = normalized.title;
 
         _updateState(_currentState.copyWith(
           currentArtist: newArtist,
@@ -133,6 +125,8 @@ class RadioPlayerRepositoryImpl implements RadioPlayerRepository {
             (!RadioConfig.delayMetadataUntilAudioStarts || _isAudioActuallyPlaying)) {
           await albumArtService.fetchAndBroadcast(newArtist, newTitle, _currentConfig!);
         }
+
+        _stopMetadataPolling();
       },
       onError: (error) {
         _updateState(_currentState.copyWith(
@@ -367,6 +361,7 @@ class RadioPlayerRepositoryImpl implements RadioPlayerRepository {
 
     _isInitializing = true;
     _currentConfig = config;
+    unawaited(_prepareMetadataPolling(config));
 
     try {
       if (RadioConfig.enableVerboseLogging) {
@@ -808,7 +803,123 @@ class RadioPlayerRepositoryImpl implements RadioPlayerRepository {
     _metadataSubscription?.cancel();
     _remoteCommandSubscription?.cancel();
     _albumArtSubscription?.cancel();
+    _stopMetadataPolling();
     _playerStateController.close();
   }
+
+  _NormalizedMetadata _normalizeMetadata(String? artist, String? title) {
+    String? sanitizedArtist = artist;
+    String? sanitizedTitle = title;
+
+    for (final phrase in RadioConfig.metadataRemovePhrases) {
+      final regex = RegExp(RegExp.escape(phrase), caseSensitive: false);
+      if (sanitizedArtist != null) {
+        sanitizedArtist = sanitizedArtist.replaceAll(regex, '');
+      }
+      if (sanitizedTitle != null) {
+        sanitizedTitle = sanitizedTitle.replaceAll(regex, '');
+      }
+    }
+
+    sanitizedArtist = sanitizedArtist
+        ?.replaceAll('\n', ' ')
+        .replaceAll('\t', ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+    sanitizedTitle = sanitizedTitle
+        ?.replaceAll('\n', ' ')
+        .replaceAll('\t', ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+
+    final normalizedArtist = (sanitizedArtist != null && sanitizedArtist.isNotEmpty)
+        ? sanitizedArtist
+        : RadioConfig.fallbackArtist;
+    final normalizedTitle = (sanitizedTitle != null && sanitizedTitle.isNotEmpty)
+        ? sanitizedTitle
+        : RadioConfig.fallbackTitle;
+
+    return _NormalizedMetadata(normalizedArtist, normalizedTitle);
+  }
+
+  void _handlePolledMetadata(NowPlayingPollResult result) {
+    final normalized = _normalizeMetadata(result.artist, result.title);
+    final newArtist = normalized.artist;
+    final newTitle = normalized.title;
+
+    if (newArtist == _currentState.currentArtist &&
+        newTitle == _currentState.currentTitle) {
+      return;
+    }
+
+    _updateState(_currentState.copyWith(
+      currentArtist: newArtist,
+      currentTitle: newTitle,
+      errorMessage: null,
+    ));
+
+    if ((_currentConfig?.showAlbumCover ?? false) &&
+        (newArtist.isNotEmpty || newTitle.isNotEmpty) &&
+        _currentConfig != null) {
+      albumArtService.fetchAndBroadcast(newArtist, newTitle, _currentConfig!);
+    }
+  }
+
+  Future<void> _prepareMetadataPolling(RadioEntity config) async {
+    try {
+      final detection = await AzuraCastDetectionService.instance
+          .detectFromStreamUrl(config.streamUrl);
+      final baseUrl = detection['base_url'] ?? '';
+      final stationId = detection['station_id'] ?? '';
+
+      if (baseUrl.isNotEmpty && stationId.isNotEmpty) {
+        _azuracastBaseUrl = baseUrl;
+        _azuracastStationId = stationId;
+        if (!_isAudioActuallyPlaying) {
+          _startMetadataPolling();
+        }
+      } else {
+        _azuracastBaseUrl = null;
+        _azuracastStationId = null;
+        _stopMetadataPolling();
+      }
+    } catch (e) {
+      DebugLogger.log(
+        '[RadioPlayerRepository] Failed to prepare metadata polling: $e',
+        tag: 'RadioPlayerRepository',
+      );
+    }
+  }
+
+  void _startMetadataPolling() {
+    if (_isMetadataPollingActive) return;
+    if (_azuracastBaseUrl == null ||
+        _azuracastBaseUrl!.isEmpty ||
+        _azuracastStationId == null ||
+        _azuracastStationId!.isEmpty) {
+      return;
+    }
+
+    nowPlayingPollingService.start(
+      baseUrl: _azuracastBaseUrl!,
+      stationId: _azuracastStationId!,
+      onMetadata: _handlePolledMetadata,
+    );
+    _isMetadataPollingActive = true;
+  }
+
+  void _stopMetadataPolling() {
+    if (!_isMetadataPollingActive) return;
+    nowPlayingPollingService.stop();
+    _isMetadataPollingActive = false;
+  }
+
+}
+
+class _NormalizedMetadata {
+  final String artist;
+  final String title;
+
+  const _NormalizedMetadata(this.artist, this.title);
 }
 

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../../core/themes/app_color_system.dart';
+import '../../../../core/themes/component_tokens.dart';
 import '../../../../core/themes/design_tokens.dart';
 import '../../data/models/mock_promo_card.dart';
 
@@ -28,6 +30,9 @@ class _LocalPromosSectionState extends State<LocalPromosSection> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final promoTokens = PromoChipTokens.of(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -41,7 +46,7 @@ class _LocalPromosSectionState extends State<LocalPromosSection> {
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
-                  color: DesignTokens.colorTextPrimary,
+                  color: colors.textPrimary,
                 ),
               ),
               TextButton(
@@ -50,7 +55,7 @@ class _LocalPromosSectionState extends State<LocalPromosSection> {
                   'home_promos_see_all'.tr(),
                   style: TextStyle(
                     fontSize: DesignTokens.fontSizeCaption,
-                    color: DesignTokens.colorHeaderGradientStart,
+                    color: colors.gradientStart,
                   ),
                 ),
               ),
@@ -75,20 +80,24 @@ class _LocalPromosSectionState extends State<LocalPromosSection> {
                   onSelected: (selected) {
                     widget.onCategoryChanged(category);
                   },
-                  selectedColor: DesignTokens.colorHeaderGradientStart,
-                  checkmarkColor: Colors.white,
+                  selectedColor: promoTokens.selectedBackground,
+                  checkmarkColor: promoTokens.checkmark,
                   labelStyle: TextStyle(
                     fontSize: DesignTokens.fontSizeBody,
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                    color: isSelected ? Colors.white : DesignTokens.colorTextPrimary,
+                    color: isSelected
+                        ? promoTokens.selectedLabel
+                        : promoTokens.unselectedLabel,
                   ),
                   side: BorderSide(
                     color: isSelected
-                        ? DesignTokens.colorHeaderGradientStart
-                        : DesignTokens.colorBorderSubtle,
+                        ? promoTokens.selectedBackground
+                        : promoTokens.outline,
                   ),
-                  backgroundColor: DesignTokens.colorCard,
-                  padding: EdgeInsets.symmetric(horizontal: DesignTokens.spacingM),
+                  backgroundColor: promoTokens.unselectedBackground,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: DesignTokens.spacingM,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(18),
                   ),
@@ -106,22 +115,18 @@ class _LocalPromosSectionState extends State<LocalPromosSection> {
                 'home_promos_location_in'.tr(),
                 style: TextStyle(
                   fontSize: DesignTokens.fontSizeBody,
-                  color: DesignTokens.colorTextPrimary,
+                  color: colors.textPrimary,
                 ),
               ),
               SizedBox(width: 4),
-              Icon(
-                LucideIcons.map_pin,
-                size: 16,
-                color: DesignTokens.colorTextSecondary,
-              ),
+              Icon(LucideIcons.map_pin, size: 16, color: colors.textSecondary),
               SizedBox(width: 4),
               Text(
                 'Semarang',
                 style: TextStyle(
                   fontSize: DesignTokens.fontSizeBody,
                   fontWeight: FontWeight.w600,
-                  color: DesignTokens.colorTextPrimary,
+                  color: colors.textPrimary,
                 ),
               ),
               Spacer(),
@@ -131,7 +136,7 @@ class _LocalPromosSectionState extends State<LocalPromosSection> {
                   'home_promos_location_change'.tr(),
                   style: TextStyle(
                     fontSize: DesignTokens.fontSizeCaption,
-                    color: DesignTokens.colorHeaderGradientStart,
+                    color: colors.gradientStart,
                   ),
                 ),
               ),
@@ -139,12 +144,20 @@ class _LocalPromosSectionState extends State<LocalPromosSection> {
           ),
         ),
         SizedBox(height: DesignTokens.spacingM),
-        ...MockPromoCard.defaultPromos.map((promo) => _buildPromoCard(context, promo)),
+        ...MockPromoCard.defaultPromos.map(
+          (promo) => _buildPromoCard(context, promo, promoTokens),
+        ),
       ],
     );
   }
 
-  Widget _buildPromoCard(BuildContext context, MockPromoCard promo) {
+  Widget _buildPromoCard(
+    BuildContext context,
+    MockPromoCard promo,
+    PromoChipTokens promoTokens,
+  ) {
+    final colors = context.appColors;
+
     return Container(
       margin: EdgeInsets.fromLTRB(
         DesignTokens.spacingL,
@@ -155,11 +168,11 @@ class _LocalPromosSectionState extends State<LocalPromosSection> {
       height: 88,
       padding: EdgeInsets.all(DesignTokens.spacingS),
       decoration: BoxDecoration(
-        color: DesignTokens.colorCard,
+        color: colors.cardBackground,
         borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
+            color: promoTokens.cardShadow,
             blurRadius: 8,
             offset: Offset(0, 2),
           ),
@@ -172,7 +185,7 @@ class _LocalPromosSectionState extends State<LocalPromosSection> {
             width: 64,
             height: 64,
             decoration: BoxDecoration(
-              color: DesignTokens.colorBorderSubtle,
+              color: colors.borderSubtle,
               borderRadius: BorderRadius.circular(12),
             ),
             child: promo.thumbnailUrl != null
@@ -183,10 +196,7 @@ class _LocalPromosSectionState extends State<LocalPromosSection> {
                       fit: BoxFit.cover,
                     ),
                   )
-                : Icon(
-                    Icons.image,
-                    color: DesignTokens.colorTextSecondary,
-                  ),
+                : Icon(Icons.image, color: colors.textSecondary),
           ),
           SizedBox(width: DesignTokens.spacingS),
           Expanded(
@@ -202,7 +212,7 @@ class _LocalPromosSectionState extends State<LocalPromosSection> {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: DesignTokens.colorTextPrimary,
+                      color: colors.textPrimary,
                       height: 1.2,
                     ),
                     maxLines: 1,
@@ -213,7 +223,7 @@ class _LocalPromosSectionState extends State<LocalPromosSection> {
                     '${promo.category} • ${promo.time ?? ""}',
                     style: TextStyle(
                       fontSize: 11,
-                      color: DesignTokens.colorTextSecondary,
+                      color: colors.textSecondary,
                       height: 1.2,
                     ),
                     maxLines: 1,
@@ -228,7 +238,9 @@ class _LocalPromosSectionState extends State<LocalPromosSection> {
                           height: 18,
                           padding: EdgeInsets.symmetric(horizontal: 6),
                           decoration: BoxDecoration(
-                            color: DesignTokens.colorSecondaryAccent.withValues(alpha: 0.2),
+                            color: colors.secondaryAccent.withValues(
+                              alpha: 0.2,
+                            ),
                             borderRadius: BorderRadius.circular(9),
                           ),
                           child: Center(
@@ -237,7 +249,7 @@ class _LocalPromosSectionState extends State<LocalPromosSection> {
                               style: TextStyle(
                                 fontSize: 9,
                                 fontWeight: FontWeight.w600,
-                                color: DesignTokens.colorSecondaryAccent,
+                                color: colors.secondaryAccent,
                                 height: 1.0,
                               ),
                               overflow: TextOverflow.ellipsis,
@@ -253,7 +265,7 @@ class _LocalPromosSectionState extends State<LocalPromosSection> {
                             promo.distance!,
                             style: TextStyle(
                               fontSize: 11,
-                              color: DesignTokens.colorTextSecondary,
+                              color: colors.textSecondary,
                               height: 1.2,
                             ),
                             overflow: TextOverflow.ellipsis,
@@ -269,11 +281,10 @@ class _LocalPromosSectionState extends State<LocalPromosSection> {
           Icon(
             LucideIcons.chevron_right,
             size: 20,
-            color: DesignTokens.colorTextSecondary,
+            color: colors.textSecondary,
           ),
         ],
       ),
     );
   }
 }
-

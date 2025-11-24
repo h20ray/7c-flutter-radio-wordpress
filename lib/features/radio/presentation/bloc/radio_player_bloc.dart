@@ -10,6 +10,7 @@ import '../../domain/usecases/initialize_radio_player.dart';
 import '../../domain/usecases/play_radio.dart';
 import '../../domain/usecases/pause_radio.dart';
 import '../../domain/usecases/reset_radio_player.dart';
+import '../../../gamification/domain/usecases/record_listening_session.dart';
 import '../bloc/radio_bloc.dart';
 import 'radio_player_event.dart';
 import '../../../../core/utils/debug_logger.dart';
@@ -24,6 +25,7 @@ class RadioPlayerBloc extends Bloc<RadioPlayerEvent, RadioPlayerState> {
   final ResetRadioPlayer resetRadioPlayer;
   final RadioPlayerRepository repository;
   final RadioBloc radioConfigBloc;
+  final RecordListeningSession recordListeningSession;
 
   StreamSubscription<RadioPlayerEntity>? _playerStateSubscription;
   StreamSubscription<RadioState>? _radioConfigSubscription;
@@ -52,6 +54,7 @@ class RadioPlayerBloc extends Bloc<RadioPlayerEvent, RadioPlayerState> {
   // Audio focus state management
   bool _wasPlayingBeforeFocusLoss = false;
   bool _canAutoResume = false;
+  DateTime? _sessionStart;
 
   RadioPlayerBloc({
     required this.initializeRadioPlayer,
@@ -60,6 +63,7 @@ class RadioPlayerBloc extends Bloc<RadioPlayerEvent, RadioPlayerState> {
     required this.resetRadioPlayer,
     required this.repository,
     required this.radioConfigBloc,
+    required this.recordListeningSession,
   }) : super(const RadioPlayerState.initial()) {
     // 1) Register event handlers FIRST
     on<RadioPlayerEvent>(_onRadioPlayerEvent);
@@ -488,6 +492,7 @@ class RadioPlayerBloc extends Bloc<RadioPlayerEvent, RadioPlayerState> {
 
   /// Handle playback state changed event
   void _onPlaybackStateChanged(bool isPlaying, Emitter<RadioPlayerState> emit) {
+    _handleListeningSession(isPlaying);
     final currentState = state;
     currentState.maybeWhen(
       ready: (currentIsPlaying, currentUrl, currentArtist, currentTitle,
@@ -637,12 +642,34 @@ class RadioPlayerBloc extends Bloc<RadioPlayerEvent, RadioPlayerState> {
   }
 
   @override
-  Future<void> close() {
+  Future<void> close() async {
+    await _flushListeningSession();
     _playerStateSubscription?.cancel();
     _radioConfigSubscription?.cancel();
     _audioFocusSubscription?.cancel();
     _audioFocusEventSubscription?.cancel();
     return super.close();
+  }
+
+  void _handleListeningSession(bool isPlaying) {
+    if (isPlaying) {
+      _sessionStart ??= DateTime.now();
+    } else {
+      unawaited(_flushListeningSession());
+    }
+  }
+
+  Future<void> _flushListeningSession() async {
+    final start = _sessionStart;
+    if (start == null) {
+      return;
+    }
+    _sessionStart = null;
+    final duration = DateTime.now().difference(start);
+    if (duration.inSeconds <= 0) {
+      return;
+    }
+    await recordListeningSession(duration);
   }
 }
 

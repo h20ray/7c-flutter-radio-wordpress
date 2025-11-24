@@ -17,4 +17,3 @@ class MockUserProfile {
     favoriteStation: 'Tujuh Cahaya Radio',
   );
 }
-

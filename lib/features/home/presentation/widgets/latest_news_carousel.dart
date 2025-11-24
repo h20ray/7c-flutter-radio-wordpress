@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
+import '../../../../core/themes/app_color_system.dart';
+import '../../../../core/themes/component_tokens.dart';
 import '../../../../core/themes/design_tokens.dart';
 import '../../../wordpress/presentation/bloc/wordpress_bloc.dart';
 import '../../../wordpress/domain/entities/post_entity.dart';
@@ -38,6 +40,9 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final tokens = NewsCardTokens.of(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -51,7 +56,7 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                 style: TextStyle(
                   fontSize: DesignTokens.fontSizeH1,
                   fontWeight: DesignTokens.fontWeightH1,
-                  color: DesignTokens.colorTextPrimary,
+                  color: colors.textPrimary,
                 ),
               ),
               SizedBox(height: 4),
@@ -59,7 +64,7 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                 'home_news_subtitle'.tr(),
                 style: TextStyle(
                   fontSize: DesignTokens.fontSizeCaption,
-                  color: DesignTokens.colorTextSecondary,
+                  color: colors.textSecondary,
                 ),
               ),
             ],
@@ -76,9 +81,7 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                     child: Center(
                       child: Text(
                         'No news available',
-                        style: TextStyle(
-                          color: DesignTokens.colorTextSecondary,
-                        ),
+                        style: TextStyle(color: colors.textSecondary),
                       ),
                     ),
                   );
@@ -93,7 +96,7 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                         itemCount: posts.length > 5 ? 5 : posts.length,
                         itemBuilder: (context, index) {
                           final post = posts[index];
-                          return _buildNewsCard(context, post, index);
+                          return _buildNewsCard(context, post, index, tokens);
                         },
                       ),
                     ),
@@ -109,8 +112,8 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: _currentPage == index
-                                ? DesignTokens.colorHeaderGradientStart
-                                : DesignTokens.colorBorderSubtle,
+                                ? colors.gradientStart
+                                : colors.borderSubtle,
                           ),
                         ),
                       ),
@@ -120,26 +123,20 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
               },
               loading: () => SizedBox(
                 height: 160,
-                child: Center(
-                  child: CircularProgressIndicator(),
-                ),
+                child: Center(child: CircularProgressIndicator()),
               ),
               error: (failure) => SizedBox(
                 height: 160,
                 child: Center(
                   child: Text(
                     'Failed to load news',
-                    style: TextStyle(
-                      color: DesignTokens.colorTextSecondary,
-                    ),
+                    style: TextStyle(color: colors.textSecondary),
                   ),
                 ),
               ),
               orElse: () => SizedBox(
                 height: 160,
-                child: Center(
-                  child: CircularProgressIndicator(),
-                ),
+                child: Center(child: CircularProgressIndicator()),
               ),
             );
           },
@@ -148,7 +145,12 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
     );
   }
 
-  Widget _buildNewsCard(BuildContext context, PostEntity post, int index) {
+  Widget _buildNewsCard(
+    BuildContext context,
+    PostEntity post,
+    int index,
+    NewsCardTokens tokens,
+  ) {
     return Container(
       margin: EdgeInsets.only(
         left: DesignTokens.spacingL,
@@ -159,18 +161,11 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            DesignTokens.colorHeaderGradientStart.withValues(alpha: 0.8),
-            DesignTokens.colorHeaderGradientEnd.withValues(alpha: 0.8),
-          ],
+          colors: [tokens.gradientStart, tokens.gradientEnd],
         ),
         borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 8,
-            offset: Offset(0, 2),
-          ),
+          BoxShadow(color: tokens.shadow, blurRadius: 8, offset: Offset(0, 2)),
         ],
       ),
       child: Stack(
@@ -179,12 +174,9 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 4,
-                ),
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.3),
+                  color: tokens.badgeBackground,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -192,7 +184,7 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                   style: TextStyle(
                     fontSize: DesignTokens.fontSizeCaption,
                     fontWeight: FontWeight.w600,
-                    color: Colors.white,
+                    color: tokens.badgeText,
                   ),
                 ),
               ),
@@ -203,7 +195,7 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
-                    color: Colors.white,
+                    color: tokens.headline,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -214,7 +206,7 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                 'Live coverage · Today 7 PM',
                 style: TextStyle(
                   fontSize: DesignTokens.fontSizeCaption,
-                  color: Colors.white.withValues(alpha: 0.9),
+                  color: tokens.metadata,
                 ),
               ),
               Spacer(),
@@ -222,7 +214,7 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                 height: 36,
                 width: 120,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: tokens.ctaBackground,
                   borderRadius: BorderRadius.circular(18),
                 ),
                 child: Center(
@@ -231,7 +223,7 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                     style: TextStyle(
                       fontSize: DesignTokens.fontSizeBody,
                       fontWeight: FontWeight.w600,
-                      color: DesignTokens.colorHeaderGradientStart,
+                      color: tokens.ctaText,
                     ),
                   ),
                 ),
@@ -245,14 +237,10 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
+                color: tokens.iconBackground,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(
-                Icons.article,
-                color: Colors.white.withValues(alpha: 0.7),
-                size: 40,
-              ),
+              child: Icon(Icons.article, color: tokens.iconColor, size: 40),
             ),
           ),
         ],
@@ -260,4 +248,3 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
     );
   }
 }
-

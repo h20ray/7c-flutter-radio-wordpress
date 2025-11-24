@@ -61,6 +61,7 @@ flutter:
   assets:
     - assets/translations/
     - assets/images/
+    - assets/images/user_levels/
     - assets/others/
 
   fonts:

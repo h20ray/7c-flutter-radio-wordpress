@@ -3,7 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import '../network/api_client.dart';
 import '../network/network_info.dart';
-import '../../config/wp_config.dart';
+import '../../config/app_config.dart';
 import '../audio/audio_focus_manager.dart';
 import '../services/system_volume_service.dart';
 import '../services/network_status_service.dart';
@@ -16,6 +16,7 @@ import '../../features/radio/data/repositories/radio_repository_impl.dart';
 import '../../features/radio/data/repositories/radio_player_repository_impl.dart';
 import '../../features/radio/data/repositories/album_art_repository_impl.dart';
 import '../../features/radio/data/services/album_art_service.dart';
+import '../../features/radio/data/services/now_playing_polling_service.dart';
 import '../../features/radio/domain/repositories/radio_repository.dart';
 import '../../features/radio/domain/repositories/radio_player_repository.dart';
 import '../../features/radio/domain/repositories/album_art_repository.dart';
@@ -45,6 +46,16 @@ import '../../features/wordpress/domain/usecases/get_posts.dart';
 import '../../features/wordpress/presentation/bloc/wordpress_bloc.dart';
 
 // Home feature imports
+import '../../features/gamification/data/datasources/listening_stats_local_data_source.dart';
+import '../../features/gamification/data/repositories/listening_stats_repository_impl.dart';
+import '../../features/gamification/domain/repositories/listening_stats_repository.dart';
+import '../../features/gamification/domain/usecases/record_listening_session.dart';
+import '../../features/gamification/domain/usecases/watch_listening_stats.dart';
+import '../../features/gamification/presentation/bloc/gamification_bloc.dart';
+import '../../features/home/data/datasources/home_radio_metadata_datasource.dart';
+import '../../features/home/data/repositories/home_radio_repository_impl.dart';
+import '../../features/home/domain/repositories/home_radio_repository.dart';
+import '../../features/home/domain/usecases/watch_home_now_playing.dart';
 import '../../features/home/presentation/bloc/home_bloc.dart';
 
 final getIt = GetIt.instance;
@@ -61,7 +72,7 @@ Future<void> initDependencies() async {
   // External dependencies
   getIt.registerLazySingleton<Dio>(() {
     final dio = Dio();
-    dio.options.baseUrl = 'https://${WPConfig.url}';
+    dio.options.baseUrl = 'https://${AppConfig.url}';
     dio.options.connectTimeout = const Duration(seconds: 30);
     dio.options.receiveTimeout = const Duration(seconds: 30);
     return dio;
@@ -89,6 +100,7 @@ Future<void> initDependencies() async {
 
   // Initialize features
   _initRadio();
+  _initGamification();
   _initShoutbox();
   _initWordPress();
   _initHome();
@@ -117,10 +129,14 @@ void _initRadio() {
   getIt.registerLazySingleton<RadioRepository>(
     () => RadioRepositoryImpl(remoteDataSource: getIt()),
   );
+  getIt.registerLazySingleton<NowPlayingPollingService>(
+    () => NowPlayingPollingService(dio: getIt()),
+  );
   getIt.registerLazySingleton<RadioPlayerRepository>(
     () => RadioPlayerRepositoryImpl(
       remoteDataSource: getIt(),
       albumArtService: getIt(),
+      nowPlayingPollingService: getIt(),
     ),
   );
   getIt.registerLazySingleton<AlbumArtRepository>(
@@ -151,6 +167,7 @@ void _initRadio() {
       resetRadioPlayer: getIt(),
       repository: getIt(),
       radioConfigBloc: getIt<RadioBloc>(),
+      recordListeningSession: getIt(),
     ),
   );
 }
@@ -194,8 +211,41 @@ void _initWordPress() {
 }
 
 void _initHome() {
+  getIt.registerLazySingleton<HomeRadioMetadataDataSource>(
+    () => HomeRadioMetadataDataSourceImpl(
+      radioPlayerRepository: getIt(),
+    ),
+  );
+  getIt.registerLazySingleton<HomeRadioRepository>(
+    () => HomeRadioRepositoryImpl(
+      metadataDataSource: getIt(),
+    ),
+  );
+  getIt.registerLazySingleton(
+    () => WatchHomeNowPlaying(getIt()),
+  );
   getIt.registerFactory(
-    () => HomeBloc(),
+    () => HomeBloc(
+      watchHomeNowPlaying: getIt(),
+    ),
+  );
+}
+
+void _initGamification() {
+  getIt.registerLazySingleton<ListeningStatsLocalDataSource>(
+    () => ListeningStatsLocalDataSourceImpl(),
+  );
+  getIt.registerLazySingleton<ListeningStatsRepository>(
+    () => ListeningStatsRepositoryImpl(
+      localDataSource: getIt(),
+    ),
+  );
+  getIt.registerLazySingleton(() => WatchListeningStats(getIt()));
+  getIt.registerLazySingleton(() => RecordListeningSession(getIt()));
+  getIt.registerFactory(
+    () => GamificationBloc(
+      watchListeningStats: getIt(),
+    ),
   );
 }
 

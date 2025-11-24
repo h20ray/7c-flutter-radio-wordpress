@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../di/injection_container.dart';
+import '../error/exceptions.dart';
+import '../error/failures.dart';
 import '../utils/debug_logger.dart';
 import '../../features/radio/presentation/bloc/radio_bloc.dart';
 import 'loading_state_provider.dart';
@@ -71,9 +73,25 @@ class AppInitializer {
     if (_state.isCriticalInitComplete) return;
 
     try {
+      final settingsBox = await Hive.openBox('settingsBox');
+      final wasInitialized = settingsBox.get('app_initialized', defaultValue: false) as bool;
+
+      if (wasInitialized) {
+        DebugLogger.log('App was previously initialized, skipping full initialization', tag: 'AppInitializer');
+        await _performQuickInitialization(arg);
+        _state = _state.copyWith(
+          isCriticalInitComplete: true,
+          currentAppState: await _determineAppState(),
+        );
+        return;
+      }
+
       await _performCriticalInitialization(arg);
 
       final appState = await _determineAppState();
+
+      await settingsBox.put('app_initialized', true);
+      await settingsBox.put('app_initialized_at', DateTime.now().toIso8601String());
 
       _state = _state.copyWith(
         isCriticalInitComplete: true,
@@ -93,45 +111,93 @@ class AppInitializer {
     }
   }
 
+  Future<void> _performQuickInitialization(InitializationArgument arg) async {
+    DebugLogger.log('Performing quick initialization (already initialized before)', tag: 'AppInitializer');
+    
+    try {
+      await initDependencies();
+      await Hive.openBox('settingsBox');
+      
+      try {
+        await _prefetchRadioConfig();
+        DebugLogger.log('Radio config prefetched during quick initialization', tag: 'AppInitializer');
+      } catch (e) {
+        DebugLogger.logError('Radio config prefetch failed during quick init (non-critical)', error: e, tag: 'AppInitializer');
+      }
+      
+      DebugLogger.log('Quick initialization complete', tag: 'AppInitializer');
+    } catch (e, st) {
+      DebugLogger.logError('Quick initialization failed, will perform full initialization', error: e, stackTrace: st, tag: 'AppInitializer');
+      final settingsBox = await Hive.openBox('settingsBox');
+      await settingsBox.put('app_initialized', false);
+      await _performCriticalInitialization(arg);
+    }
+  }
+
   Future<void> _performCriticalInitialization(
       InitializationArgument arg) async {
     void updateProgress(double progress, LoadingStatus status) {
-      Future.microtask(() {
-        loadingNotifier.updateProgress(progress, status);
-        DebugLogger.logInit(status.toString(), progress: progress);
-      });
+      loadingNotifier.updateProgress(progress, status);
+      DebugLogger.logInit(status.toString(), progress: progress);
     }
 
     DebugLogger.log('Starting critical initialization', tag: 'AppInitializer');
     updateProgress(0.1, LoadingStatus.initializingDependencies);
-    await initDependencies();
+    try {
+      await initDependencies();
+    } catch (e, st) {
+      DebugLogger.logError('Dependencies initialization failed', error: e, stackTrace: st, tag: 'AppInitializer');
+      if (e is Failure) {
+        rethrow;
+      } else if (e is NetworkException) {
+        throw const NetworkFailure('Failed to initialize dependencies: Network error');
+      } else if (e is ServerException) {
+        throw ServerFailure('Failed to initialize dependencies: ${e.message}');
+      } else {
+        throw ConfigurationFailure('Failed to initialize dependencies: ${e.toString()}');
+      }
+    }
+    await Future.delayed(const Duration(milliseconds: 50));
     DebugLogger.log('Dependencies initialized', tag: 'AppInitializer');
 
     updateProgress(0.2, LoadingStatus.initializingStorage);
-    await Hive.openBox('settingsBox');
+    try {
+      await Hive.openBox('settingsBox');
+    } catch (e, st) {
+      DebugLogger.logError('Storage initialization failed', error: e, stackTrace: st, tag: 'AppInitializer');
+      throw CacheFailure('Failed to initialize storage: ${e.toString()}');
+    }
+    await Future.delayed(const Duration(milliseconds: 50));
     DebugLogger.log('Storage initialized', tag: 'AppInitializer');
 
     updateProgress(0.3, LoadingStatus.initializingConnectivity);
+    await Future.delayed(const Duration(milliseconds: 50));
     DebugLogger.log('Connectivity check completed', tag: 'AppInitializer');
 
     updateProgress(0.4, LoadingStatus.initializingNotifications);
+    await Future.delayed(const Duration(milliseconds: 50));
     DebugLogger.log('Notifications initialized', tag: 'AppInitializer');
 
     updateProgress(0.5, LoadingStatus.initializingDependencies);
+    await Future.delayed(const Duration(milliseconds: 50));
     DebugLogger.log('Additional dependencies initialized', tag: 'AppInitializer');
 
     updateProgress(0.6, LoadingStatus.initializingAuth);
+    await Future.delayed(const Duration(milliseconds: 50));
     DebugLogger.log('Auth initialized', tag: 'AppInitializer');
 
     updateProgress(0.7, LoadingStatus.initializingRadio);
     await _prefetchRadioConfig();
+    await Future.delayed(const Duration(milliseconds: 50));
     DebugLogger.log('Radio config prefetched', tag: 'AppInitializer');
 
     updateProgress(0.9, LoadingStatus.preparingApp);
+    await Future.delayed(const Duration(milliseconds: 50));
     DebugLogger.log('Critical initialization complete', tag: 'AppInitializer');
   }
 
   Future<void> _prefetchRadioConfig() async {
+    StreamSubscription? subscription;
     try {
       DebugLogger.logRadio('Starting radio config prefetch', state: 'prefetch');
       final radioBloc = getIt<RadioBloc>();
@@ -142,7 +208,7 @@ class AppInitializer {
       radioBloc.add(const RadioEvent.getRadioConfig());
 
       final completer = Completer<void>();
-      StreamSubscription? subscription;
+      Failure? radioFailure;
       
       subscription = radioBloc.stream.listen((state) {
         _radioState = state;
@@ -152,6 +218,7 @@ class AppInitializer {
           },
           error: (failure) {
             DebugLogger.logError('Radio config error: ${failure.message}', tag: 'AppInitializer');
+            radioFailure = failure;
           },
           orElse: () {
             DebugLogger.logRadio('Radio state: ${state.runtimeType}', state: 'other');
@@ -168,23 +235,40 @@ class AppInitializer {
           DebugLogger.logRadio('Radio config prefetch complete', state: 'complete');
           subscription?.cancel();
           if (!completer.isCompleted) {
-            completer.complete();
+            if (radioFailure != null) {
+              completer.completeError(radioFailure!);
+            } else {
+              completer.complete();
+            }
           }
         }
       });
 
-      await completer.future.timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          DebugLogger.logError('Radio config prefetch timeout after 10 seconds', tag: 'AppInitializer');
-          subscription?.cancel();
-          _radioState = null;
-        },
-      );
+      try {
+        await completer.future.timeout(
+          const Duration(seconds: 10),
+          onTimeout: () {
+            DebugLogger.logError('Radio config prefetch timeout after 10 seconds', tag: 'AppInitializer');
+            subscription?.cancel();
+            _radioState = null;
+            throw const TimeoutFailure('Radio config prefetch timeout');
+          },
+        );
+      } catch (e) {
+        subscription.cancel();
+        if (e is Failure) {
+          rethrow;
+        }
+        throw TimeoutFailure('Radio config prefetch failed: ${e.toString()}');
+      }
     } catch (e, st) {
+      subscription?.cancel();
       DebugLogger.logError('Radio prefetch failed', error: e, stackTrace: st, tag: 'AppInitializer');
       _radioState = null;
-      // Don't fail the app initialization if radio prefetch fails
+      if (e is Failure) {
+        rethrow;
+      }
+      throw ServerFailure('Failed to prefetch radio config: ${e.toString()}');
     }
   }
 

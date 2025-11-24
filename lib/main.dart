@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 
-import 'config/wp_config.dart';
+import 'config/app_config.dart';
 import 'core/routes/app_routes.dart';
 import 'core/routes/route_generator.dart';
 import 'core/themes/app_theme.dart';
@@ -48,7 +48,7 @@ class TujuhCahayaApp extends StatelessWidget {
       dark: AppTheme.darkTheme,
       initial: savedThemeMode ?? AdaptiveThemeMode.system,
       builder: (theme, darkTheme) => MaterialApp(
-        title: WPConfig.appName,
+        title: AppConfig.appName,
         localizationsDelegates: context.localizationDelegates,
         supportedLocales: context.supportedLocales,
         locale: context.locale,

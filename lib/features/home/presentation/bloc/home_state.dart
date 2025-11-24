@@ -7,7 +7,8 @@ class HomeState with _$HomeState {
   const factory HomeState.loaded({
     required int selectedTabIndex,
     required String? selectedCategory,
+    required NowPlayingEntity nowPlaying,
+    String? nowPlayingError,
   }) = _Loaded;
   const factory HomeState.error(String message) = _Error;
 }
-

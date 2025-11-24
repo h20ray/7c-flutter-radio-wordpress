@@ -15,4 +15,3 @@ class MockListeningStats {
     renewalDays: 12,
   );
 }
-

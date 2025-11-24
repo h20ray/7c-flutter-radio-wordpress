@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
+import '../../../../core/themes/app_color_system.dart';
+import '../../../../core/themes/component_tokens.dart';
 import '../../../../core/themes/design_tokens.dart';
 import '../../data/models/mock_featured_show.dart';
 
 class FeaturedRadioSection extends StatelessWidget {
   final MockFeaturedShow? featuredShow;
 
-  const FeaturedRadioSection({
-    super.key,
-    this.featuredShow,
-  });
+  const FeaturedRadioSection({super.key, this.featuredShow});
 
   @override
   Widget build(BuildContext context) {
     final show = featuredShow ?? MockFeaturedShow.defaultShow;
+    final colors = context.appColors;
+    final tokens = FeaturedRadioTokens.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -25,7 +27,7 @@ class FeaturedRadioSection extends StatelessWidget {
             style: TextStyle(
               fontSize: DesignTokens.fontSizeH1,
               fontWeight: DesignTokens.fontWeightH1,
-              color: DesignTokens.colorTextPrimary,
+              color: colors.textPrimary,
             ),
           ),
         ),
@@ -39,11 +41,13 @@ class FeaturedRadioSection extends StatelessWidget {
                 width: 140,
                 height: 200,
                 decoration: BoxDecoration(
-                  color: DesignTokens.colorBorderSubtle,
-                  borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
+                  color: tokens.hostFrameBackground,
+                  borderRadius: BorderRadius.circular(
+                    DesignTokens.cornerRadiusCard,
+                  ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
+                      color: tokens.shadowSoft,
                       blurRadius: 8,
                       offset: Offset(0, 2),
                     ),
@@ -51,17 +55,15 @@ class FeaturedRadioSection extends StatelessWidget {
                 ),
                 child: show.hostImageUrl != null
                     ? ClipRRect(
-                        borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
+                        borderRadius: BorderRadius.circular(
+                          DesignTokens.cornerRadiusCard,
+                        ),
                         child: Image.network(
                           show.hostImageUrl!,
                           fit: BoxFit.cover,
                         ),
                       )
-                    : Icon(
-                        Icons.person,
-                        size: 60,
-                        color: DesignTokens.colorTextSecondary,
-                      ),
+                    : Icon(Icons.person, size: 60, color: colors.textSecondary),
               ),
               SizedBox(width: DesignTokens.spacingM),
               Expanded(
@@ -69,11 +71,13 @@ class FeaturedRadioSection extends StatelessWidget {
                   height: 200,
                   padding: EdgeInsets.all(DesignTokens.spacingM),
                   decoration: BoxDecoration(
-                    color: DesignTokens.colorCard,
-                    borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
+                    color: colors.cardBackground,
+                    borderRadius: BorderRadius.circular(
+                      DesignTokens.cornerRadiusCard,
+                    ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
+                        color: tokens.shadowStrong,
                         blurRadius: 12,
                         offset: Offset(0, 4),
                       ),
@@ -88,7 +92,7 @@ class FeaturedRadioSection extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: DesignTokens.colorTextPrimary,
+                          color: colors.textPrimary,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -100,13 +104,11 @@ class FeaturedRadioSection extends StatelessWidget {
                         children: show.tags.map((tag) {
                           return Container(
                             height: 22,
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 8,
-                            ),
+                            padding: EdgeInsets.symmetric(horizontal: 8),
                             decoration: BoxDecoration(
                               color: tag == 'Live'
-                                  ? Colors.red
-                                  : DesignTokens.colorSecondaryAccent,
+                                  ? tokens.tagLiveBackground
+                                  : tokens.tagDefaultBackground,
                               borderRadius: BorderRadius.circular(11),
                             ),
                             child: Center(
@@ -115,7 +117,7 @@ class FeaturedRadioSection extends StatelessWidget {
                                 style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w600,
-                                  color: Colors.white,
+                                  color: tokens.tagText,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 1,
@@ -129,7 +131,7 @@ class FeaturedRadioSection extends StatelessWidget {
                         show.schedule,
                         style: TextStyle(
                           fontSize: 12,
-                          color: DesignTokens.colorTextSecondary,
+                          color: colors.textSecondary,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -148,7 +150,7 @@ class FeaturedRadioSection extends StatelessWidget {
                                   'home_featured_next_up_in'.tr(),
                                   style: TextStyle(
                                     fontSize: 11,
-                                    color: DesignTokens.colorTextSecondary,
+                                    color: colors.textSecondary,
                                   ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
@@ -159,7 +161,7 @@ class FeaturedRadioSection extends StatelessWidget {
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
-                                    color: DesignTokens.colorTextPrimary,
+                                    color: colors.textPrimary,
                                   ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
@@ -172,12 +174,14 @@ class FeaturedRadioSection extends StatelessWidget {
                             child: ElevatedButton(
                               onPressed: () {},
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: DesignTokens.colorPrimaryAccent,
-                                foregroundColor: Colors.white,
+                                backgroundColor: colors.primaryAccent,
+                                foregroundColor: colorScheme.onTertiary,
                                 minimumSize: Size(0, 36),
                                 padding: EdgeInsets.symmetric(horizontal: 12),
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusButton),
+                                  borderRadius: BorderRadius.circular(
+                                    DesignTokens.cornerRadiusButton,
+                                  ),
                                 ),
                               ),
                               child: Text(
@@ -201,4 +205,3 @@ class FeaturedRadioSection extends StatelessWidget {
     );
   }
 }
-
