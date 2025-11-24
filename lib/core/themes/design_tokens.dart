@@ -49,7 +49,7 @@ class DesignTokens {
   static const double backdropBlurOpacityLight = 0.75;
   static const double backdropBlurOpacityDark = 0.65;
 
-  static const double progressIndicatorHeight = 24.0;
+  static const double progressIndicatorHeight = 4.0;
 }
 
 extension SpacingExtension on num {

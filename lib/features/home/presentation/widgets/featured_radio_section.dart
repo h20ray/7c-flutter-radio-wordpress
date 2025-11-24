@@ -68,7 +68,7 @@ class FeaturedRadioSection extends StatelessWidget {
               SizedBox(width: DesignTokens.spacingM),
               Expanded(
                 child: Container(
-                  height: 200,
+                  constraints: const BoxConstraints(minHeight: 200),
                   padding: EdgeInsets.all(DesignTokens.spacingM),
                   decoration: BoxDecoration(
                     color: colors.cardBackground,
@@ -136,7 +136,7 @@ class FeaturedRadioSection extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      Spacer(),
+                      SizedBox(height: DesignTokens.spacingM),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         crossAxisAlignment: CrossAxisAlignment.center,

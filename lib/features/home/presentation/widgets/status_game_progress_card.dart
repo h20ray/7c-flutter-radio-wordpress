@@ -168,7 +168,8 @@ class _LevelMetadata extends StatelessWidget {
         SizedBox(height: DesignTokens.spacingXs),
         _ShimmerLinearProgressIndicator(
           progress: progress.clamp(0.0, 1.0),
-          trackColor: Theme.of(context).colorScheme.surfaceVariant,
+          trackColor:
+              Theme.of(context).colorScheme.surfaceContainerHighest,
           fillColor: Theme.of(context).colorScheme.primary,
         ),
       ],
@@ -251,61 +252,87 @@ class _ShimmerLinearProgressIndicatorState
   @override
   Widget build(BuildContext context) {
     final height = DesignTokens.progressIndicatorHeight;
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        return SizedBox(
-          height: height,
-          width: double.infinity,
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final progressWidth =
-                  constraints.maxWidth * widget.progress.clamp(0.0, 1.0);
-              final shimmerPosition =
-                  (_controller.value * (progressWidth + 60)) - 30;
+    final clampedProgress = widget.progress.clamp(0.0, 1.0);
 
-              return ClipRRect(
-                borderRadius:
-                    BorderRadius.circular(DesignTokens.cornerRadiusProgress),
-                child: Stack(
-                  children: [
-                    Container(
-                      color: widget.trackColor,
+    return SizedBox(
+      height: height,
+      width: double.infinity,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final maxWidth = constraints.maxWidth;
+          final progressWidth = maxWidth * clampedProgress;
+          final shimmerWidth = (maxWidth * 0.2).clamp(24.0, maxWidth);
+
+          return ClipRRect(
+            borderRadius:
+                BorderRadius.circular(DesignTokens.cornerRadiusProgress),
+            child: Stack(
+              children: [
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                      colors: [
+                        widget.trackColor.withValues(alpha: 0.8),
+                        widget.trackColor,
+                      ],
                     ),
-                    AnimatedContainer(
-                      duration: DesignTokens.animationDurationShort,
-                      curve: DesignTokens.animationCurveSpring,
-                      width: progressWidth,
-                      color: widget.fillColor,
+                  ),
+                ),
+                AnimatedContainer(
+                  duration: DesignTokens.animationDurationMedium,
+                  curve: DesignTokens.animationCurveSpring,
+                  width: progressWidth,
+                  height: double.infinity,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                      colors: [
+                        widget.fillColor.withValues(alpha: 0.9),
+                        widget.fillColor,
+                      ],
                     ),
-                    if (progressWidth > 0)
-                      Positioned(
-                        left: shimmerPosition.clamp(0, progressWidth),
-                        width: 60,
+                  ),
+                ),
+                if (progressWidth > 0)
+                  AnimatedBuilder(
+                    animation: _controller,
+                    builder: (context, _) {
+                      final travelDistance = progressWidth + shimmerWidth;
+                      final shimmerOffset =
+                          (travelDistance * _controller.value) - shimmerWidth;
+
+                      return Positioned(
+                        left: shimmerOffset.clamp(0.0, progressWidth),
+                        width: shimmerWidth,
                         top: 0,
                         bottom: 0,
                         child: IgnorePointer(
                           child: DecoratedBox(
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
                                 colors: [
-                                  widget.fillColor.withValues(alpha: 0.0),
-                                  widget.fillColor.withValues(alpha: 0.35),
-                                  widget.fillColor.withValues(alpha: 0.0),
+                                  Colors.white.withValues(alpha: 0.0),
+                                  Colors.white.withValues(alpha: 0.45),
+                                  Colors.white.withValues(alpha: 0.0),
                                 ],
                                 stops: const [0.0, 0.5, 1.0],
                               ),
                             ),
                           ),
                         ),
-                      ),
-                  ],
-                ),
-              );
-            },
-          ),
-        );
-      },
+                      );
+                    },
+                  ),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 }
