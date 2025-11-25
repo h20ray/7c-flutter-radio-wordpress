@@ -1,11 +1,9 @@
 import 'package:equatable/equatable.dart';
 
-import '../../../../config/radio_config.dart';
-
 class UserListeningStatsEntity extends Equatable {
   final String userId;
   final int totalListeningSeconds;
-  final RadioGameLevel currentLevel;
+  final String currentLevel;
   final DateTime lastUpdatedAt;
 
   const UserListeningStatsEntity({

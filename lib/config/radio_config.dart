@@ -133,6 +133,10 @@ class RadioConfig {
   static const bool enableShoutboxDebugLogging = false;
 }
 
+@Deprecated(
+  'Use GameRadioTimeConfig from game_radio_time_config.dart instead. '
+  'This enum is kept only for migration compatibility.',
+)
 enum RadioGameLevel {
   level1FrequencyWanderer,
   level2ActiveTuner,
@@ -140,124 +144,4 @@ enum RadioGameLevel {
   level4AirwaveCitizen,
   level5RadioStar,
   level6BroadcastLegend,
-}
-
-class RadioLevelDefinition {
-  final RadioGameLevel level;
-  final String displayName;
-  final String description;
-  final double minHours;
-  final double? maxHours;
-  final String assetPath;
-  final String assetKey;
-
-  const RadioLevelDefinition({
-    required this.level,
-    required this.displayName,
-    required this.description,
-    required this.minHours,
-    required this.maxHours,
-    required this.assetPath,
-    required this.assetKey,
-  });
-
-  bool containsHours(double hours) {
-    if (maxHours == null) {
-      return hours >= minHours;
-    }
-    return hours >= minHours && hours < maxHours!;
-  }
-}
-
-class RadioGameConfig {
-  static const List<RadioLevelDefinition> levels = [
-    RadioLevelDefinition(
-      level: RadioGameLevel.level1FrequencyWanderer,
-      displayName: 'Frequency Wanderer',
-      description: 'Newcomer exploring different radio frequencies.',
-      minHours: 0,
-      maxHours: 10,
-      assetPath:
-          'assets/images/user_levels/ic_level_1_frequency_wanderer_placeholder.png',
-      assetKey: 'ic_level_1_frequency_wanderer_placeholder',
-    ),
-    RadioLevelDefinition(
-      level: RadioGameLevel.level2ActiveTuner,
-      displayName: 'Active Tuner',
-      description: 'Regular listener who tunes in often.',
-      minHours: 10,
-      maxHours: 30,
-      assetPath:
-          'assets/images/user_levels/ic_level_2_active_tuner_placeholder.png',
-      assetKey: 'ic_level_2_active_tuner_placeholder',
-    ),
-    RadioLevelDefinition(
-      level: RadioGameLevel.level3StudioCompanion,
-      displayName: 'Studio Companion',
-      description: 'Feels like a friend of the studio, emotionally connected.',
-      minHours: 30,
-      maxHours: 60,
-      assetPath:
-          'assets/images/user_levels/ic_level_3_studio_companion_placeholder.png',
-      assetKey: 'ic_level_3_studio_companion_placeholder',
-    ),
-    RadioLevelDefinition(
-      level: RadioGameLevel.level4AirwaveCitizen,
-      displayName: 'Airwave Citizen',
-      description: 'Feels like part of the radio world, a citizen of airwaves.',
-      minHours: 60,
-      maxHours: 120,
-      assetPath:
-          'assets/images/user_levels/ic_level_4_airwave_citizen_placeholder.png',
-      assetKey: 'ic_level_4_airwave_citizen_placeholder',
-    ),
-    RadioLevelDefinition(
-      level: RadioGameLevel.level5RadioStar,
-      displayName: 'Radio Star',
-      description: 'Highly engaged, standout community member.',
-      minHours: 120,
-      maxHours: 250,
-      assetPath:
-          'assets/images/user_levels/ic_level_5_radio_star_placeholder.png',
-      assetKey: 'ic_level_5_radio_star_placeholder',
-    ),
-    RadioLevelDefinition(
-      level: RadioGameLevel.level6BroadcastLegend,
-      displayName: 'Broadcast Legend',
-      description: 'Top-tier, iconic listener with huge presence.',
-      minHours: 250,
-      maxHours: null,
-      assetPath:
-          'assets/images/user_levels/ic_level_6_broadcast_legend_placeholder.png',
-      assetKey: 'ic_level_6_broadcast_legend_placeholder',
-    ),
-  ];
-
-  static RadioLevelDefinition resolveByHours(double hours) {
-    final normalizedHours = hours < 0 ? 0.0 : hours;
-    return levels.firstWhere((level) => level.containsHours(normalizedHours),
-        orElse: () => levels.last);
-  }
-
-  static RadioLevelDefinition? nextLevel(RadioGameLevel level) {
-    final index = levels.indexWhere((definition) => definition.level == level);
-    if (index == -1 || index + 1 >= levels.length) {
-      return null;
-    }
-    return levels[index + 1];
-  }
-
-  static double progressToNextLevel(double hours) {
-    final definition = resolveByHours(hours);
-    final clampedHours = hours.clamp(definition.minHours,
-        definition.maxHours ?? double.maxFinite);
-    if (definition.maxHours == null) {
-      return 1;
-    }
-    final range = definition.maxHours! - definition.minHours;
-    if (range == 0) {
-      return 1;
-    }
-    return (clampedHours - definition.minHours) / range;
-  }
 }

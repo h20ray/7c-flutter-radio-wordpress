@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-import '../../../../config/radio_config.dart';
+import '../../../../config/game_radio_time_config.dart';
 import '../../domain/entities/user_listening_stats_entity.dart';
 
 class GamificationStatusViewData extends Equatable {
@@ -27,12 +27,12 @@ class GamificationStatusViewData extends Equatable {
   factory GamificationStatusViewData.fromEntity(
     UserListeningStatsEntity entity,
   ) {
-    final definition = RadioGameConfig.resolveByHours(
+    final definition = GameRadioTimeConfig.resolveByHours(
       entity.totalListeningHours,
     );
-    final nextDefinition = RadioGameConfig.nextLevel(definition.level);
+    final nextDefinition = GameRadioTimeConfig.nextLevel(definition.id);
     final progress =
-        RadioGameConfig.progressToNextLevel(entity.totalListeningHours);
+        GameRadioTimeConfig.progressToNextLevel(entity.totalListeningHours);
     final normalizedProgress = progress.clamp(0, 1).toDouble();
     return GamificationStatusViewData(
       levelName: definition.displayName,

@@ -5,7 +5,6 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 
 import '../../../../core/themes/app_color_system.dart';
 import '../../../../core/themes/design_tokens.dart';
-import 'animated_game_progress.dart';
 import '../../../gamification/presentation/bloc/gamification_bloc.dart';
 import '../../../gamification/presentation/viewmodels/gamification_status_view_data.dart';
 
@@ -173,11 +172,8 @@ class _LevelMetadata extends StatelessWidget {
           ),
         ),
         SizedBox(height: 2),
-        AnimatedGameProgress(
+        _MaterialProgressIndicator(
           progress: progress.clamp(0.0, 1.0),
-          height: DesignTokens.progressIndicatorHeight,
-          trackColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-          fillColor: Theme.of(context).colorScheme.primary,
         ),
       ],
     );
@@ -288,6 +284,36 @@ class _StatusCardError extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
         ),
       ],
+    );
+  }
+}
+
+class _MaterialProgressIndicator extends StatelessWidget {
+  final double progress;
+
+  const _MaterialProgressIndicator({required this.progress});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: 0.0, end: progress),
+      duration: DesignTokens.animationDurationMedium,
+      curve: DesignTokens.animationCurveDefault,
+      builder: (context, value, child) {
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(
+            DesignTokens.cornerRadiusProgress,
+          ),
+          child: LinearProgressIndicator(
+            value: value,
+            minHeight: DesignTokens.progressIndicatorHeight,
+            backgroundColor: colorScheme.surfaceContainerHighest,
+            valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
+          ),
+        );
+      },
     );
   }
 }

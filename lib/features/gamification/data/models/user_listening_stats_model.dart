@@ -1,4 +1,4 @@
-import '../../../../config/radio_config.dart';
+import '../../../../config/game_radio_time_config.dart';
 import '../../domain/entities/user_listening_stats_entity.dart';
 
 class UserListeningStatsModel extends UserListeningStatsEntity {
@@ -13,7 +13,7 @@ class UserListeningStatsModel extends UserListeningStatsEntity {
     return UserListeningStatsModel(
       userId: userId,
       totalListeningSeconds: 0,
-      currentLevel: RadioGameLevel.level1FrequencyWanderer,
+      currentLevel: GameRadioTimeConfig.getFirstLevel().id,
       lastUpdatedAt: DateTime.now(),
     );
   }
@@ -30,25 +30,49 @@ class UserListeningStatsModel extends UserListeningStatsEntity {
   }
 
   factory UserListeningStatsModel.fromMap(Map<String, dynamic> map) {
-    final levelName = map['level'] as String?;
-    final parsedLevel = levelName != null
-        ? RadioGameLevel.values.firstWhere(
-            (level) => level.name == levelName,
-            orElse: () => RadioGameLevel.level1FrequencyWanderer,
-          )
-        : RadioGameLevel.level1FrequencyWanderer;
+    final levelValue = map['level'] as String?;
+    String levelId;
+
+    if (levelValue == null || levelValue.isEmpty) {
+      levelId = GameRadioTimeConfig.getFirstLevel().id;
+    } else {
+      levelId = _migrateLevelFromEnum(levelValue);
+    }
+
     return UserListeningStatsModel(
       userId: map['userId'] as String,
       totalListeningSeconds: map['totalListeningSeconds'] as int,
-      currentLevel: parsedLevel,
+      currentLevel: levelId,
       lastUpdatedAt: DateTime.tryParse(map['lastUpdatedAt'] as String? ?? '') ??
           DateTime.now(),
     );
   }
 
+  static String _migrateLevelFromEnum(String levelValue) {
+    final enumToIdMap = {
+      'level1FrequencyWanderer': 'level_1',
+      'level2ActiveTuner': 'level_2',
+      'level3StudioCompanion': 'level_3',
+      'level4AirwaveCitizen': 'level_4',
+      'level5RadioStar': 'level_5',
+      'level6BroadcastLegend': 'level_6',
+    };
+
+    if (enumToIdMap.containsKey(levelValue)) {
+      return enumToIdMap[levelValue]!;
+    }
+
+    final existingLevel = GameRadioTimeConfig.getLevelById(levelValue);
+    if (existingLevel != null) {
+      return levelValue;
+    }
+
+    return GameRadioTimeConfig.getFirstLevel().id;
+  }
+
   UserListeningStatsModel copyWith({
     int? totalListeningSeconds,
-    RadioGameLevel? currentLevel,
+    String? currentLevel,
     DateTime? lastUpdatedAt,
   }) {
     return UserListeningStatsModel(
@@ -64,7 +88,7 @@ class UserListeningStatsModel extends UserListeningStatsEntity {
     return {
       'userId': userId,
       'totalListeningSeconds': totalListeningSeconds,
-      'level': currentLevel.name,
+      'level': currentLevel,
       'lastUpdatedAt': lastUpdatedAt.toIso8601String(),
     };
   }

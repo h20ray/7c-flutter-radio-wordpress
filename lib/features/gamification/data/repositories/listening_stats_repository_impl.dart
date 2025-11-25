@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:dartz/dartz.dart';
 
-import '../../../../config/radio_config.dart';
+import '../../../../config/game_radio_time_config.dart';
 import '../../../../core/error/failures.dart';
 import '../../domain/entities/user_listening_stats_entity.dart';
 import '../../domain/repositories/listening_stats_repository.dart';
@@ -42,10 +42,10 @@ class ListeningStatsRepositoryImpl implements ListeningStatsRepository {
       }
       final updatedSeconds = current.totalListeningSeconds + seconds;
       final hours = updatedSeconds / 3600;
-      final definition = RadioGameConfig.resolveByHours(hours);
+      final definition = GameRadioTimeConfig.resolveByHours(hours);
       final updatedModel = UserListeningStatsModel.fromEntity(current).copyWith(
         totalListeningSeconds: updatedSeconds,
-        currentLevel: definition.level,
+        currentLevel: definition.id,
         lastUpdatedAt: DateTime.now(),
       );
       await localDataSource.save(updatedModel);
