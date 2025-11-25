@@ -184,7 +184,7 @@ class _CachedHeroContent extends StatelessWidget {
           // Background Image
           RepaintBoundary(
             child: ImageFiltered(
-              imageFilter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+              imageFilter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
               child: Transform.scale(
                 scale: scale,
                 child: AlbumArtWidget.rectangle(

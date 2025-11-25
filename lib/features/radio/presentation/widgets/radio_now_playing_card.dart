@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:ui';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/widgets/album_art_widget.dart';
 import '../../../../core/widgets/smooth_marquee_text.dart';
 import '../../../../core/services/palette_service.dart';
@@ -281,7 +282,11 @@ class _CachedNowPlayingContent extends StatefulWidget {
       _CachedNowPlayingContentState();
 }
 
-class _CachedNowPlayingContentState extends State<_CachedNowPlayingContent> {
+class _CachedNowPlayingContentState extends State<_CachedNowPlayingContent>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _colorAnimationController;
+  late Animation<double> _colorAnimation;
+  
   Color _fromBg = const Color(0xFF15232B);
   Color _toBg = const Color(0xFF15232B);
   Color _fromVibrant = const Color(0xFF15232B);
@@ -291,6 +296,20 @@ class _CachedNowPlayingContentState extends State<_CachedNowPlayingContent> {
   Color _fromMuted = const Color(0xFF15232B);
   Color _toMuted = const Color(0xFF15232B);
   Color _stableTextColor = Colors.white;
+
+  @override
+  void initState() {
+    super.initState();
+    _colorAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 420),
+    );
+    _colorAnimation = CurvedAnimation(
+      parent: _colorAnimationController,
+      curve: Curves.easeOutCubic,
+    );
+    _colorAnimationController.value = 1.0;
+  }
 
   @override
   void didUpdateWidget(covariant _CachedNowPlayingContent oldWidget) {
@@ -311,166 +330,156 @@ class _CachedNowPlayingContentState extends State<_CachedNowPlayingContent> {
             ? Colors.white
             : Colors.black87;
       });
+      _colorAnimationController.reset();
+      _colorAnimationController.forward();
     }
   }
 
   @override
+  void dispose() {
+    _colorAnimationController.dispose();
+    super.dispose();
+  }
+
+  Color _lerpColor(Color from, Color to) {
+    return Color.lerp(from, to, _colorAnimation.value) ?? to;
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return TweenAnimationBuilder<Color?>(
-      duration: const Duration(milliseconds: 420),
-      curve: Curves.easeOutCubic,
-      tween: ColorTween(begin: _fromBg, end: _toBg),
-      builder: (_, dominantColor, p3) {
-        final dominant = dominantColor ?? _toBg;
+    return AnimatedBuilder(
+      animation: _colorAnimation,
+      builder: (context, child) {
+        final dominant = _lerpColor(_fromBg, _toBg);
+        final vibrant = _lerpColor(_fromVibrant, _toVibrant);
+        final darkVibrant = _lerpColor(_fromDarkVibrant, _toDarkVibrant);
+        final muted = _lerpColor(_fromMuted, _toMuted);
 
-        return TweenAnimationBuilder<Color?>(
-          duration: const Duration(milliseconds: 420),
-          curve: Curves.easeOutCubic,
-          tween: ColorTween(begin: _fromVibrant, end: _toVibrant),
-          builder: (_, vibrantColor, p3) {
-            final vibrant = vibrantColor ?? _toVibrant;
+        final gradientColors = _createSpotifyGradient(
+          dominant,
+          vibrant,
+          darkVibrant,
+          muted,
+        );
 
-            return TweenAnimationBuilder<Color?>(
-              duration: const Duration(milliseconds: 420),
-              curve: Curves.easeOutCubic,
-              tween: ColorTween(begin: _fromDarkVibrant, end: _toDarkVibrant),
-              builder: (_, darkVibrantColor, p3) {
-                final darkVibrant = darkVibrantColor ?? _toDarkVibrant;
-
-                return TweenAnimationBuilder<Color?>(
-                  duration: const Duration(milliseconds: 420),
-                  curve: Curves.easeOutCubic,
-                  tween: ColorTween(begin: _fromMuted, end: _toMuted),
-                  builder: (_, mutedColor, p3) {
-                    final muted = mutedColor ?? _toMuted;
-
-                    final gradientColors = _createSpotifyGradient(
-                      dominant,
-                      vibrant,
-                      darkVibrant,
-                      muted,
-                    );
-
-                    return Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Color.lerp(
-                              Colors.black,
-                              darkVibrant,
-                              0.2,
-                            )!.withValues(alpha: 0.25),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
+        return RepaintBoundary(
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Color.lerp(
+                    Colors.black,
+                    darkVibrant,
+                    0.2,
+                  )!.withValues(alpha: 0.25),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: RepaintBoundary(
+                    child: ImageFiltered(
+                      imageFilter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                      child: Transform.scale(
+                        scale: 1.2,
+                        child: _BlurredAlbumArtBackground(
+                          filterQuality: FilterQuality.low,
+                        ),
                       ),
-                      clipBehavior: Clip.antiAlias,
-                      child: Stack(
-                        children: [
-                          Positioned.fill(
-                            child: ImageFiltered(
-                              imageFilter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                              child: Transform.scale(
-                                scale: 1.2,
-                                child: _BlurredAlbumArtBackground(
-                                  filterQuality: FilterQuality.low,
-                                ),
-                              ),
-                            ),
-                          ),
-                          Positioned.fill(
-                            child: Container(
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: gradientColors,
-                                  stops: const [0.0, 0.3, 0.7, 1.0],
-                                ),
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Container(
-                                  width: widget.artSize,
-                                  height: widget.artSize,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withValues(alpha: 0.2),
-                                        blurRadius: 8,
-                                        offset: const Offset(0, 4),
-                                      ),
-                                    ],
-                                  ),
-                                  clipBehavior: Clip.antiAlias,
-                                  child: AlbumArtWidget.roundedRect(
-                                    width: widget.artSize,
-                                    height: widget.artSize,
-                                    borderRadius: 8,
-                                    filterQuality: FilterQuality.high,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      SmoothMarqueeAuto(
-                                        text: widget.title?.trim().isNotEmpty == true
-                                            ? widget.title!.trim()
-                                            : RadioConfig.fallbackTitle,
-                                        style: Theme.of(context).textTheme.titleMedium
-                                            ?.copyWith(
-                                              color: _stableTextColor,
-                                              fontWeight: FontWeight.w700,
-                                              letterSpacing: -0.5,
-                                            ),
-                                        scrollDuration: const Duration(seconds: 12),
-                                        pauseDuration: const Duration(seconds: 3),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      SmoothMarqueeAuto(
-                                        text: widget.artist?.trim().isNotEmpty == true
-                                            ? widget.artist!.trim()
-                                            : RadioConfig.fallbackArtist,
-                                        style: Theme.of(context).textTheme.bodyMedium
-                                            ?.copyWith(
-                                              color: _stableTextColor.withValues(
-                                                alpha: 0.8,
-                                              ),
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                        scrollDuration: const Duration(seconds: 10),
-                                        pauseDuration: const Duration(seconds: 3),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      _PlayerControlsRow(
-                                        bgColor: dominant,
-                                        textColor: _stableTextColor,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+                    ),
+                  ),
+                ),
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: gradientColors,
+                        stops: const [0.0, 0.3, 0.7, 1.0],
                       ),
-                    );
-                  },
-                );
-              },
-            );
-          },
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: widget.artSize,
+                        height: widget.artSize,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.2),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: AlbumArtWidget.roundedRect(
+                          width: widget.artSize,
+                          height: widget.artSize,
+                          borderRadius: 8,
+                          filterQuality: FilterQuality.high,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SmoothMarqueeAuto(
+                              text: widget.title?.trim().isNotEmpty == true
+                                  ? widget.title!.trim()
+                                  : RadioConfig.fallbackTitle,
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(
+                                    color: _stableTextColor,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: -0.5,
+                                  ),
+                              scrollDuration: const Duration(seconds: 12),
+                              pauseDuration: const Duration(seconds: 3),
+                            ),
+                            const SizedBox(height: 4),
+                            SmoothMarqueeAuto(
+                              text: widget.artist?.trim().isNotEmpty == true
+                                  ? widget.artist!.trim()
+                                  : RadioConfig.fallbackArtist,
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(
+                                    color: _stableTextColor.withValues(
+                                      alpha: 0.8,
+                                    ),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                              scrollDuration: const Duration(seconds: 10),
+                              pauseDuration: const Duration(seconds: 3),
+                            ),
+                            const SizedBox(height: 8),
+                            _PlayerControlsRow(
+                              bgColor: dominant,
+                              textColor: _stableTextColor,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         );
       },
     );
@@ -619,7 +628,7 @@ class _GlassButton extends StatelessWidget {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(20),
               child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
                 child: Container(
                   decoration: BoxDecoration(
                     color: buttonColor.withValues(alpha: 0.15),
@@ -672,13 +681,12 @@ class _BlurredAlbumArtBackground extends StatelessWidget {
         final albumArtState = snapshot.data ?? AlbumArtService.instance.currentState;
         
         if (albumArtState.hasUrl) {
-          return Image.network(
-            albumArtState.url!,
+          return CachedNetworkImage(
+            imageUrl: albumArtState.url!,
             fit: BoxFit.cover,
             filterQuality: filterQuality,
-            errorBuilder: (context, error, stackTrace) {
-              return _buildFallbackImage(context);
-            },
+            errorWidget: (context, url, error) => _buildFallbackImage(context),
+            placeholder: (context, url) => _buildFallbackImage(context),
           );
         }
         

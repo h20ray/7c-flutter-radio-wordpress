@@ -72,6 +72,7 @@ class _FadeMarqueeTextState extends State<FadeMarqueeText>
   Timer? _pauseTimer;
   double _textWidth = 0;
   double _totalWidth = 0;
+  bool _isAnimating = false;
 
   @override
   void initState() {
@@ -83,8 +84,12 @@ class _FadeMarqueeTextState extends State<FadeMarqueeText>
     _animation = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(parent: _controller, curve: Curves.linear),
     );
-    WidgetsBinding.instance.addPostFrameCallback((_) => _calculateWidths());
-    _startMarquee();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _calculateWidths();
+        _startMarquee();
+      }
+    });
   }
 
   @override
@@ -92,7 +97,9 @@ class _FadeMarqueeTextState extends State<FadeMarqueeText>
     super.didUpdateWidget(oldWidget);
     if (oldWidget.text != widget.text ||
         oldWidget.duration != widget.duration) {
-      _restartMarquee();
+      if (mounted) {
+        _restartMarquee();
+      }
     }
   }
 
@@ -115,18 +122,23 @@ class _FadeMarqueeTextState extends State<FadeMarqueeText>
   }
 
   void _startMarquee() {
-    // Start with a brief pause, then continuously loop
+    if (_isAnimating || !mounted) return;
+    _isAnimating = true;
+    _pauseTimer?.cancel();
     _pauseTimer = Timer(const Duration(seconds: 2), () {
-      if (mounted) {
+      if (mounted && _isAnimating) {
         _controller.repeat();
       }
     });
   }
 
   void _stopMarquee() {
+    _isAnimating = false;
     _pauseTimer?.cancel();
     _pauseTimer = null;
-    _controller.stop();
+    if (_controller.isAnimating) {
+      _controller.stop();
+    }
     _controller.reset();
   }
 
@@ -139,6 +151,8 @@ class _FadeMarqueeTextState extends State<FadeMarqueeText>
 
   @override
   Widget build(BuildContext context) {
+    if (!mounted) return const SizedBox.shrink();
+    
     return LayoutBuilder(
       builder: (context, constraints) {
         // Calculate proper height to avoid clipping descenders
@@ -168,6 +182,7 @@ class _FadeMarqueeTextState extends State<FadeMarqueeText>
             child: AnimatedBuilder(
               animation: _animation,
               builder: (context, child) {
+                if (!mounted) return const SizedBox.shrink();
                 return Transform.translate(
                   offset: Offset(-_animation.value * _totalWidth, 0),
                   child: child,

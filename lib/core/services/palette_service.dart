@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:material_color_utilities/material_color_utilities.dart';
 import '../utils/palette_cache.dart';
@@ -104,10 +105,11 @@ class PaletteService {
     final ui.Image scaledImage = await _imageProviderToScaled(imageProvider);
     final ByteData? imageBytes = await scaledImage.toByteData();
 
-    final QuantizerResult quantizerResult = await QuantizerCelebi().quantize(
-      imageBytes!.buffer.asUint32List(),
-      128,
-      returnInputPixelToClusterPixel: true,
+    final Uint32List pixelData = imageBytes!.buffer.asUint32List();
+    
+    final QuantizerResult quantizerResult = await compute(
+      _quantizeInIsolate,
+      pixelData,
     );
     return quantizerResult;
   }
@@ -195,6 +197,14 @@ class PaletteService {
     final muted = _muteColor(base);
     return PaletteColors(dominant: base, vibrant: vib, darkVibrant: dark, muted: muted);
   }
+}
+
+Future<QuantizerResult> _quantizeInIsolate(Uint32List pixelData) async {
+  return await QuantizerCelebi().quantize(
+    pixelData,
+    128,
+    returnInputPixelToClusterPixel: true,
+  );
 }
 
 class PaletteImageProvider {
