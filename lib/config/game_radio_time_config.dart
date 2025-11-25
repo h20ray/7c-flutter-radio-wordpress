@@ -102,54 +102,54 @@ class GameRadioTimeConfig {
       displayName: 'Frequency Wanderer',
       description: 'Newcomer exploring different radio frequencies.',
       minHours: 0,
-      maxHours: 10,
+      maxHours: 2,
       assetPath:
-          'assets/images/user_levels/ic_level_1_frequency_wanderer_placeholder.png',
+          'assets/images/user_levels/ic_level_01.png',
     ),
     GameLevelDefinition(
       id: 'level_2',
       displayName: 'Active Tuner',
       description: 'Regular listener who tunes in often.',
-      minHours: 10,
-      maxHours: 30,
+      minHours: 2,
+      maxHours: 5,
       assetPath:
-          'assets/images/user_levels/ic_level_2_active_tuner_placeholder.png',
+          'assets/images/user_levels/ic_level_02.png',
     ),
     GameLevelDefinition(
       id: 'level_3',
       displayName: 'Studio Companion',
       description: 'Feels like a friend of the studio, emotionally connected.',
-      minHours: 30,
-      maxHours: 60,
+      minHours: 5,
+      maxHours: 10,
       assetPath:
-          'assets/images/user_levels/ic_level_3_studio_companion_placeholder.png',
+          'assets/images/user_levels/ic_level_03.png',
     ),
     GameLevelDefinition(
       id: 'level_4',
       displayName: 'Airwave Citizen',
       description: 'Feels like part of the radio world, a citizen of airwaves.',
-      minHours: 60,
-      maxHours: 120,
+      minHours: 10,
+      maxHours: 20,
       assetPath:
-          'assets/images/user_levels/ic_level_4_airwave_citizen_placeholder.png',
+          'assets/images/user_levels/ic_level_04.png',
     ),
     GameLevelDefinition(
       id: 'level_5',
       displayName: 'Radio Star',
       description: 'Highly engaged, standout community member.',
-      minHours: 120,
-      maxHours: 250,
+      minHours: 20,
+      maxHours: 40,
       assetPath:
-          'assets/images/user_levels/ic_level_5_radio_star_placeholder.png',
+          'assets/images/user_levels/ic_level_05.png',
     ),
     GameLevelDefinition(
       id: 'level_6',
       displayName: 'Broadcast Legend',
       description: 'Top-tier, iconic listener with huge presence.',
-      minHours: 250,
+      minHours: 40,
       maxHours: null,
       assetPath:
-          'assets/images/user_levels/ic_level_6_broadcast_legend_placeholder.png',
+          'assets/images/user_levels/ic_level_06.png',
     ),
   ];
 

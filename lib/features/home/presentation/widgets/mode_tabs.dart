@@ -58,7 +58,7 @@ class _ModeTabsState extends State<ModeTabs>
 
     return Container(
       margin: EdgeInsets.only(
-        top: DesignTokens.spacingS,
+        top: 0,
         left: DesignTokens.spacingL,
         right: DesignTokens.spacingL,
       ),

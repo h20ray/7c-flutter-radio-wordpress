@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
+import '../../../../core/routes/app_routes.dart';
 import '../../../../core/themes/app_color_system.dart';
 import '../../../../core/themes/design_tokens.dart';
 import '../../../gamification/presentation/bloc/gamification_bloc.dart';
@@ -24,7 +25,7 @@ class StatusGameProgressCard extends StatelessWidget {
           return state.maybeWhen(
             loaded: (data) => _StatusCardShell(
               colors: colors,
-              child: _StatusCardBody(data: data),
+              child: _TappableStatusCardBody(data: data),
             ),
             error: (failure) => _StatusCardShell(
               colors: colors,
@@ -68,6 +69,23 @@ class _StatusCardShell extends StatelessWidget {
         borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
       ),
       child: child,
+    );
+  }
+}
+
+class _TappableStatusCardBody extends StatelessWidget {
+  final GamificationStatusViewData data;
+
+  const _TappableStatusCardBody({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () {
+        Navigator.of(context).pushNamed(AppRoutes.levelDetails);
+      },
+      borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
+      child: _StatusCardBody(data: data),
     );
   }
 }

@@ -6,6 +6,7 @@ import '../../features/radio/presentation/pages/radio_page.dart';
 import '../../features/radio/presentation/bloc/radio_bloc.dart';
 import '../../features/radio/presentation/bloc/radio_player_bloc.dart';
 import '../../features/gamification/presentation/bloc/gamification_bloc.dart';
+import '../../features/gamification/presentation/pages/level_details_page.dart';
 import '../../features/home/presentation/pages/home_screen.dart';
 import '../../features/home/presentation/bloc/home_bloc.dart';
 import '../../features/wordpress/presentation/bloc/wordpress_bloc.dart';
@@ -47,6 +48,20 @@ class RouteGenerator {
       case AppRoutes.radio:
         return MaterialPageRoute(
           builder: (_) => const RadioPage(),
+        );
+      case AppRoutes.levelDetails:
+        return MaterialPageRoute(
+          builder: (_) {
+            final bloc = getIt<GamificationBloc>();
+            bloc.state.maybeWhen(
+              initial: () => bloc.add(const GamificationEvent.started()),
+              orElse: () {},
+            );
+            return BlocProvider.value(
+              value: bloc,
+              child: const LevelDetailsPage(),
+            );
+          },
         );
       default:
         return MaterialPageRoute(

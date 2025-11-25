@@ -1,0 +1,365 @@
+import 'dart:ui';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../../../config/game_radio_time_config.dart';
+import '../../../../../core/themes/app_color_system.dart';
+import '../../../../../core/themes/design_tokens.dart';
+
+class LevelCardItem extends StatelessWidget {
+  final GameLevelDefinition level;
+  final bool isCurrent;
+  final bool isUnlocked;
+  final bool isMaxLevel;
+  final double currentHours;
+
+  const LevelCardItem({
+    super.key,
+    required this.level,
+    required this.isCurrent,
+    required this.isUnlocked,
+    required this.isMaxLevel,
+    required this.currentHours,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    Color cardBackgroundColor;
+    if (isCurrent) {
+      cardBackgroundColor = colorScheme.primaryContainer.withValues(alpha: 0.3);
+    } else if (isUnlocked) {
+      cardBackgroundColor = _getVibrantColorForLevel(level.id);
+    } else {
+      cardBackgroundColor = colors.cardBackground;
+    }
+
+    return Card(
+      color: cardBackgroundColor,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
+        child: isUnlocked
+            ? Padding(
+                padding: EdgeInsets.all(DesignTokens.spacingL),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _LevelBadge(
+                      assetPath: level.assetPath,
+                      size: 64,
+                      isCurrent: isCurrent,
+                      isUnlocked: isUnlocked,
+                    ),
+                    SizedBox(width: DesignTokens.spacingL),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  level.displayName,
+                                  style: textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color: isCurrent
+                                        ? colorScheme.onPrimaryContainer
+                                        : _getTextColorForVibrantBackground(
+                                            level.id),
+                                  ),
+                                ),
+                              ),
+                              if (isCurrent) ...[
+                                Container(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: DesignTokens.spacingS,
+                                    vertical: DesignTokens.spacingXs,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: colorScheme.primary,
+                                    borderRadius: BorderRadius.circular(
+                                      DesignTokens.cornerRadiusPill,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    'level_details_current'.tr(),
+                                    style: textTheme.labelSmall?.copyWith(
+                                      color: colorScheme.onPrimary,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ] else if (isUnlocked && !isCurrent) ...[
+                                Icon(
+                                  LucideIcons.check,
+                                  size: 20,
+                                  color: _getTextColorForVibrantBackground(
+                                      level.id),
+                                ),
+                              ],
+                            ],
+                          ),
+                          SizedBox(height: DesignTokens.spacingXs),
+                          Text(
+                            level.description,
+                            style: textTheme.bodySmall?.copyWith(
+                              color: isCurrent
+                                  ? colorScheme.onSurfaceVariant
+                                  : _getTextColorForVibrantBackground(level.id)
+                                      .withValues(alpha: 0.8),
+                            ),
+                          ),
+                          SizedBox(height: DesignTokens.spacingM),
+                          _LevelRequirements(
+                            level: level,
+                            isUnlocked: isUnlocked,
+                            isCurrent: isCurrent,
+                            currentHours: currentHours,
+                            textColor: isCurrent
+                                ? colorScheme.onSurfaceVariant
+                                : _getTextColorForVibrantBackground(level.id)
+                                    .withValues(alpha: 0.9),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            : BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                child: Container(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  padding: EdgeInsets.all(DesignTokens.spacingL),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _LevelBadge(
+                        assetPath: level.assetPath,
+                        size: 64,
+                        isCurrent: false,
+                        isUnlocked: false,
+                      ),
+                      SizedBox(width: DesignTokens.spacingL),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    '???',
+                                    style: textTheme.titleMedium?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                      color: colorScheme.onSurfaceVariant
+                                          .withValues(alpha: 0.5),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: DesignTokens.spacingXs),
+                            Text(
+                              'level_details_locked'.tr(),
+                              style: textTheme.bodySmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant
+                                    .withValues(alpha: 0.5),
+                              ),
+                            ),
+                            SizedBox(height: DesignTokens.spacingM),
+                            _LevelRequirements(
+                              level: level,
+                              isUnlocked: false,
+                              isCurrent: false,
+                              currentHours: currentHours,
+                              textColor: colorScheme.onSurfaceVariant
+                                  .withValues(alpha: 0.6),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+      ),
+    );
+  }
+
+  Color _getVibrantColorForLevel(String levelId) {
+    final vibrantColors = {
+      'level_1': const Color(0xFFFFE5B4),
+      'level_2': const Color(0xFFFFD4A3),
+      'level_3': const Color(0xFFFFF4A3),
+      'level_4': const Color(0xFFE5D4FF),
+      'level_5': const Color(0xFFD4F4FF),
+      'level_6': const Color(0xFFFFD4E5),
+    };
+    return vibrantColors[levelId] ?? const Color(0xFFFFE5B4);
+  }
+
+  Color _getTextColorForVibrantBackground(String levelId) {
+    return const Color(0xFF1A1A1A);
+  }
+}
+
+class _LevelBadge extends StatelessWidget {
+  final String assetPath;
+  final double size;
+  final bool isCurrent;
+  final bool isUnlocked;
+
+  const _LevelBadge({
+    required this.assetPath,
+    required this.size,
+    required this.isCurrent,
+    required this.isUnlocked,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: isCurrent
+            ? [
+                BoxShadow(
+                  color: colorScheme.primary.withValues(alpha: 0.2),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                  spreadRadius: 2,
+                ),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ]
+            : isUnlocked
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.15),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                      spreadRadius: 1,
+                    ),
+                  ]
+                : [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Image.asset(
+        assetPath,
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+      ),
+    );
+  }
+}
+
+class _LevelRequirements extends StatelessWidget {
+  final GameLevelDefinition level;
+  final bool isUnlocked;
+  final bool isCurrent;
+  final double currentHours;
+  final Color textColor;
+
+  const _LevelRequirements({
+    required this.level,
+    required this.isUnlocked,
+    required this.isCurrent,
+    required this.currentHours,
+    required this.textColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
+    if (level.isMaxLevel) {
+      return Row(
+        children: [
+          Icon(
+            LucideIcons.infinity,
+            size: 16,
+            color: textColor,
+          ),
+          SizedBox(width: DesignTokens.spacingXs),
+          Text(
+            'level_details_hours_minimum'.tr(
+              namedArgs: {'hours': level.minHours.toStringAsFixed(0)},
+            ),
+            style: textTheme.labelSmall?.copyWith(
+              color: textColor,
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (isUnlocked && !isCurrent) {
+      return Row(
+        children: [
+          Icon(
+            LucideIcons.check,
+            size: 16,
+            color: textColor,
+          ),
+          SizedBox(width: DesignTokens.spacingXs),
+          Text(
+            'level_details_completed'.tr(),
+            style: textTheme.labelSmall?.copyWith(
+              color: textColor,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (isCurrent) {
+      return const SizedBox.shrink();
+    }
+
+    final hoursNeeded = (level.minHours - currentHours).clamp(0.0, double.maxFinite);
+    final formattedHoursNeeded = hoursNeeded >= 100
+        ? hoursNeeded.toStringAsFixed(0)
+        : hoursNeeded.toStringAsFixed(1);
+
+    return Row(
+      children: [
+        Icon(
+          LucideIcons.lock,
+          size: 16,
+          color: textColor,
+        ),
+        SizedBox(width: DesignTokens.spacingXs),
+        Flexible(
+          child: Text(
+            'level_details_hours_needed_to_unlock'.tr(
+              namedArgs: {'hours': formattedHoursNeeded},
+            ),
+            style: textTheme.labelSmall?.copyWith(
+              color: textColor,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+

@@ -91,23 +91,34 @@ class _SwipeableCardContainerState extends State<SwipeableCardContainer> {
 
   @override
   Widget build(BuildContext context) {
-    return Transform.translate(
-      offset: Offset(0, -DesignTokens.spacingXl * 2),
+    return Padding(
+      padding: EdgeInsets.only(bottom: DesignTokens.spacingM),
       child: SizedBox(
-        height: _fixedCardHeight,
-        child: PageView.builder(
-          controller: _pageController,
-          onPageChanged: _onPageChanged,
-          physics: const BouncingScrollPhysics(),
-          itemBuilder: (context, index) {
-            final realIndex = _getRealIndex(index);
-            return _CardWrapper(
+        height: _fixedCardHeight - (DesignTokens.spacingXl * 2),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Positioned(
+              top: -DesignTokens.spacingXl * 2,
+              left: 0,
+              right: 0,
               height: _fixedCardHeight,
-              child: realIndex == 0
-                  ? const RadioNowPlayingCard(skipWrapper: true)
-                  : const StatusGameProgressCard(skipWrapper: true),
-            );
-          },
+              child: PageView.builder(
+                controller: _pageController,
+                onPageChanged: _onPageChanged,
+                physics: const BouncingScrollPhysics(),
+                itemBuilder: (context, index) {
+                  final realIndex = _getRealIndex(index);
+                  return _CardWrapper(
+                    height: _fixedCardHeight,
+                    child: realIndex == 0
+                        ? const RadioNowPlayingCard(skipWrapper: true)
+                        : const StatusGameProgressCard(skipWrapper: true),
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );
