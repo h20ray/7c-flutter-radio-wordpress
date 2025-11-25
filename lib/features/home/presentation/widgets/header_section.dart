@@ -164,15 +164,19 @@ class HeaderSection extends StatelessWidget {
           SizedBox(height: DesignTokens.spacingL),
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
                 child: Padding(
                   padding: EdgeInsets.only(left: DesignTokens.spacingL),
-                  child: Text(
-                    _getGreeting().tr(),
-                    style: TextStyle(
-                      fontSize: DesignTokens.fontSizeBody,
-                      color: tokens.secondaryText,
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      _getGreeting().tr(),
+                      style: TextStyle(
+                        fontSize: DesignTokens.fontSizeBody,
+                        color: tokens.secondaryText,
+                      ),
                     ),
                   ),
                 ),

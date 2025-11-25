@@ -154,7 +154,7 @@ class _DynamicNowPlayingCardState extends State<_DynamicNowPlayingCard> {
             children: [
               _AlbumArt(size: 68),
               SizedBox(width: DesignTokens.spacingL),
-              Flexible(
+              Expanded(
                 child: _MetadataSection(
                   title: widget.viewData.title,
                   artist: widget.viewData.artist,
