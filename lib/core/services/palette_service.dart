@@ -7,9 +7,16 @@ import 'package:material_color_utilities/material_color_utilities.dart';
 import '../utils/palette_cache.dart';
 
 class PaletteService {
-  PaletteService({PaletteLruCache? cache}) : _cache = cache ?? PaletteLruCache();
+  static final PaletteLruCache _sharedCache = PaletteLruCache();
+  
+  PaletteService({PaletteLruCache? cache}) : _cache = cache ?? _sharedCache;
 
   final PaletteLruCache _cache;
+
+  PaletteColors? getCached(String? url) {
+    if (url == null || url.isEmpty) return null;
+    return _cache.get(url);
+  }
 
   Future<PaletteColors> fetchForUrl(String? url, {Color fallback = const Color(0xFF15232B)}) async {
     if (url == null || url.isEmpty) {

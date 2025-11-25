@@ -10,35 +10,43 @@ import '../../../gamification/presentation/bloc/gamification_bloc.dart';
 import '../../../gamification/presentation/viewmodels/gamification_status_view_data.dart';
 
 class StatusGameProgressCard extends StatelessWidget {
-  const StatusGameProgressCard({super.key});
+  final bool skipWrapper;
+
+  const StatusGameProgressCard({super.key, this.skipWrapper = false});
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
 
+    final content = Padding(
+      padding: EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
+      child: BlocBuilder<GamificationBloc, GamificationState>(
+        builder: (context, state) {
+          return state.maybeWhen(
+            loaded: (data) => _StatusCardShell(
+              colors: colors,
+              child: _StatusCardBody(data: data),
+            ),
+            error: (failure) => _StatusCardShell(
+              colors: colors,
+              child: _StatusCardError(message: failure.message),
+            ),
+            orElse: () => _StatusCardShell(
+              colors: colors,
+              child: const _StatusCardSkeleton(),
+            ),
+          );
+        },
+      ),
+    );
+
+    if (skipWrapper) {
+      return content;
+    }
+
     return Transform.translate(
       offset: Offset(0, -DesignTokens.spacingXl * 1.7),
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
-        child: BlocBuilder<GamificationBloc, GamificationState>(
-          builder: (context, state) {
-            return state.maybeWhen(
-              loaded: (data) => _StatusCardShell(
-                colors: colors,
-                child: _StatusCardBody(data: data),
-              ),
-              error: (failure) => _StatusCardShell(
-                colors: colors,
-                child: _StatusCardError(message: failure.message),
-              ),
-              orElse: () => _StatusCardShell(
-                colors: colors,
-                child: const _StatusCardSkeleton(),
-              ),
-            );
-          },
-        ),
-      ),
+      child: content,
     );
   }
 }
@@ -47,10 +55,7 @@ class _StatusCardShell extends StatelessWidget {
   final AppSemanticColors colors;
   final Widget child;
 
-  const _StatusCardShell({
-    required this.colors,
-    required this.child,
-  });
+  const _StatusCardShell({required this.colors, required this.child});
 
   @override
   Widget build(BuildContext context) {
@@ -58,16 +63,10 @@ class _StatusCardShell extends StatelessWidget {
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeOutCubic,
       padding: EdgeInsets.all(DesignTokens.spacingM),
+      constraints: const BoxConstraints(minHeight: 68),
       decoration: BoxDecoration(
         color: colors.cardBackground,
         borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 18,
-            offset: const Offset(0, 12),
-          ),
-        ],
       ),
       child: child,
     );
@@ -84,10 +83,9 @@ class _StatusCardBody extends StatelessWidget {
     final indicatorColor = Theme.of(context).colorScheme.onSurface;
 
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        _LevelArtwork(
-          assetPath: data.assetPath,
-        ),
+        _LevelArtwork(size: 68, assetPath: data.assetPath),
         SizedBox(width: DesignTokens.spacingL),
         Expanded(
           child: _LevelMetadata(
@@ -109,26 +107,34 @@ class _StatusCardBody extends StatelessWidget {
 }
 
 class _LevelArtwork extends StatelessWidget {
+  final double size;
   final String assetPath;
 
-  const _LevelArtwork({required this.assetPath});
+  const _LevelArtwork({required this.size, required this.assetPath});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 68,
-      height: 68,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.25),
-          width: 1.2,
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.25),
+            width: 1.2,
+          ),
         ),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Image.asset(
-        assetPath,
-        fit: BoxFit.cover,
+        clipBehavior: Clip.antiAlias,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Image.asset(
+            assetPath,
+            width: size,
+            height: size,
+            fit: BoxFit.cover,
+          ),
+        ),
       ),
     );
   }
@@ -154,19 +160,19 @@ class _LevelMetadata extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        _ListeningIndicator(
-          hours: hours,
-          indicatorColor: indicatorColor,
-        ),
-        SizedBox(height: DesignTokens.spacingXs),
-        Text(
-          levelName,
-          style: textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w700,
+        _ListeningIndicator(hours: hours, indicatorColor: indicatorColor),
+        SizedBox(height: 2),
+        Flexible(
+          child: Text(
+            levelName,
+            style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
-        SizedBox(height: DesignTokens.spacingXs),
+        SizedBox(height: 2),
         AnimatedGameProgress(
           progress: progress.clamp(0.0, 1.0),
           height: DesignTokens.progressIndicatorHeight,
@@ -196,18 +202,14 @@ class _ListeningIndicator extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(
-          LucideIcons.timer,
-          size: 16,
-          color: indicatorColor,
-        ),
+        Icon(LucideIcons.timer, size: 16, color: indicatorColor),
         SizedBox(width: DesignTokens.spacingXs),
         Text(
           '$formattedHours h',
           style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                color: indicatorColor,
-                fontWeight: FontWeight.w600,
-              ),
+            color: indicatorColor,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ],
     );
@@ -222,12 +224,13 @@ class _StatusCardSkeleton extends StatelessWidget {
     final color = Theme.of(context).colorScheme.surfaceContainerHighest;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        _SkeletonBox(width: 220, height: 24, color: color),
-        SizedBox(height: DesignTokens.spacingS),
-        _SkeletonBox(width: double.infinity, height: 22, color: color),
-        SizedBox(height: DesignTokens.spacingS),
-        _SkeletonBox(width: double.infinity, height: 36, color: color),
+        _SkeletonBox(width: 220, height: 16, color: color),
+        SizedBox(height: 2),
+        _SkeletonBox(width: double.infinity, height: 16, color: color),
+        SizedBox(height: 2),
+        _SkeletonBox(width: double.infinity, height: 28, color: color),
       ],
     );
   }
@@ -269,20 +272,22 @@ class _StatusCardError extends StatelessWidget {
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         Text(
           'home_status_game_title'.tr(),
           style: textTheme.titleMedium,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
-        SizedBox(height: DesignTokens.spacingS),
+        SizedBox(height: DesignTokens.spacingXs),
         Text(
           message,
-          style: textTheme.bodySmall?.copyWith(
-            color: colorScheme.error,
-          ),
+          style: textTheme.bodySmall?.copyWith(color: colorScheme.error),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
         ),
       ],
     );
   }
 }
-

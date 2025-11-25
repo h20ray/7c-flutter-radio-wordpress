@@ -15,30 +15,38 @@ import '../../../../core/widgets/smooth_marquee_text.dart';
 import '../../domain/entities/now_playing_entity.dart';
 import '../bloc/home_bloc.dart';
 
-class TopStatusCard extends StatelessWidget {
-  const TopStatusCard({super.key});
+class RadioNowPlayingCard extends StatelessWidget {
+  final bool skipWrapper;
+
+  const RadioNowPlayingCard({super.key, this.skipWrapper = false});
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
 
+    final content = BlocSelector<HomeBloc, HomeState, _NowPlayingViewData>(
+      selector: (state) {
+        return state.maybeWhen(
+          loaded: (tabIndex, selectedCategory, nowPlaying, error) =>
+              _NowPlayingViewData.fromEntity(nowPlaying),
+          orElse: () => _NowPlayingViewData.fallback(),
+        );
+      },
+      builder: (context, viewData) {
+        return Padding(
+          padding: EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
+          child: _DynamicNowPlayingCard(viewData: viewData, colors: colors),
+        );
+      },
+    );
+
+    if (skipWrapper) {
+      return content;
+    }
+
     return Transform.translate(
       offset: Offset(0, -DesignTokens.spacingXl * 1.7),
-      child: BlocSelector<HomeBloc, HomeState, _NowPlayingViewData>(
-        selector: (state) {
-          return state.maybeWhen(
-            loaded: (tabIndex, selectedCategory, nowPlaying, error) =>
-                _NowPlayingViewData.fromEntity(nowPlaying),
-            orElse: () => _NowPlayingViewData.fallback(),
-          );
-        },
-        builder: (context, viewData) {
-          return Padding(
-            padding: EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
-            child: _DynamicNowPlayingCard(viewData: viewData, colors: colors),
-          );
-        },
-      ),
+      child: content,
     );
   }
 }
@@ -54,30 +62,40 @@ class _DynamicNowPlayingCard extends StatefulWidget {
 }
 
 class _DynamicNowPlayingCardState extends State<_DynamicNowPlayingCard> {
-  final PaletteService _paletteService = PaletteService();
+  static final PaletteService _paletteService = PaletteService();
   PaletteColors? _palette;
   int _paletteRequestId = 0;
 
   @override
   void initState() {
     super.initState();
-    _maybeUpdatePalette(force: true);
+    _loadPalette();
   }
 
   @override
   void didUpdateWidget(covariant _DynamicNowPlayingCard oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.viewData.albumArtUrl != oldWidget.viewData.albumArtUrl) {
-      _maybeUpdatePalette(force: true);
+      _loadPalette();
     }
   }
 
-  void _maybeUpdatePalette({bool force = false}) {
+  void _loadPalette() {
     final url = widget.viewData.albumArtUrl;
     if (url == null || url.isEmpty) {
-      if (force || _palette != null) {
+      if (_palette != null) {
         setState(() {
           _palette = null;
+        });
+      }
+      return;
+    }
+
+    final cached = _paletteService.getCached(url);
+    if (cached != null) {
+      if (_palette != cached) {
+        setState(() {
+          _palette = cached;
         });
       }
       return;
@@ -125,26 +143,18 @@ class _DynamicNowPlayingCardState extends State<_DynamicNowPlayingCard> {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 320),
           curve: Curves.easeOutCubic,
-          padding: EdgeInsets.symmetric(
-            horizontal: DesignTokens.spacingM,
-            vertical: DesignTokens.spacingM,
-          ),
+          padding: EdgeInsets.all(DesignTokens.spacingM),
+          constraints: const BoxConstraints(minHeight: 68),
           decoration: BoxDecoration(
             color: cardColor,
             borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: hasPalette ? 0.2 : 0.08),
-                blurRadius: hasPalette ? 28 : 18,
-                offset: const Offset(0, 12),
-              ),
-            ],
           ),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               _AlbumArt(size: 68),
               SizedBox(width: DesignTokens.spacingL),
-              Expanded(
+              Flexible(
                 child: _MetadataSection(
                   title: widget.viewData.title,
                   artist: widget.viewData.artist,
@@ -186,22 +196,27 @@ class _AlbumArt extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: size,
       height: size,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.25),
-          width: 1.2,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.25),
+            width: 1.2,
+          ),
         ),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: AlbumArtWidget.roundedRect(
-        width: size,
-        height: size,
-        borderRadius: 12,
-        filterQuality: FilterQuality.high,
+        clipBehavior: Clip.antiAlias,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: AlbumArtWidget.roundedRect(
+            width: size,
+            height: size,
+            borderRadius: 12,
+            filterQuality: FilterQuality.high,
+          ),
+        ),
       ),
     );
   }
@@ -236,27 +251,30 @@ class _MetadataSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
       children: [
         _LiveIndicator(
           isActive: isPlaying,
           textColor: indicatorColor,
           indicatorColor: indicatorColor,
         ),
-        SizedBox(height: DesignTokens.spacingXs),
-        AnimatedSwitcher(
-          duration: const Duration(milliseconds: 200),
-          child: SmoothMarqueeAuto(
-            text: normalizedTitle,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: titleColor,
-              fontWeight: FontWeight.w700,
-              letterSpacing: -0.2,
+        SizedBox(height: 2),
+        Flexible(
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 200),
+            child: SmoothMarqueeAuto(
+              text: normalizedTitle,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: titleColor,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.2,
+              ),
+              scrollDuration: const Duration(seconds: 12),
+              pauseDuration: const Duration(seconds: 3),
             ),
-            scrollDuration: const Duration(seconds: 12),
-            pauseDuration: const Duration(seconds: 3),
           ),
         ),
-        SizedBox(height: DesignTokens.spacingXs),
+        SizedBox(height: 2),
         AnimatedSwitcher(
           duration: const Duration(milliseconds: 200),
           child: SmoothMarqueeAuto(

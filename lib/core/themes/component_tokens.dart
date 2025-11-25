@@ -21,6 +21,60 @@ class AppShadowTokens {
   final Color level1;
   final Color level2;
   final Color level3;
+
+  static List<BoxShadow> elevation2(BuildContext context) {
+    final shadowColor = Theme.of(context).colorScheme.shadow;
+    return [
+      BoxShadow(
+        color: shadowColor.withValues(alpha: 0.15),
+        offset: const Offset(0, 1),
+        blurRadius: 3,
+        spreadRadius: 0,
+      ),
+      BoxShadow(
+        color: shadowColor.withValues(alpha: 0.10),
+        offset: const Offset(0, 0),
+        blurRadius: 1,
+        spreadRadius: 0,
+      ),
+    ];
+  }
+
+  static List<BoxShadow> elevation4(BuildContext context) {
+    final shadowColor = Theme.of(context).colorScheme.shadow;
+    return [
+      BoxShadow(
+        color: shadowColor.withValues(alpha: 0.12),
+        offset: const Offset(0, 1),
+        blurRadius: 3,
+        spreadRadius: 0,
+      ),
+      BoxShadow(
+        color: shadowColor.withValues(alpha: 0.08),
+        offset: const Offset(0, 0),
+        blurRadius: 1,
+        spreadRadius: 0,
+      ),
+    ];
+  }
+
+  static List<BoxShadow> elevation8(BuildContext context) {
+    final shadowColor = Theme.of(context).colorScheme.shadow;
+    return [
+      BoxShadow(
+        color: shadowColor.withValues(alpha: 0.18),
+        offset: const Offset(0, 2),
+        blurRadius: 6,
+        spreadRadius: 0,
+      ),
+      BoxShadow(
+        color: shadowColor.withValues(alpha: 0.12),
+        offset: const Offset(0, 0),
+        blurRadius: 2,
+        spreadRadius: 0,
+      ),
+    ];
+  }
 }
 
 class HomeHeaderTokens {
@@ -170,6 +224,48 @@ class ModeTabsTokens {
       unselectedBackground: Colors.transparent,
       selectedText: colors.advanced.onPrimaryFixed,
       unselectedText: colors.textSecondary,
+      shadow: shadows.level1,
+    );
+  }
+
+  final Color container;
+  final Color selectedBackground;
+  final Color unselectedBackground;
+  final Color selectedText;
+  final Color unselectedText;
+  final Color shadow;
+}
+
+class RadioGameTabsTokens {
+  RadioGameTabsTokens._({
+    required this.container,
+    required this.selectedBackground,
+    required this.unselectedBackground,
+    required this.selectedText,
+    required this.unselectedText,
+    required this.shadow,
+  });
+
+  factory RadioGameTabsTokens.of(BuildContext context) {
+    final colors = context.appColors;
+    final scheme = colors.colorScheme;
+    final shadows = AppShadowTokens.of(context);
+    final isLight = colors.brightness == Brightness.light;
+    
+    return RadioGameTabsTokens._(
+      container: isLight
+          ? colors.surfaces.surfaceContainerHigh
+          : colors.surfaces.surfaceContainerHighest,
+      selectedBackground: isLight
+          ? scheme.onSurface.withValues(alpha: 0.12)
+          : scheme.onSurface.withValues(alpha: 0.2),
+      unselectedBackground: Colors.transparent,
+      selectedText: isLight
+          ? scheme.onSurface.withValues(alpha: 0.9)
+          : scheme.onSurface.withValues(alpha: 0.95),
+      unselectedText: isLight
+          ? scheme.onSurface.withValues(alpha: 0.6)
+          : scheme.onSurface.withValues(alpha: 0.7),
       shadow: shadows.level1,
     );
   }

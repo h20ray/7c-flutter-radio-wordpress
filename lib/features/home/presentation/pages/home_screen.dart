@@ -12,8 +12,7 @@ import '../../../../core/widgets/floating_bottom_nav_bar.dart';
 import '../../../../core/widgets/floating_play_fab.dart';
 import '../bloc/home_bloc.dart';
 import '../widgets/header_section.dart';
-import '../widgets/status_game_progress_card.dart';
-import '../widgets/top_status_card.dart';
+import '../widgets/swipeable_card_container.dart';
 import '../widgets/mode_tabs.dart';
 import '../widgets/featured_radio_section.dart';
 import '../widgets/latest_news_carousel.dart';
@@ -86,33 +85,13 @@ class _HomeScreenState extends State<HomeScreen> {
                             });
                           },
                         ),
-                        AnimatedSwitcher(
-                          duration: DesignTokens.animationDurationMedium,
-                          transitionBuilder: (child, animation) {
-                            final slideAnimation = Tween<Offset>(
-                              begin: const Offset(0.15, 0),
-                              end: Offset.zero,
-                            ).animate(
-                              CurvedAnimation(
-                                parent: animation,
-                                curve: DesignTokens.animationCurveSpring,
-                              ),
-                            );
-                            return FadeTransition(
-                              opacity: animation,
-                              child: SlideTransition(
-                                position: slideAnimation,
-                                child: child,
-                              ),
-                            );
+                        SwipeableCardContainer(
+                          selectedIndex: _selectedRadioGameTab,
+                          onIndexChanged: (index) {
+                            setState(() {
+                              _selectedRadioGameTab = index;
+                            });
                           },
-                          child: _selectedRadioGameTab == 0
-                              ? const TopStatusCard(
-                                  key: ValueKey('radio_status_card'),
-                                )
-                              : const StatusGameProgressCard(
-                                  key: ValueKey('game_status_card'),
-                                ),
                         ),
                         SizedBox(height: DesignTokens.spacingXl),
                         ModeTabs(

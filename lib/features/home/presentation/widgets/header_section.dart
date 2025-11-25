@@ -25,7 +25,7 @@ class HeaderSection extends StatelessWidget {
     final statusBarHeight = MediaQuery.of(context).padding.top;
 
     return Container(
-      height: 170 + statusBarHeight,
+      height: 190 + statusBarHeight,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
