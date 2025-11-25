@@ -93,6 +93,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             });
                           },
                         ),
+                        SizedBox(height: DesignTokens.spacingM),
                         ModeTabs(
                           selectedIndex: _selectedTabIndex,
                           onTabChanged: (index) {
@@ -104,6 +105,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             );
                           },
                         ),
+                        SizedBox(height: DesignTokens.spacingM),
                         if (_selectedTabIndex == 0) ...[
                           const FeaturedRadioSection(),
                           SizedBox(height: DesignTokens.spacingXl),
