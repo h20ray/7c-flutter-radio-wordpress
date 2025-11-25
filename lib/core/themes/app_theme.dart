@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'app_color_system.dart';
 import 'design_tokens.dart';
+import 'linear_indicator_theme.dart';
 
 class AppTheme {
   static ThemeData get lightTheme {
@@ -10,6 +11,9 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
+      extensions: <ThemeExtension<dynamic>>[
+        LinearIndicatorThemeData.fromScheme(colorScheme),
+      ],
       fontFamily: 'Inter',
       scaffoldBackgroundColor: semanticColors.primaryBackground,
       textTheme: _buildTextTheme(colorScheme, Brightness.light),
@@ -91,6 +95,9 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
+      extensions: <ThemeExtension<dynamic>>[
+        LinearIndicatorThemeData.fromScheme(colorScheme),
+      ],
       fontFamily: 'Inter',
       scaffoldBackgroundColor: semanticColors.primaryBackground,
       textTheme: _buildTextTheme(colorScheme, Brightness.dark),

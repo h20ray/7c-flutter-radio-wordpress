@@ -5,6 +5,7 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 
 import '../../../../core/themes/app_color_system.dart';
 import '../../../../core/themes/design_tokens.dart';
+import 'animated_game_progress.dart';
 import '../../../gamification/presentation/bloc/gamification_bloc.dart';
 import '../../../gamification/presentation/viewmodels/gamification_status_view_data.dart';
 
@@ -166,10 +167,10 @@ class _LevelMetadata extends StatelessWidget {
           ),
         ),
         SizedBox(height: DesignTokens.spacingXs),
-        _ShimmerLinearProgressIndicator(
+        AnimatedGameProgress(
           progress: progress.clamp(0.0, 1.0),
-          trackColor:
-              Theme.of(context).colorScheme.surfaceContainerHighest,
+          height: DesignTokens.progressIndicatorHeight,
+          trackColor: Theme.of(context).colorScheme.surfaceContainerHighest,
           fillColor: Theme.of(context).colorScheme.primary,
         ),
       ],
@@ -209,130 +210,6 @@ class _ListeningIndicator extends StatelessWidget {
               ),
         ),
       ],
-    );
-  }
-}
-
-class _ShimmerLinearProgressIndicator extends StatefulWidget {
-  final double progress;
-  final Color trackColor;
-  final Color fillColor;
-
-  const _ShimmerLinearProgressIndicator({
-    required this.progress,
-    required this.trackColor,
-    required this.fillColor,
-  });
-
-  @override
-  State<_ShimmerLinearProgressIndicator> createState() =>
-      _ShimmerLinearProgressIndicatorState();
-}
-
-class _ShimmerLinearProgressIndicatorState
-    extends State<_ShimmerLinearProgressIndicator>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 3),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final height = DesignTokens.progressIndicatorHeight;
-    final clampedProgress = widget.progress.clamp(0.0, 1.0);
-
-    return SizedBox(
-      height: height,
-      width: double.infinity,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final maxWidth = constraints.maxWidth;
-          final progressWidth = maxWidth * clampedProgress;
-          final shimmerWidth = (maxWidth * 0.2).clamp(24.0, maxWidth);
-
-          return ClipRRect(
-            borderRadius:
-                BorderRadius.circular(DesignTokens.cornerRadiusProgress),
-            child: Stack(
-              children: [
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                      colors: [
-                        widget.trackColor.withValues(alpha: 0.8),
-                        widget.trackColor,
-                      ],
-                    ),
-                  ),
-                ),
-                AnimatedContainer(
-                  duration: DesignTokens.animationDurationMedium,
-                  curve: DesignTokens.animationCurveSpring,
-                  width: progressWidth,
-                  height: double.infinity,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                      colors: [
-                        widget.fillColor.withValues(alpha: 0.9),
-                        widget.fillColor,
-                      ],
-                    ),
-                  ),
-                ),
-                if (progressWidth > 0)
-                  AnimatedBuilder(
-                    animation: _controller,
-                    builder: (context, _) {
-                      final travelDistance = progressWidth + shimmerWidth;
-                      final shimmerOffset =
-                          (travelDistance * _controller.value) - shimmerWidth;
-
-                      return Positioned(
-                        left: shimmerOffset.clamp(0.0, progressWidth),
-                        width: shimmerWidth,
-                        top: 0,
-                        bottom: 0,
-                        child: IgnorePointer(
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.centerLeft,
-                                end: Alignment.centerRight,
-                                colors: [
-                                  Colors.white.withValues(alpha: 0.0),
-                                  Colors.white.withValues(alpha: 0.45),
-                                  Colors.white.withValues(alpha: 0.0),
-                                ],
-                                stops: const [0.0, 0.5, 1.0],
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-              ],
-            ),
-          );
-        },
-      ),
     );
   }
 }
