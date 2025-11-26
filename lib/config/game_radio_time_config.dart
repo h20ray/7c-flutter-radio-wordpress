@@ -108,40 +108,40 @@ class GameRadioTimeConfig {
   static const List<GameLevelDefinition> levels = [
     GameLevelDefinition(
       id: 'level_1',
-      displayName: 'Frequency Wanderer',
-      description: 'Newcomer exploring different radio frequencies.',
+      displayName: 'Pemula',
+      description: 'Baru join? Yuk mulai denger & eksplor!',
       minHours: 0,
-      maxHours: 0.1,
+      maxHours: 0.01,
       assetPath: 'assets/images/user_levels/ic_level_01.png',
       animationAssetPath: 'assets/sprites/game_level_listening/level_1.lottie',
       badgeBackgroundColor: 0xFF7EC8E3,
     ),
     GameLevelDefinition(
       id: 'level_2',
-      displayName: 'Active Tuner',
-      description: 'Regular listener who tunes in often.',
-      minHours: 0.1,
-      maxHours: 5,
+      displayName: 'Pendengar Aktif',
+      description: 'Rutin denger, tapi masih malu-malu interaksi',
+      minHours: 0.01,
+      maxHours: 0.02,
       assetPath: 'assets/images/user_levels/ic_level_02.png',
       animationAssetPath: 'assets/sprites/game_level_listening/level_2.lottie',
       badgeBackgroundColor: 0xFF4CAF50,
     ),
     GameLevelDefinition(
       id: 'level_3',
-      displayName: 'Studio Companion',
-      description: 'Feels like a friend of the studio, emotionally connected.',
-      minHours: 5,
-      maxHours: 10,
+      displayName: 'Partisipan',
+      description: 'Mulai hafal lagu & nimbrung di chat',
+      minHours: 0.02,
+      maxHours: 0.03,
       assetPath: 'assets/images/user_levels/ic_level_03.png',
       animationAssetPath: 'assets/sprites/game_level_listening/level_3.lottie',
       badgeBackgroundColor: 0xFFFBC02D,
     ),
     GameLevelDefinition(
       id: 'level_4',
-      displayName: 'Airwave Citizen',
+      displayName: 'Hype Squad',
       description: 'Feels like part of the radio world, a citizen of airwaves.',
-      minHours: 10,
-      maxHours: 20,
+      minHours: 0.03,
+      maxHours: 0.04,
       assetPath: 'assets/images/user_levels/ic_level_04.png',
       animationAssetPath: 'assets/sprites/game_level_listening/level_4.lottie',
       badgeBackgroundColor: 0xFFFB8C00,
@@ -150,27 +150,27 @@ class GameRadioTimeConfig {
       id: 'level_5',
       displayName: 'Radio Star',
       description: 'Highly engaged, standout community member.',
-      minHours: 20,
-      maxHours: 40,
+      minHours: 0.04,
+      maxHours: 0.05,
       assetPath: 'assets/images/user_levels/ic_level_05.png',
       animationAssetPath: 'assets/sprites/game_level_listening/level_5.lottie',
       badgeBackgroundColor: 0xFFE53935,
     ),
     GameLevelDefinition(
       id: 'level_6',
-      displayName: 'Broadcast Legend',
-      description: 'Top-tier, iconic listener with huge presence.',
-      minHours: 40,
-      maxHours: 60,
+      displayName: 'Broadcast Icon',
+      description: 'Iconic listener with huge presence.',
+      minHours: 0.05,
+      maxHours: 0.06,
       assetPath: 'assets/images/user_levels/ic_level_06.png',
       animationAssetPath: 'assets/sprites/game_level_listening/level_6.lottie',
       badgeBackgroundColor: 0xFF8E24AA,
     ),
     GameLevelDefinition(
       id: 'level_7',
-      displayName: 'Broadcast Legend X',
-      description: 'Top-tier, iconic listener with huge presence.',
-      minHours: 60,
+      displayName: 'Broadcast Legend',
+      description: 'Legenda hidup, dikenal penyiar & komunitas.',
+      minHours: 0.07,
       maxHours: null,
       assetPath: 'assets/images/user_levels/ic_level_06.png',
       animationAssetPath: 'assets/sprites/game_level_listening/level_7.lottie',
@@ -250,6 +250,13 @@ class GameRadioTimeConfig {
       }
       idSet.add(level.id);
 
+      if (level.maxHours == null && i < levels.length - 1) {
+        _validationError =
+            'GameRadioTimeConfig: Only the last level can have unlimited maxHours. '
+            'Level "${level.id}" has maxHours null but is not the last level';
+        throw StateError(_validationError!);
+      }
+
       if (i > 0) {
         final previousLevel = levels[i - 1];
         if (level.minHours < previousLevel.minHours) {
@@ -266,13 +273,6 @@ class GameRadioTimeConfig {
               'GameRadioTimeConfig: Overlapping hour ranges detected. '
               'Level "${level.id}" minHours ${level.minHours} overlaps with '
               'previous level "${previousLevel.id}" maxHours ${previousLevel.maxHours}';
-          throw StateError(_validationError!);
-        }
-
-        if (previousLevel.maxHours == null && i < levels.length - 1) {
-          _validationError =
-              'GameRadioTimeConfig: Only the last level can have unlimited maxHours. '
-              'Level "${previousLevel.id}" has maxHours null but is not the last level';
           throw StateError(_validationError!);
         }
       }

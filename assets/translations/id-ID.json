@@ -114,6 +114,7 @@
   "level_details_progress_to_next": "Progress ke Level Berikutnya",
   "level_details_hours_needed_for": "{hours} jam diperlukan untuk {level}",
   "level_details_max_level_reached": "Level Maksimum Tercapai",
+  "level_details_max_status": "Status Maksimum",
   "level_details_hours_minimum": "{hours} jam minimum",
   "level_details_hours_needed_to_unlock": "{hours} jam diperlukan untuk membuka",
   "level_details_locked": "Terkunci",
@@ -178,5 +179,7 @@
   "dialog_cancel": "Batal",
   "dialog_exit_title": "Keluar Aplikasi",
   "dialog_exit_message": "Apakah Anda yakin ingin keluar dari aplikasi?",
-  "dialog_exit_confirm": "Keluar"
+  "dialog_exit_confirm": "Keluar",
+  "level_up_title": "Level Up!",
+  "level_up_tap_to_continue": "Ketuk di mana saja untuk melanjutkan"
 }

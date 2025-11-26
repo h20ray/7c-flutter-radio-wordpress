@@ -7,6 +7,8 @@ import '../../../../../core/themes/design_tokens.dart';
 import '../../viewmodels/gamification_status_view_data.dart';
 import '../level_animation_badge.dart';
 
+const double _progressSectionHeight = 80.0;
+
 class CurrentLevelSection extends StatelessWidget {
   final GamificationStatusViewData data;
 
@@ -199,29 +201,37 @@ class _MaxLevelIndicator extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Container(
-      padding: EdgeInsets.all(DesignTokens.spacingM),
-      decoration: BoxDecoration(
-        color: colorScheme.primaryContainer,
-        borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            LucideIcons.trophy,
-            color: colorScheme.onPrimaryContainer,
-            size: 20,
+    return SizedBox(
+      height: _progressSectionHeight,
+      child: Center(
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: DesignTokens.spacingM,
+            vertical: DesignTokens.spacingS,
           ),
-          SizedBox(width: DesignTokens.spacingS),
-          Text(
-            'level_details_max_level_reached'.tr(),
-            style: textTheme.bodyMedium?.copyWith(
-              color: colorScheme.onPrimaryContainer,
-              fontWeight: FontWeight.w600,
-            ),
+          decoration: BoxDecoration(
+            color: colorScheme.primaryContainer,
+            borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
           ),
-        ],
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                LucideIcons.trophy,
+                color: colorScheme.onPrimaryContainer,
+                size: 20,
+              ),
+              SizedBox(width: DesignTokens.spacingS),
+              Text(
+                'level_details_max_level_reached'.tr(),
+                style: textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onPrimaryContainer,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

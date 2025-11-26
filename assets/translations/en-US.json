@@ -114,6 +114,7 @@
   "level_details_progress_to_next": "Progress to Next Level",
   "level_details_hours_needed_for": "{hours} h needed for {level}",
   "level_details_max_level_reached": "Max Level Reached",
+  "level_details_max_status": "Max Status",
   "level_details_hours_minimum": "{hours} h minimum",
   "level_details_hours_needed_to_unlock": "{hours} h needed to unlock",
   "level_details_locked": "Locked",
@@ -178,5 +179,7 @@
   "dialog_cancel": "Cancel",
   "dialog_exit_title": "Exit App",
   "dialog_exit_message": "Are you sure you want to exit the app?",
-  "dialog_exit_confirm": "Exit"
+  "dialog_exit_confirm": "Exit",
+  "level_up_title": "Level Up!",
+  "level_up_tap_to_continue": "Tap anywhere to continue"
 }

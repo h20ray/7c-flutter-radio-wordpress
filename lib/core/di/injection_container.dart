@@ -7,6 +7,7 @@ import '../../config/app_config.dart';
 import '../audio/audio_focus_manager.dart';
 import '../services/system_volume_service.dart';
 import '../services/network_status_service.dart';
+import '../services/level_up_celebration_service.dart';
 import '../utils/debug_logger.dart';
 
 // Radio feature imports
@@ -253,11 +254,13 @@ void _initGamification() {
   );
   getIt.registerLazySingleton(() => WatchListeningStats(getIt()));
   getIt.registerLazySingleton(() => RecordListeningSession(getIt()));
-  getIt.registerFactory(
+  getIt.registerLazySingleton(
     () => GamificationBloc(
       watchListeningStats: getIt(),
     ),
   );
+  
+  getIt.registerLazySingleton(() => LevelUpCelebrationService.instance);
 }
 
 void _initTamtama() {

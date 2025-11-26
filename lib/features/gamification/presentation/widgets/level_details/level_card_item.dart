@@ -122,6 +122,7 @@ class LevelCardItem extends StatelessWidget {
                             level: level,
                             isUnlocked: isUnlocked,
                             isCurrent: isCurrent,
+                            isMaxLevel: isMaxLevel,
                             currentHours: currentHours,
                             textColor: isCurrent
                                 ? colorScheme.onSurfaceVariant
@@ -183,6 +184,7 @@ class LevelCardItem extends StatelessWidget {
                               level: level,
                               isUnlocked: false,
                               isCurrent: false,
+                              isMaxLevel: false,
                               currentHours: currentHours,
                               textColor: colorScheme.onSurfaceVariant
                                   .withValues(alpha: 0.6),
@@ -214,6 +216,7 @@ class _LevelRequirements extends StatelessWidget {
   final GameLevelDefinition level;
   final bool isUnlocked;
   final bool isCurrent;
+  final bool isMaxLevel;
   final double currentHours;
   final Color textColor;
 
@@ -221,6 +224,7 @@ class _LevelRequirements extends StatelessWidget {
     required this.level,
     required this.isUnlocked,
     required this.isCurrent,
+    required this.isMaxLevel,
     required this.currentHours,
     required this.textColor,
   });
@@ -229,7 +233,16 @@ class _LevelRequirements extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
 
-    if (level.isMaxLevel) {
+    if (isMaxLevel && isCurrent) {
+      return Text(
+        'level_details_max_status'.tr(),
+        style: textTheme.labelSmall?.copyWith(
+          color: textColor,
+        ),
+      );
+    }
+
+    if (level.isMaxLevel && !isCurrent) {
       return Row(
         children: [
           Icon(

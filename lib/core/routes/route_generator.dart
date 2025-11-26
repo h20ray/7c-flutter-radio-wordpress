@@ -38,9 +38,8 @@ class RouteGenerator {
               BlocProvider(
                 create: (_) => getIt<HomeBloc>(),
               ),
-              BlocProvider(
-                create: (_) => getIt<GamificationBloc>()
-                  ..add(const GamificationEvent.started()),
+              BlocProvider.value(
+                value: getIt<GamificationBloc>(),
               ),
               BlocProvider(
                 create: (_) => getIt<TamtamaBloc>()

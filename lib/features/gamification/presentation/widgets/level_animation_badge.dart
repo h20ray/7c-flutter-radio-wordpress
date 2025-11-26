@@ -206,6 +206,17 @@ class _LevelAnimationBadgeState extends State<LevelAnimationBadge>
         _animationReady = true;
         _queueInitialLoops();
       },
+      errorBuilder: (context, error, stackTrace) {
+        debugPrint('LevelAnimationBadge: Failed to load animation: $error');
+        return Image.asset(
+          widget.imageAssetPath,
+          width: widget.size,
+          height: widget.size,
+          fit: BoxFit.cover,
+          color: widget.isLocked ? Colors.black.withValues(alpha: 0.2) : null,
+          colorBlendMode: widget.isLocked ? BlendMode.srcATop : null,
+        );
+      },
     );
   }
 

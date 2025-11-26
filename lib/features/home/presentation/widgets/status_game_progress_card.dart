@@ -138,6 +138,7 @@ class _StatusCardBody extends StatelessWidget {
             hours: data.totalListeningHours,
             levelName: data.levelName,
             progress: data.progressToNextLevel,
+            isMaxLevel: data.isMaxLevel,
             indicatorColor: indicatorColor,
             progressColor: Color(data.badgeBackgroundColor),
           ),
@@ -157,6 +158,7 @@ class _LevelMetadata extends StatelessWidget {
   final double hours;
   final String levelName;
   final double progress;
+  final bool isMaxLevel;
   final Color indicatorColor;
   final Color progressColor;
 
@@ -164,6 +166,7 @@ class _LevelMetadata extends StatelessWidget {
     required this.hours,
     required this.levelName,
     required this.progress,
+    required this.isMaxLevel,
     required this.indicatorColor,
     required this.progressColor,
   });
@@ -188,10 +191,13 @@ class _LevelMetadata extends StatelessWidget {
           ),
         ),
         SizedBox(height: 2),
-        _MaterialProgressIndicator(
-          progress: progress.clamp(0.0, 1.0),
-          color: progressColor,
-        ),
+        if (isMaxLevel)
+          _MaxLevelPill()
+        else
+          _MaterialProgressIndicator(
+            progress: progress.clamp(0.0, 1.0),
+            color: progressColor,
+          ),
       ],
     );
   }
@@ -301,6 +307,46 @@ class _StatusCardError extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
         ),
       ],
+    );
+  }
+}
+
+class _MaxLevelPill extends StatelessWidget {
+  const _MaxLevelPill();
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: DesignTokens.spacingXs + 2,
+        vertical: 2,
+      ),
+      decoration: BoxDecoration(
+        color: colorScheme.primaryContainer,
+        borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusPill),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            LucideIcons.trophy,
+            size: 10,
+            color: colorScheme.onPrimaryContainer,
+          ),
+          SizedBox(width: 3),
+          Text(
+            'level_details_max_level_reached'.tr(),
+            style: textTheme.labelSmall?.copyWith(
+              color: colorScheme.onPrimaryContainer,
+              fontWeight: FontWeight.w600,
+              fontSize: 10,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
