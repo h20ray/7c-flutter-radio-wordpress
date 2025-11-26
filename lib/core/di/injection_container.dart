@@ -58,6 +58,12 @@ import '../../features/home/domain/repositories/home_radio_repository.dart';
 import '../../features/home/domain/usecases/watch_home_now_playing.dart';
 import '../../features/home/presentation/bloc/home_bloc.dart';
 
+// TamTama feature imports
+import '../../features/tamtama/data/datasources/tamtama_local_data_source.dart';
+import '../../features/tamtama/data/repositories/tamtama_repository_impl.dart';
+import '../../features/tamtama/domain/repositories/tamtama_repository.dart';
+import '../../features/tamtama/presentation/bloc/tamtama_bloc.dart';
+
 final getIt = GetIt.instance;
 
 Future<void> initDependencies() async {
@@ -104,6 +110,7 @@ Future<void> initDependencies() async {
   _initShoutbox();
   _initWordPress();
   _initHome();
+  _initTamtama();
 
   // Initialize network status service
   await getIt<NetworkStatusService>().initialize();
@@ -245,6 +252,22 @@ void _initGamification() {
   getIt.registerFactory(
     () => GamificationBloc(
       watchListeningStats: getIt(),
+    ),
+  );
+}
+
+void _initTamtama() {
+  getIt.registerLazySingleton<TamtamaLocalDataSource>(
+    () => TamtamaLocalDataSourceImpl(),
+  );
+  getIt.registerLazySingleton<TamtamaRepository>(
+    () => TamtamaRepositoryImpl(
+      localDataSource: getIt(),
+    ),
+  );
+  getIt.registerFactory(
+    () => TamtamaBloc(
+      repository: getIt(),
     ),
   );
 }

@@ -63,6 +63,8 @@ flutter:
     - assets/images/
     - assets/images/user_levels/
     - assets/others/
+    - assets/sprites/
+    - assets/sprites/backgrounds/
 
   fonts:
     - family: Inter

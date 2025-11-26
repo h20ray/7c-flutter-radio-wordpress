@@ -10,6 +10,7 @@ import '../../features/gamification/presentation/pages/level_details_page.dart';
 import '../../features/home/presentation/pages/home_screen.dart';
 import '../../features/home/presentation/bloc/home_bloc.dart';
 import '../../features/wordpress/presentation/bloc/wordpress_bloc.dart';
+import '../../features/tamtama/presentation/bloc/tamtama_bloc.dart';
 import '../di/injection_container.dart';
 import 'app_routes.dart';
 
@@ -40,6 +41,10 @@ class RouteGenerator {
               BlocProvider(
                 create: (_) => getIt<GamificationBloc>()
                   ..add(const GamificationEvent.started()),
+              ),
+              BlocProvider(
+                create: (_) => getIt<TamtamaBloc>()
+                  ..add(const TamtamaEvent.load()),
               ),
             ],
             child: const HomeScreen(),

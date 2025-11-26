@@ -14,9 +14,9 @@ import '../bloc/home_bloc.dart';
 import '../widgets/header_section.dart';
 import '../widgets/swipeable_card_container.dart';
 import '../widgets/mode_tabs.dart';
-import '../widgets/featured_radio_section.dart';
 import '../widgets/latest_news_carousel.dart';
 import '../widgets/local_promos_section.dart';
+import '../../../tamtama/presentation/widgets/tamtama_section.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -107,7 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         SizedBox(height: DesignTokens.spacingM),
                         if (_selectedTabIndex == 0) ...[
-                          const FeaturedRadioSection(),
+                          const TamtamaSection(),
                           SizedBox(height: DesignTokens.spacingXl),
                         ],
                         const LatestNewsCarousel(),
