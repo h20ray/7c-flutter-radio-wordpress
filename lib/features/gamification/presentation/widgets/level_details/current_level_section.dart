@@ -1,8 +1,11 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+
+import '../../../../../config/game_radio_time_config.dart';
 import '../../../../../core/themes/design_tokens.dart';
 import '../../viewmodels/gamification_status_view_data.dart';
+import '../level_animation_badge.dart';
 
 class CurrentLevelSection extends StatelessWidget {
   final GamificationStatusViewData data;
@@ -22,9 +25,12 @@ class CurrentLevelSection extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              _LevelBadge(
-                assetPath: data.assetPath,
+              LevelAnimationBadge(
                 size: 120,
+                imageAssetPath: data.assetPath,
+                animationAssetPath: data.animationAssetPath,
+                backgroundColor: data.badgeBackgroundColor,
+                initialLoopCount: 7,
               ),
               SizedBox(height: DesignTokens.spacingL),
               Text(
@@ -60,49 +66,6 @@ class CurrentLevelSection extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _LevelBadge extends StatelessWidget {
-  final String assetPath;
-  final double size;
-
-  const _LevelBadge({
-    required this.assetPath,
-    required this.size,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
-        boxShadow: [
-          BoxShadow(
-            color: colorScheme.primary.withValues(alpha: 0.2),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-            spreadRadius: 2,
-          ),
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Image.asset(
-        assetPath,
-        width: size,
-        height: size,
-        fit: BoxFit.cover,
       ),
     );
   }
@@ -175,6 +138,9 @@ class _ProgressToNextLevel extends StatelessWidget {
     final formattedHoursNeeded = hoursNeeded >= 100
         ? hoursNeeded.toStringAsFixed(0)
         : hoursNeeded.toStringAsFixed(1);
+    final progressColor = Color(
+      GameRadioTimeConfig.resolveByHours(currentHours).badgeBackgroundColor,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -204,7 +170,7 @@ class _ProgressToNextLevel extends StatelessWidget {
             value: progress.clamp(0.0, 1.0),
             minHeight: DesignTokens.progressIndicatorHeight * 1.5,
             backgroundColor: colorScheme.surfaceContainerHighest,
-            valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
+            valueColor: AlwaysStoppedAnimation<Color>(progressColor),
           ),
         ),
         SizedBox(height: DesignTokens.spacingS),

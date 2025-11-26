@@ -50,7 +50,6 @@ class DesignTokens {
   static const double backdropBlurOpacityDark = 0.65;
 
   static const double progressIndicatorHeight = 4.0;
-
   static const double cardHeightStandard = 90.0;
 }
 

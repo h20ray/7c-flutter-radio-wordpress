@@ -109,8 +109,7 @@ class _EggSpriteState extends State<EggSprite> with SingleTickerProviderStateMix
                   fit: BoxFit.contain,
                   decoder: _dotLottieDecoder,
                   onLoaded: (composition) {
-                    _controller
-                      .duration = composition.duration;
+                    _controller.duration = composition.duration;
                     _startAnimation(EggSprite._initialLoops);
                   },
                 ),

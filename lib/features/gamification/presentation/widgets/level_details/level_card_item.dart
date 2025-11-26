@@ -5,6 +5,7 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../../../config/game_radio_time_config.dart';
 import '../../../../../core/themes/app_color_system.dart';
 import '../../../../../core/themes/design_tokens.dart';
+import '../level_animation_badge.dart';
 
 class LevelCardItem extends StatelessWidget {
   final GameLevelDefinition level;
@@ -32,7 +33,8 @@ class LevelCardItem extends StatelessWidget {
     if (isCurrent) {
       cardBackgroundColor = colorScheme.primaryContainer.withValues(alpha: 0.3);
     } else if (isUnlocked) {
-      cardBackgroundColor = _getVibrantColorForLevel(level.id);
+      final baseColor = Color(level.badgeBackgroundColor);
+      cardBackgroundColor = _lightenColor(baseColor, 0.2);
     } else {
       cardBackgroundColor = colors.cardBackground;
     }
@@ -47,11 +49,14 @@ class LevelCardItem extends StatelessWidget {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _LevelBadge(
-                      assetPath: level.assetPath,
+                    LevelAnimationBadge(
                       size: 64,
-                      isCurrent: isCurrent,
-                      isUnlocked: isUnlocked,
+                      imageAssetPath: level.assetPath,
+                      animationAssetPath: level.animationAssetPath,
+                      backgroundColor: level.badgeBackgroundColor,
+                      initialLoopCount: 0,
+                      enableAnimation: isUnlocked,
+                      isLocked: !isUnlocked,
                     ),
                     SizedBox(width: DesignTokens.spacingL),
                     Expanded(
@@ -137,11 +142,14 @@ class LevelCardItem extends StatelessWidget {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _LevelBadge(
-                        assetPath: level.assetPath,
+                      LevelAnimationBadge(
                         size: 64,
-                        isCurrent: false,
-                        isUnlocked: false,
+                        imageAssetPath: level.assetPath,
+                        animationAssetPath: level.animationAssetPath,
+                        backgroundColor: level.badgeBackgroundColor,
+                        initialLoopCount: 0,
+                        enableAnimation: false,
+                        isLocked: true,
                       ),
                       SizedBox(width: DesignTokens.spacingL),
                       Expanded(
@@ -190,84 +198,15 @@ class LevelCardItem extends StatelessWidget {
     );
   }
 
-  Color _getVibrantColorForLevel(String levelId) {
-    final vibrantColors = {
-      'level_1': const Color(0xFFFFE5B4),
-      'level_2': const Color(0xFFFFD4A3),
-      'level_3': const Color(0xFFFFF4A3),
-      'level_4': const Color(0xFFE5D4FF),
-      'level_5': const Color(0xFFD4F4FF),
-      'level_6': const Color(0xFFFFD4E5),
-    };
-    return vibrantColors[levelId] ?? const Color(0xFFFFE5B4);
-  }
-
   Color _getTextColorForVibrantBackground(String levelId) {
     return const Color(0xFF1A1A1A);
   }
-}
 
-class _LevelBadge extends StatelessWidget {
-  final String assetPath;
-  final double size;
-  final bool isCurrent;
-  final bool isUnlocked;
-
-  const _LevelBadge({
-    required this.assetPath,
-    required this.size,
-    required this.isCurrent,
-    required this.isUnlocked,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: isCurrent
-            ? [
-                BoxShadow(
-                  color: colorScheme.primary.withValues(alpha: 0.2),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                  spreadRadius: 2,
-                ),
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                ),
-              ]
-            : isUnlocked
-                ? [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.15),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
-                      spreadRadius: 1,
-                    ),
-                  ]
-                : [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Image.asset(
-        assetPath,
-        width: size,
-        height: size,
-        fit: BoxFit.cover,
-      ),
-    );
+  Color _lightenColor(Color color, double amount) {
+    final hsl = HSLColor.fromColor(color);
+    final lighter =
+        hsl.withLightness((hsl.lightness + amount).clamp(0.0, 1.0)).toColor();
+    return lighter;
   }
 }
 
@@ -311,31 +250,17 @@ class _LevelRequirements extends StatelessWidget {
       );
     }
 
-    if (isUnlocked && !isCurrent) {
-      return Row(
-        children: [
-          Icon(
-            LucideIcons.check,
-            size: 16,
-            color: textColor,
-          ),
-          SizedBox(width: DesignTokens.spacingXs),
-          Text(
-            'level_details_completed'.tr(),
-            style: textTheme.labelSmall?.copyWith(
-              color: textColor,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      );
-    }
-
     if (isCurrent) {
       return const SizedBox.shrink();
     }
 
-    final hoursNeeded = (level.minHours - currentHours).clamp(0.0, double.maxFinite);
+    final shouldShowLockedMessage = !isUnlocked || isCurrent;
+    if (!shouldShowLockedMessage) {
+      return const SizedBox.shrink();
+    }
+
+    final hoursNeeded =
+        (level.minHours - currentHours).clamp(0.0, double.maxFinite);
     final formattedHoursNeeded = hoursNeeded >= 100
         ? hoursNeeded.toStringAsFixed(0)
         : hoursNeeded.toStringAsFixed(1);

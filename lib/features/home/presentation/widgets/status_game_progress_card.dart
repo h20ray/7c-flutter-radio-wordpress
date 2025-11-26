@@ -8,6 +8,7 @@ import '../../../../core/themes/app_color_system.dart';
 import '../../../../core/themes/design_tokens.dart';
 import '../../../gamification/presentation/bloc/gamification_bloc.dart';
 import '../../../gamification/presentation/viewmodels/gamification_status_view_data.dart';
+import '../../../gamification/presentation/widgets/level_animation_badge.dart';
 
 class StatusGameProgressCard extends StatelessWidget {
   final bool skipWrapper;
@@ -93,21 +94,29 @@ class _TappableStatusCardBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final navigate = onTap ??
+        () {
+          Navigator.of(context).pushNamed(AppRoutes.levelDetails);
+        };
     return InkWell(
-      onTap: onTap ??
-          () {
-            Navigator.of(context).pushNamed(AppRoutes.levelDetails);
-          },
+      onTap: navigate,
       borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
-      child: _StatusCardBody(data: data),
+      child: _StatusCardBody(
+        data: data,
+        onArtworkTap: navigate,
+      ),
     );
   }
 }
 
 class _StatusCardBody extends StatelessWidget {
   final GamificationStatusViewData data;
+  final VoidCallback? onArtworkTap;
 
-  const _StatusCardBody({required this.data});
+  const _StatusCardBody({
+    required this.data,
+    this.onArtworkTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -116,7 +125,13 @@ class _StatusCardBody extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        _LevelArtwork(size: 68, assetPath: data.assetPath),
+        LevelAnimationBadge(
+          size: 68,
+          imageAssetPath: data.assetPath,
+          animationAssetPath: data.animationAssetPath,
+          backgroundColor: data.badgeBackgroundColor,
+          onTap: onArtworkTap,
+        ),
         SizedBox(width: DesignTokens.spacingL),
         Expanded(
           child: _LevelMetadata(
@@ -124,6 +139,7 @@ class _StatusCardBody extends StatelessWidget {
             levelName: data.levelName,
             progress: data.progressToNextLevel,
             indicatorColor: indicatorColor,
+            progressColor: Color(data.badgeBackgroundColor),
           ),
         ),
         SizedBox(width: DesignTokens.spacingS),
@@ -137,51 +153,19 @@ class _StatusCardBody extends StatelessWidget {
   }
 }
 
-class _LevelArtwork extends StatelessWidget {
-  final double size;
-  final String assetPath;
-
-  const _LevelArtwork({required this.size, required this.assetPath});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: size,
-      height: size,
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: Colors.white.withValues(alpha: 0.25),
-            width: 1.2,
-          ),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: Image.asset(
-            assetPath,
-            width: size,
-            height: size,
-            fit: BoxFit.cover,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _LevelMetadata extends StatelessWidget {
   final double hours;
   final String levelName;
   final double progress;
   final Color indicatorColor;
+  final Color progressColor;
 
   const _LevelMetadata({
     required this.hours,
     required this.levelName,
     required this.progress,
     required this.indicatorColor,
+    required this.progressColor,
   });
 
   @override
@@ -206,6 +190,7 @@ class _LevelMetadata extends StatelessWidget {
         SizedBox(height: 2),
         _MaterialProgressIndicator(
           progress: progress.clamp(0.0, 1.0),
+          color: progressColor,
         ),
       ],
     );
@@ -322,8 +307,12 @@ class _StatusCardError extends StatelessWidget {
 
 class _MaterialProgressIndicator extends StatelessWidget {
   final double progress;
+  final Color color;
 
-  const _MaterialProgressIndicator({required this.progress});
+  const _MaterialProgressIndicator({
+    required this.progress,
+    required this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -342,7 +331,7 @@ class _MaterialProgressIndicator extends StatelessWidget {
             value: value,
             minHeight: DesignTokens.progressIndicatorHeight,
             backgroundColor: colorScheme.surfaceContainerHighest,
-            valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
+            valueColor: AlwaysStoppedAnimation<Color>(color),
           ),
         );
       },

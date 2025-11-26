@@ -8,7 +8,8 @@ import 'package:flutter/foundation.dart';
 /// - [description]: Brief description of the level
 /// - [minHours]: Minimum listening hours required to reach this level
 /// - [maxHours]: Maximum hours for this level (null for unlimited/final level)
-/// - [assetPath]: Path to the level badge/image asset
+/// - [assetPath]: Path to the static level badge/image asset
+/// - [animationAssetPath]: Path to the level animation asset (Lottie)
 ///
 /// Example:
 /// ```dart
@@ -28,6 +29,8 @@ class GameLevelDefinition {
   final double minHours;
   final double? maxHours;
   final String assetPath;
+  final String animationAssetPath;
+  final int badgeBackgroundColor;
 
   const GameLevelDefinition({
     required this.id,
@@ -36,6 +39,8 @@ class GameLevelDefinition {
     required this.minHours,
     required this.maxHours,
     required this.assetPath,
+    required this.animationAssetPath,
+    required this.badgeBackgroundColor,
   });
 
   bool containsHours(double hours) {
@@ -88,6 +93,10 @@ class GameLevelDefinition {
 class GameRadioTimeConfig {
   GameRadioTimeConfig._();
 
+  static const int levelAnimationInitialLoops = 1;
+  static const int levelAnimationTapLoopMin = 1;
+  static const int levelAnimationTapLoopMax = 3;
+
   /// List of game level definitions.
   ///
   /// **Easy to edit**: Simply modify this list to customize levels.
@@ -102,18 +111,20 @@ class GameRadioTimeConfig {
       displayName: 'Frequency Wanderer',
       description: 'Newcomer exploring different radio frequencies.',
       minHours: 0,
-      maxHours: 2,
-      assetPath:
-          'assets/images/user_levels/ic_level_01.png',
+      maxHours: 0.1,
+      assetPath: 'assets/images/user_levels/ic_level_01.png',
+      animationAssetPath: 'assets/sprites/game_level_listening/level_1.lottie',
+      badgeBackgroundColor: 0xFF7EC8E3,
     ),
     GameLevelDefinition(
       id: 'level_2',
       displayName: 'Active Tuner',
       description: 'Regular listener who tunes in often.',
-      minHours: 2,
+      minHours: 0.1,
       maxHours: 5,
-      assetPath:
-          'assets/images/user_levels/ic_level_02.png',
+      assetPath: 'assets/images/user_levels/ic_level_02.png',
+      animationAssetPath: 'assets/sprites/game_level_listening/level_2.lottie',
+      badgeBackgroundColor: 0xFF4CAF50,
     ),
     GameLevelDefinition(
       id: 'level_3',
@@ -121,8 +132,9 @@ class GameRadioTimeConfig {
       description: 'Feels like a friend of the studio, emotionally connected.',
       minHours: 5,
       maxHours: 10,
-      assetPath:
-          'assets/images/user_levels/ic_level_03.png',
+      assetPath: 'assets/images/user_levels/ic_level_03.png',
+      animationAssetPath: 'assets/sprites/game_level_listening/level_3.lottie',
+      badgeBackgroundColor: 0xFFFBC02D,
     ),
     GameLevelDefinition(
       id: 'level_4',
@@ -130,8 +142,9 @@ class GameRadioTimeConfig {
       description: 'Feels like part of the radio world, a citizen of airwaves.',
       minHours: 10,
       maxHours: 20,
-      assetPath:
-          'assets/images/user_levels/ic_level_04.png',
+      assetPath: 'assets/images/user_levels/ic_level_04.png',
+      animationAssetPath: 'assets/sprites/game_level_listening/level_4.lottie',
+      badgeBackgroundColor: 0xFFFB8C00,
     ),
     GameLevelDefinition(
       id: 'level_5',
@@ -139,17 +152,29 @@ class GameRadioTimeConfig {
       description: 'Highly engaged, standout community member.',
       minHours: 20,
       maxHours: 40,
-      assetPath:
-          'assets/images/user_levels/ic_level_05.png',
+      assetPath: 'assets/images/user_levels/ic_level_05.png',
+      animationAssetPath: 'assets/sprites/game_level_listening/level_5.lottie',
+      badgeBackgroundColor: 0xFFE53935,
     ),
     GameLevelDefinition(
       id: 'level_6',
       displayName: 'Broadcast Legend',
       description: 'Top-tier, iconic listener with huge presence.',
       minHours: 40,
+      maxHours: 60,
+      assetPath: 'assets/images/user_levels/ic_level_06.png',
+      animationAssetPath: 'assets/sprites/game_level_listening/level_6.lottie',
+      badgeBackgroundColor: 0xFF8E24AA,
+    ),
+    GameLevelDefinition(
+      id: 'level_7',
+      displayName: 'Broadcast Legend X',
+      description: 'Top-tier, iconic listener with huge presence.',
+      minHours: 60,
       maxHours: null,
-      assetPath:
-          'assets/images/user_levels/ic_level_06.png',
+      assetPath: 'assets/images/user_levels/ic_level_06.png',
+      animationAssetPath: 'assets/sprites/game_level_listening/level_7.lottie',
+      badgeBackgroundColor: 0xFF121212,
     ),
   ];
 
@@ -197,6 +222,12 @@ class GameRadioTimeConfig {
       if (level.assetPath.isEmpty) {
         _validationError =
             'GameRadioTimeConfig: Level "${level.id}" has empty asset path';
+        throw StateError(_validationError!);
+      }
+
+      if (level.animationAssetPath.isEmpty) {
+        _validationError =
+            'GameRadioTimeConfig: Level "${level.id}" has empty animation asset path';
         throw StateError(_validationError!);
       }
 

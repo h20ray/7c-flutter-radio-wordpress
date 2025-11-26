@@ -12,4 +12,6 @@ class AppConfig {
   static const bool usingPlainFormatLink = true;
 
   static bool enableHomeTabCache = true;
+
+  static const Duration listeningFlushInterval = Duration(minutes: 5);
 }

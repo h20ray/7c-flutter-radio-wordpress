@@ -63,9 +63,11 @@ flutter:
     - assets/translations/
     - assets/images/
     - assets/images/user_levels/
+    - assets/animations/
     - assets/others/
     - assets/sprites/
     - assets/sprites/backgrounds/
+    - assets/sprites/game_level_listening/
     - assets/sprites/eggs/
 
   fonts:

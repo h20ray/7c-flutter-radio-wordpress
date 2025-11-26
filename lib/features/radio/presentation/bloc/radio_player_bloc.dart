@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../config/app_config.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/audio/audio_focus_manager.dart';
 import '../../../../config/radio_config.dart';
@@ -55,6 +56,8 @@ class RadioPlayerBloc extends Bloc<RadioPlayerEvent, RadioPlayerState> {
   bool _wasPlayingBeforeFocusLoss = false;
   bool _canAutoResume = false;
   DateTime? _sessionStart;
+  Timer? _listeningFlushTimer;
+  bool _isFlushingListeningSession = false;
 
   RadioPlayerBloc({
     required this.initializeRadioPlayer,
@@ -643,6 +646,7 @@ class RadioPlayerBloc extends Bloc<RadioPlayerEvent, RadioPlayerState> {
 
   @override
   Future<void> close() async {
+    _stopListeningFlushTimer();
     await _flushListeningSession();
     _playerStateSubscription?.cancel();
     _radioConfigSubscription?.cancel();
@@ -653,23 +657,58 @@ class RadioPlayerBloc extends Bloc<RadioPlayerEvent, RadioPlayerState> {
 
   void _handleListeningSession(bool isPlaying) {
     if (isPlaying) {
+      final hadSession = _sessionStart != null;
       _sessionStart ??= DateTime.now();
+      if (!hadSession) {
+        _startListeningFlushTimer();
+      }
     } else {
+      _stopListeningFlushTimer();
       unawaited(_flushListeningSession());
     }
   }
 
-  Future<void> _flushListeningSession() async {
+  void _startListeningFlushTimer() {
+    _listeningFlushTimer?.cancel();
+    _listeningFlushTimer = Timer.periodic(
+      AppConfig.listeningFlushInterval,
+      (_) => unawaited(_flushListeningSession(keepSessionActive: true)),
+    );
+  }
+
+  void _stopListeningFlushTimer() {
+    _listeningFlushTimer?.cancel();
+    _listeningFlushTimer = null;
+  }
+
+  Future<void> _flushListeningSession({bool keepSessionActive = false}) async {
+    if (_isFlushingListeningSession) {
+      return;
+    }
     final start = _sessionStart;
     if (start == null) {
       return;
     }
-    _sessionStart = null;
-    final duration = DateTime.now().difference(start);
-    if (duration.inSeconds <= 0) {
+    final now = DateTime.now();
+    final duration = now.difference(start);
+    if (keepSessionActive && duration < _minListeningFlushDelta) {
       return;
     }
-    await recordListeningSession(duration);
+    _isFlushingListeningSession = true;
+    try {
+      if (duration.inSeconds <= 0) {
+        if (!keepSessionActive) {
+          _sessionStart = null;
+        }
+        return;
+      }
+      await recordListeningSession(duration);
+      _sessionStart = keepSessionActive ? now : null;
+    } finally {
+      _isFlushingListeningSession = false;
+    }
   }
+
+  static const Duration _minListeningFlushDelta = Duration(seconds: 5);
 }
 

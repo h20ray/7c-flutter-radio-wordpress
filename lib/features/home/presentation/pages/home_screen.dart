@@ -4,19 +4,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import 'package:lottie/lottie.dart';
 
+import '../../../../config/game_radio_time_config.dart';
+import '../../../../core/di/injection_container.dart';
 import '../../../../core/themes/app_color_system.dart';
 import '../../../../core/themes/design_tokens.dart';
 import '../../../../core/widgets/confirmation_dialog.dart';
 import '../../../../core/widgets/floating_bottom_nav_bar.dart';
 import '../../../../core/widgets/floating_play_fab.dart';
+import '../../../gamification/data/datasources/level_celebration_local_data_source.dart';
+import '../../../gamification/presentation/bloc/gamification_bloc.dart';
+import '../../../gamification/presentation/viewmodels/gamification_status_view_data.dart';
+import '../../../tamtama/presentation/widgets/tamtama_section.dart';
 import '../bloc/home_bloc.dart';
 import '../widgets/header_section.dart';
-import '../widgets/swipeable_card_container.dart';
-import '../widgets/mode_tabs.dart';
 import '../widgets/latest_news_carousel.dart';
 import '../widgets/local_promos_section.dart';
-import '../../../tamtama/presentation/widgets/tamtama_section.dart';
+import '../widgets/mode_tabs.dart';
+import '../widgets/swipeable_card_container.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -26,10 +32,18 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  static const String _levelCelebrationUserId = 'local_user';
+  final LevelCelebrationLocalDataSource _levelCelebrationStorage =
+      getIt<LevelCelebrationLocalDataSource>();
+
   int _selectedTabIndex = 0;
   int _selectedRadioGameTab = 0;
   NavItem _selectedNavItem = NavItem.home;
   String? _selectedCategory;
+  bool _isCelebrationVisible = false;
+  bool _celebrationCheckInProgress = false;
+  String? _pendingLevelUpId;
+  String? _pendingLevelUpName;
 
   @override
   void initState() {
@@ -63,132 +77,249 @@ class _HomeScreenState extends State<HomeScreen> {
     final double headerStackHeight =
         headerHeight + (DesignTokens.cardHeightStandard - cardOverlap);
 
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (bool didPop, dynamic result) async {
-        if (didPop) return;
-        await _onWillPop();
+    return BlocListener<GamificationBloc, GamificationState>(
+      listener: (context, state) {
+        state.maybeWhen(
+          loaded: (data) => _maybeShowLevelUp(data),
+          orElse: () {},
+        );
       },
-      child: AnnotatedRegion<SystemUiOverlayStyle>(
-        value: SystemUiOverlayStyle.light,
-        child: Scaffold(
-          backgroundColor: context.appColors.primaryBackground,
-          body: Stack(
-            children: [
-              CustomScrollView(
-                slivers: [
-                  SliverToBoxAdapter(
-                    child: Column(
-                      children: [
-                        SizedBox(
-                          height: headerStackHeight,
-                          child: Stack(
-                            children: [
-                              Positioned(
-                                left: 0,
-                                right: 0,
-                                top: 0,
-                                height: headerHeight,
-                                child: HeaderSection(
-                                  selectedGameTab: _selectedRadioGameTab,
-                                  onGameTabChanged: (index) {
-                                    if (_selectedRadioGameTab == index) {
-                                      return;
-                                    }
-                                    setState(() {
-                                      _selectedRadioGameTab = index;
-                                    });
-                                  },
+      child: PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (bool didPop, dynamic result) async {
+          if (didPop) return;
+          await _onWillPop();
+        },
+        child: AnnotatedRegion<SystemUiOverlayStyle>(
+          value: SystemUiOverlayStyle.light,
+          child: Scaffold(
+            backgroundColor: context.appColors.primaryBackground,
+            body: Stack(
+              children: [
+                CustomScrollView(
+                  slivers: [
+                    SliverToBoxAdapter(
+                      child: Column(
+                        children: [
+                          SizedBox(
+                            height: headerStackHeight,
+                            child: Stack(
+                              children: [
+                                Positioned(
+                                  left: 0,
+                                  right: 0,
+                                  top: 0,
+                                  height: headerHeight,
+                                  child: HeaderSection(
+                                    selectedGameTab: _selectedRadioGameTab,
+                                    onGameTabChanged: (index) {
+                                      if (_selectedRadioGameTab == index) {
+                                        return;
+                                      }
+                                      setState(() {
+                                        _selectedRadioGameTab = index;
+                                      });
+                                    },
+                                  ),
                                 ),
-                              ),
-                              Positioned(
-                                left: 0,
-                                right: 0,
-                                top: headerHeight - cardOverlap,
-                                child: SwipeableCardContainer(
-                                  selectedIndex: _selectedRadioGameTab,
-                                  onIndexChanged: (index) {
-                                    setState(() {
-                                      _selectedRadioGameTab = index;
-                                    });
-                                  },
+                                Positioned(
+                                  left: 0,
+                                  right: 0,
+                                  top: headerHeight - cardOverlap,
+                                  child: SwipeableCardContainer(
+                                    selectedIndex: _selectedRadioGameTab,
+                                    onIndexChanged: (index) {
+                                      setState(() {
+                                        _selectedRadioGameTab = index;
+                                      });
+                                    },
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                        SizedBox(height: DesignTokens.spacingM),
-                        ModeTabs(
-                          selectedIndex: _selectedTabIndex,
-                          onTabChanged: (index) {
-                            setState(() {
-                              _selectedTabIndex = index;
-                            });
-                            context.read<HomeBloc>().add(
-                              TabChangedEvent(index),
-                            );
-                          },
-                        ),
-                        SizedBox(height: DesignTokens.spacingM),
-                        if (_selectedTabIndex == 0) ...[
-                          const TamtamaSection(),
-                          SizedBox(height: DesignTokens.spacingXl),
-                        ],
-                        const LatestNewsCarousel(),
-                        SizedBox(height: DesignTokens.spacingXl),
-                        LocalPromosSection(
-                          selectedCategory: _selectedCategory,
-                          onCategoryChanged: (category) {
-                            setState(() {
-                              _selectedCategory = category;
-                            });
-                            context.read<HomeBloc>().add(
-                              FilterChipSelectedEvent(category),
-                            );
-                          },
-                        ),
-                        SizedBox(height: 120),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: SafeArea(
-                  top: false,
-                  child: Padding(
-                    padding: EdgeInsets.only(
-                      left: DesignTokens.spacingL,
-                      right: DesignTokens.spacingL,
-                      bottom: DesignTokens.spacingS,
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: FloatingBottomNavBar(
-                            selectedItem: _selectedNavItem,
-                            onItemSelected: (item) {
+                          SizedBox(height: DesignTokens.spacingM),
+                          ModeTabs(
+                            selectedIndex: _selectedTabIndex,
+                            onTabChanged: (index) {
                               setState(() {
-                                _selectedNavItem = item;
+                                _selectedTabIndex = index;
                               });
+                              context.read<HomeBloc>().add(
+                                    TabChangedEvent(index),
+                                  );
                             },
                           ),
-                        ),
-                        SizedBox(width: DesignTokens.spacingM),
-                        FloatingPlayFab(
-                          key: const ValueKey('home-play-fab'),
-                          size: 60,
-                        ),
-                      ],
+                          SizedBox(height: DesignTokens.spacingM),
+                          if (_selectedTabIndex == 0) ...[
+                            const TamtamaSection(),
+                            SizedBox(height: DesignTokens.spacingXl),
+                          ],
+                          const LatestNewsCarousel(),
+                          SizedBox(height: DesignTokens.spacingXl),
+                          LocalPromosSection(
+                            selectedCategory: _selectedCategory,
+                            onCategoryChanged: (category) {
+                              setState(() {
+                                _selectedCategory = category;
+                              });
+                              context.read<HomeBloc>().add(
+                                    FilterChipSelectedEvent(category),
+                                  );
+                            },
+                          ),
+                          SizedBox(height: 120),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: SafeArea(
+                    top: false,
+                    child: Padding(
+                      padding: EdgeInsets.only(
+                        left: DesignTokens.spacingL,
+                        right: DesignTokens.spacingL,
+                        bottom: DesignTokens.spacingS,
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: FloatingBottomNavBar(
+                              selectedItem: _selectedNavItem,
+                              onItemSelected: (item) {
+                                setState(() {
+                                  _selectedNavItem = item;
+                                });
+                              },
+                            ),
+                          ),
+                          SizedBox(width: DesignTokens.spacingM),
+                          FloatingPlayFab(
+                            key: const ValueKey('home-play-fab'),
+                            size: 60,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
+                _buildLevelUpOverlay(),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _maybeShowLevelUp(GamificationStatusViewData data) async {
+    if (!mounted ||
+        _isCelebrationVisible ||
+        _celebrationCheckInProgress ||
+        data.levelId.isEmpty) {
+      return;
+    }
+    _celebrationCheckInProgress = true;
+    final shouldCelebrate = await _shouldShowCelebration(data.levelId);
+    _celebrationCheckInProgress = false;
+    if (!mounted || !shouldCelebrate) {
+      return;
+    }
+    setState(() {
+      _isCelebrationVisible = true;
+      _pendingLevelUpId = data.levelId;
+      _pendingLevelUpName = data.levelName;
+    });
+  }
+
+  Future<bool> _shouldShowCelebration(String currentLevelId) async {
+    final stored = await _levelCelebrationStorage
+        .getLastCelebratedLevel(_levelCelebrationUserId);
+    final ackLevelId = stored ?? GameRadioTimeConfig.getFirstLevel().id;
+    final ackIndex = GameRadioTimeConfig.levels
+        .indexWhere((level) => level.id == ackLevelId);
+    final currentIndex = GameRadioTimeConfig.levels
+        .indexWhere((level) => level.id == currentLevelId);
+    if (currentIndex == -1) {
+      return false;
+    }
+    if (ackIndex == -1) {
+      return true;
+    }
+    return currentIndex > ackIndex;
+  }
+
+  Future<void> _dismissCelebration() async {
+    final levelId = _pendingLevelUpId;
+    setState(() {
+      _isCelebrationVisible = false;
+      _pendingLevelUpId = null;
+    });
+    if (levelId != null) {
+      await _levelCelebrationStorage.setLastCelebratedLevel(
+        _levelCelebrationUserId,
+        levelId,
+      );
+    }
+  }
+
+  Widget _buildLevelUpOverlay() {
+    if (!_isCelebrationVisible) {
+      return const SizedBox.shrink();
+    }
+    final textTheme = Theme.of(context).textTheme;
+    final levelName = _pendingLevelUpName ?? '';
+    return Positioned.fill(
+      child: GestureDetector(
+        onTap: _dismissCelebration,
+        child: Container(
+          color: Colors.black.withValues(alpha: 0.85),
+          alignment: Alignment.center,
+          child: FractionallySizedBox(
+            widthFactor: 0.9,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Lottie.asset(
+                  'assets/sprites/game_level_listening/level_up.lottie',
+                  repeat: false,
+                ),
+                SizedBox(height: DesignTokens.spacingL),
+                Text(
+                  'Level Up!',
+                  style: textTheme.headlineMedium?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                if (levelName.isNotEmpty) ...[
+                  SizedBox(height: DesignTokens.spacingS),
+                  Text(
+                    levelName,
+                    style: textTheme.titleLarge?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+                SizedBox(height: DesignTokens.spacingM),
+                Text(
+                  'Tap anywhere to continue',
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: Colors.white.withValues(alpha: 0.8),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
           ),
         ),
       ),

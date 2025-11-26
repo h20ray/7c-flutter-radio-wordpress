@@ -47,6 +47,7 @@ import '../../features/wordpress/presentation/bloc/wordpress_bloc.dart';
 
 // Home feature imports
 import '../../features/gamification/data/datasources/listening_stats_local_data_source.dart';
+import '../../features/gamification/data/datasources/level_celebration_local_data_source.dart';
 import '../../features/gamification/data/repositories/listening_stats_repository_impl.dart';
 import '../../features/gamification/domain/repositories/listening_stats_repository.dart';
 import '../../features/gamification/domain/usecases/record_listening_session.dart';
@@ -241,6 +242,9 @@ void _initHome() {
 void _initGamification() {
   getIt.registerLazySingleton<ListeningStatsLocalDataSource>(
     () => ListeningStatsLocalDataSourceImpl(),
+  );
+  getIt.registerLazySingleton<LevelCelebrationLocalDataSource>(
+    () => LevelCelebrationLocalDataSourceImpl(),
   );
   getIt.registerLazySingleton<ListeningStatsRepository>(
     () => ListeningStatsRepositoryImpl(
