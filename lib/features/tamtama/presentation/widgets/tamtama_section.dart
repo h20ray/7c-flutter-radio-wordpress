@@ -8,6 +8,7 @@ import '../../../../core/themes/design_tokens.dart';
 import '../../domain/entities/tamtama_entity.dart';
 import '../bloc/tamtama_bloc.dart';
 import 'background_sprite.dart';
+import 'egg_sprite.dart';
 
 class TamtamaSection extends StatelessWidget {
   const TamtamaSection({super.key});
@@ -75,6 +76,7 @@ class TamtamaSection extends StatelessWidget {
                     fit: StackFit.expand,
                     children: [
                       BackgroundSprite(index: tamtama.backgroundIndex),
+                      EggSprite(eggIndex: tamtama.eggIndex),
                     ],
                   ),
                 ),

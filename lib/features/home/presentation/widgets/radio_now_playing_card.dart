@@ -17,14 +17,19 @@ import '../bloc/home_bloc.dart';
 
 class RadioNowPlayingCard extends StatelessWidget {
   final bool skipWrapper;
+  final VoidCallback? onTap;
 
-  const RadioNowPlayingCard({super.key, this.skipWrapper = false});
+  const RadioNowPlayingCard({
+    super.key,
+    this.skipWrapper = false,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
 
-    final content = BlocSelector<HomeBloc, HomeState, _NowPlayingViewData>(
+    final child = BlocSelector<HomeBloc, HomeState, _NowPlayingViewData>(
       selector: (state) {
         return state.maybeWhen(
           loaded: (tabIndex, selectedCategory, nowPlaying, error) =>
@@ -35,9 +40,19 @@ class RadioNowPlayingCard extends StatelessWidget {
       builder: (context, viewData) {
         return Padding(
           padding: EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
-          child: _DynamicNowPlayingCard(viewData: viewData, colors: colors),
+          child: _DynamicNowPlayingCard(
+            viewData: viewData,
+            colors: colors,
+            onTap: onTap,
+          ),
         );
       },
+    );
+
+    final content = GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap ?? () => Navigator.pushNamed(context, AppRoutes.radio),
+      child: child,
     );
 
     if (skipWrapper) {
@@ -54,8 +69,13 @@ class RadioNowPlayingCard extends StatelessWidget {
 class _DynamicNowPlayingCard extends StatefulWidget {
   final _NowPlayingViewData viewData;
   final AppSemanticColors colors;
+  final VoidCallback? onTap;
 
-  const _DynamicNowPlayingCard({required this.viewData, required this.colors});
+  const _DynamicNowPlayingCard({
+    required this.viewData,
+    required this.colors,
+    this.onTap,
+  });
 
   @override
   State<_DynamicNowPlayingCard> createState() => _DynamicNowPlayingCardState();
@@ -139,7 +159,8 @@ class _DynamicNowPlayingCardState extends State<_DynamicNowPlayingCard> {
       color: Colors.transparent,
       child: InkWell(
         borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
-        onTap: () => Navigator.pushNamed(context, AppRoutes.radio),
+        onTap: widget.onTap ??
+            () => Navigator.pushNamed(context, AppRoutes.radio),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 320),
           curve: Curves.easeOutCubic,

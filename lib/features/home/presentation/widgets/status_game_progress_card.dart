@@ -11,21 +11,26 @@ import '../../../gamification/presentation/viewmodels/gamification_status_view_d
 
 class StatusGameProgressCard extends StatelessWidget {
   final bool skipWrapper;
+  final VoidCallback? onTap;
 
-  const StatusGameProgressCard({super.key, this.skipWrapper = false});
+  const StatusGameProgressCard({
+    super.key,
+    this.skipWrapper = false,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
 
-    final content = Padding(
+    final child = Padding(
       padding: EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
       child: BlocBuilder<GamificationBloc, GamificationState>(
         builder: (context, state) {
           return state.maybeWhen(
             loaded: (data) => _StatusCardShell(
               colors: colors,
-              child: _TappableStatusCardBody(data: data),
+              child: _TappableStatusCardBody(data: data, onTap: onTap),
             ),
             error: (failure) => _StatusCardShell(
               colors: colors,
@@ -38,6 +43,13 @@ class StatusGameProgressCard extends StatelessWidget {
           );
         },
       ),
+    );
+
+    final content = GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap ??
+          () => Navigator.of(context).pushNamed(AppRoutes.levelDetails),
+      child: child,
     );
 
     if (skipWrapper) {
@@ -75,15 +87,17 @@ class _StatusCardShell extends StatelessWidget {
 
 class _TappableStatusCardBody extends StatelessWidget {
   final GamificationStatusViewData data;
+  final VoidCallback? onTap;
 
-  const _TappableStatusCardBody({required this.data});
+  const _TappableStatusCardBody({required this.data, this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () {
-        Navigator.of(context).pushNamed(AppRoutes.levelDetails);
-      },
+      onTap: onTap ??
+          () {
+            Navigator.of(context).pushNamed(AppRoutes.levelDetails);
+          },
       borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
       child: _StatusCardBody(data: data),
     );

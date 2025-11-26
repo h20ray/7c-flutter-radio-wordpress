@@ -57,6 +57,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final double statusBarHeight = MediaQuery.of(context).padding.top;
+    const double cardOverlap = DesignTokens.spacingXl * 1.7;
+    final double headerHeight = 190 + statusBarHeight;
+    final double headerStackHeight =
+        headerHeight + (DesignTokens.cardHeightStandard - cardOverlap);
+
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (bool didPop, dynamic result) async {
@@ -74,24 +80,42 @@ class _HomeScreenState extends State<HomeScreen> {
                   SliverToBoxAdapter(
                     child: Column(
                       children: [
-                        HeaderSection(
-                          selectedGameTab: _selectedRadioGameTab,
-                          onGameTabChanged: (index) {
-                            if (_selectedRadioGameTab == index) {
-                              return;
-                            }
-                            setState(() {
-                              _selectedRadioGameTab = index;
-                            });
-                          },
-                        ),
-                        SwipeableCardContainer(
-                          selectedIndex: _selectedRadioGameTab,
-                          onIndexChanged: (index) {
-                            setState(() {
-                              _selectedRadioGameTab = index;
-                            });
-                          },
+                        SizedBox(
+                          height: headerStackHeight,
+                          child: Stack(
+                            children: [
+                              Positioned(
+                                left: 0,
+                                right: 0,
+                                top: 0,
+                                height: headerHeight,
+                                child: HeaderSection(
+                                  selectedGameTab: _selectedRadioGameTab,
+                                  onGameTabChanged: (index) {
+                                    if (_selectedRadioGameTab == index) {
+                                      return;
+                                    }
+                                    setState(() {
+                                      _selectedRadioGameTab = index;
+                                    });
+                                  },
+                                ),
+                              ),
+                              Positioned(
+                                left: 0,
+                                right: 0,
+                                top: headerHeight - cardOverlap,
+                                child: SwipeableCardContainer(
+                                  selectedIndex: _selectedRadioGameTab,
+                                  onIndexChanged: (index) {
+                                    setState(() {
+                                      _selectedRadioGameTab = index;
+                                    });
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                         SizedBox(height: DesignTokens.spacingM),
                         ModeTabs(

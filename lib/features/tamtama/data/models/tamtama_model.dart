@@ -6,6 +6,7 @@ class TamtamaModel extends TamtamaEntity {
   const TamtamaModel({
     required super.userId,
     required super.backgroundIndex,
+    required super.eggIndex,
     required super.petName,
     required super.happiness,
     required super.hunger,
@@ -15,16 +16,19 @@ class TamtamaModel extends TamtamaEntity {
     super.lastPlayedAt,
   });
 
-  static const int totalBackgrounds = 14;
+  static const int totalBackgrounds = 20;
+  static const int totalEggs = 4;
 
   factory TamtamaModel.initial(String userId) {
     final random = Random();
     final backgroundIndex = random.nextInt(totalBackgrounds) + 1;
+    final eggIndex = random.nextInt(totalEggs) + 1;
     final petName = _generateRandomPetName();
 
     return TamtamaModel(
       userId: userId,
       backgroundIndex: backgroundIndex,
+      eggIndex: eggIndex,
       petName: petName,
       happiness: 50,
       hunger: 50,
@@ -37,6 +41,7 @@ class TamtamaModel extends TamtamaEntity {
     return TamtamaModel(
       userId: entity.userId,
       backgroundIndex: entity.backgroundIndex,
+      eggIndex: entity.eggIndex,
       petName: entity.petName,
       happiness: entity.happiness,
       hunger: entity.hunger,
@@ -54,15 +59,21 @@ class TamtamaModel extends TamtamaEntity {
     }
 
     final backgroundIndex = map['backgroundIndex'] as int?;
-    final validBackgroundIndex = (backgroundIndex != null && 
-        backgroundIndex >= 1 && 
-        backgroundIndex <= totalBackgrounds)
+    final eggIndex = map['eggIndex'] as int?;
+    final validBackgroundIndex = (backgroundIndex != null &&
+            backgroundIndex >= 1 &&
+            backgroundIndex <= totalBackgrounds)
         ? backgroundIndex
         : (Random().nextInt(totalBackgrounds) + 1);
+    final validEggIndex =
+        (eggIndex != null && eggIndex >= 1 && eggIndex <= totalEggs)
+            ? eggIndex
+            : (Random().nextInt(totalEggs) + 1);
 
     return TamtamaModel(
       userId: userId,
       backgroundIndex: validBackgroundIndex,
+      eggIndex: validEggIndex,
       petName: map['petName'] as String? ?? 'TamTama',
       happiness: (map['happiness'] as int?) ?? 50,
       hunger: (map['hunger'] as int?) ?? 50,
@@ -97,6 +108,7 @@ class TamtamaModel extends TamtamaEntity {
   TamtamaModel copyWith({
     String? userId,
     int? backgroundIndex,
+    int? eggIndex,
     String? petName,
     int? happiness,
     int? hunger,
@@ -108,6 +120,7 @@ class TamtamaModel extends TamtamaEntity {
     return TamtamaModel(
       userId: userId ?? this.userId,
       backgroundIndex: backgroundIndex ?? this.backgroundIndex,
+      eggIndex: eggIndex ?? this.eggIndex,
       petName: petName ?? this.petName,
       happiness: happiness ?? this.happiness,
       hunger: hunger ?? this.hunger,
@@ -122,6 +135,7 @@ class TamtamaModel extends TamtamaEntity {
     return {
       'userId': userId,
       'backgroundIndex': backgroundIndex,
+      'eggIndex': eggIndex,
       'petName': petName,
       'happiness': happiness,
       'hunger': hunger,

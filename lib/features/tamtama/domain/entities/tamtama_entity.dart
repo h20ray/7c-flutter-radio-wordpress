@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 class TamtamaEntity extends Equatable {
   final String userId;
   final int backgroundIndex;
+  final int eggIndex;
   final String petName;
   final int happiness;
   final int hunger;
@@ -14,6 +15,7 @@ class TamtamaEntity extends Equatable {
   const TamtamaEntity({
     required this.userId,
     required this.backgroundIndex,
+    required this.eggIndex,
     required this.petName,
     required this.happiness,
     required this.hunger,
@@ -30,6 +32,7 @@ class TamtamaEntity extends Equatable {
   TamtamaEntity copyWith({
     String? userId,
     int? backgroundIndex,
+    int? eggIndex,
     String? petName,
     int? happiness,
     int? hunger,
@@ -41,6 +44,7 @@ class TamtamaEntity extends Equatable {
     return TamtamaEntity(
       userId: userId ?? this.userId,
       backgroundIndex: backgroundIndex ?? this.backgroundIndex,
+      eggIndex: eggIndex ?? this.eggIndex,
       petName: petName ?? this.petName,
       happiness: happiness ?? this.happiness,
       hunger: hunger ?? this.hunger,
@@ -55,6 +59,7 @@ class TamtamaEntity extends Equatable {
   List<Object?> get props => [
         userId,
         backgroundIndex,
+        eggIndex,
         petName,
         happiness,
         hunger,

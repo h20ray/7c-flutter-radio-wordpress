@@ -79,9 +79,7 @@ class HeaderSection extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            'home_header_listener_id'.tr(
-                              namedArgs: {'id': profile.listenerId},
-                            ),
+                            'home_header_listener_id'.tr(),
                             style: TextStyle(
                               fontSize: DesignTokens.fontSizeH2,
                               fontWeight: DesignTokens.fontWeightH2,
@@ -92,15 +90,7 @@ class HeaderSection extends StatelessWidget {
                           ),
                           SizedBox(height: 2),
                           Text(
-                            profile.favoriteStation != null
-                                ? 'home_header_favorite_station'.tr(
-                                    namedArgs: {
-                                      'station': profile.favoriteStation!,
-                                    },
-                                  )
-                                : 'home_header_now_playing'.tr(
-                                    namedArgs: {'show': 'Radio Show'},
-                                  ),
+                            '${'radio_greeting_hi'.tr()} ${_getGreeting().tr()}',
                             style: TextStyle(
                               fontSize: DesignTokens.fontSizeCaption,
                               fontWeight: DesignTokens.fontWeightCaption,
@@ -162,31 +152,12 @@ class HeaderSection extends StatelessWidget {
             ],
           ),
           SizedBox(height: DesignTokens.spacingL),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Padding(
-                  padding: EdgeInsets.only(left: DesignTokens.spacingL),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      _getGreeting().tr(),
-                      style: TextStyle(
-                        fontSize: DesignTokens.fontSizeBody,
-                        color: tokens.secondaryText,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(width: DesignTokens.spacingM),
-              RadioGameTabs(
-                selectedIndex: selectedGameTab,
-                onChanged: onGameTabChanged,
-              ),
-            ],
+          Align(
+            alignment: Alignment.centerRight,
+            child: RadioGameTabs(
+              selectedIndex: selectedGameTab,
+              onChanged: onGameTabChanged,
+            ),
           ),
         ],
       ),

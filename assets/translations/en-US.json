@@ -86,7 +86,7 @@
   "greeting_evening": "Good evening",
   "greeting_night": "Good night",
   "close": "Close",
-  "home_header_listener_id": "Listener ID {id}",
+  "home_header_listener_id": "Guest",
   "home_header_favorite_station": "Favorite station: {station}",
   "home_header_now_playing": "Now playing: {show}",
   "home_header_vip_listener": "VIP Listener",

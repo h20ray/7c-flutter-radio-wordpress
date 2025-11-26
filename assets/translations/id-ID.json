@@ -86,7 +86,7 @@
   "greeting_evening": "Selamat Sore",
   "greeting_night": "Selamat Malam",
   "close": "Tutup",
-  "home_header_listener_id": "ID Pendengar {id}",
+  "home_header_listener_id": "Guest",
   "home_header_favorite_station": "Stasiun favorit: {station}",
   "home_header_now_playing": "Sedang diputar: {show}",
   "home_header_vip_listener": "Pendengar VIP",
