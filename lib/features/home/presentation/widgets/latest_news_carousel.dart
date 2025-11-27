@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/themes/app_color_system.dart';
 import '../../../../core/themes/component_tokens.dart';
 import '../../../../core/themes/design_tokens.dart';
@@ -21,7 +22,15 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
   @override
   void initState() {
     super.initState();
-    context.read<WordPressBloc>().add(const GetPostsEvent());
+    final state = context.read<WordPressBloc>().state;
+    state.maybeWhen(
+      loaded: (_) {},
+      loading: () {},
+      orElse: () {
+        context.read<WordPressBloc>().add(const GetPostsEvent());
+      },
+    );
+    
     _pageController.addListener(() {
       final next = _pageController.page?.round() ?? 0;
       if (_currentPage != next) {
@@ -151,28 +160,93 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
     int index,
     NewsCardTokens tokens,
   ) {
+    final hasImage = post.featuredImageUrl != null && post.featuredImageUrl!.isNotEmpty;
+    
     return Container(
       margin: EdgeInsets.only(
         left: DesignTokens.spacingL,
         right: index == 4 ? DesignTokens.spacingL : DesignTokens.spacingM,
       ),
-      padding: EdgeInsets.all(DesignTokens.spacingL),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [tokens.gradientStart, tokens.gradientEnd],
-        ),
         borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
         boxShadow: [
           BoxShadow(color: tokens.shadow, blurRadius: 8, offset: Offset(0, 2)),
         ],
       ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
       child: Stack(
         children: [
-          Column(
+            if (hasImage)
+              Positioned.fill(
+                child: CachedNetworkImage(
+                  imageUrl: post.featuredImageUrl!,
+                  fit: BoxFit.cover,
+                  memCacheWidth: 800,
+                  memCacheHeight: 600,
+                  placeholder: (context, url) => Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [tokens.gradientStart, tokens.gradientEnd],
+                      ),
+                    ),
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        color: Colors.white.withValues(alpha: 0.5),
+                      ),
+                    ),
+                  ),
+                  errorWidget: (context, url, error) => Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [tokens.gradientStart, tokens.gradientEnd],
+                      ),
+                    ),
+                    child: Icon(
+                      Icons.image_not_supported,
+                      color: Colors.white.withValues(alpha: 0.3),
+                      size: 48,
+                    ),
+                  ),
+                ),
+              )
+            else
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [tokens.gradientStart, tokens.gradientEnd],
+                    ),
+                  ),
+                ),
+              ),
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.transparent,
+                      Colors.black.withValues(alpha: 0.7),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.all(DesignTokens.spacingL),
+              child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+                  if (post.categoryName != null && post.categoryName!.isNotEmpty)
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
@@ -180,7 +254,7 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  'home_news_featured'.tr(),
+                        post.categoryName!,
                   style: TextStyle(
                     fontSize: DesignTokens.fontSizeCaption,
                     fontWeight: FontWeight.w600,
@@ -188,63 +262,73 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                   ),
                 ),
               ),
-              SizedBox(height: DesignTokens.spacingS),
-              Expanded(
-                child: Text(
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
                   post.title,
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
-                    color: tokens.headline,
+                          color: Colors.white,
+                          shadows: [
+                            Shadow(
+                              offset: Offset(0, 1),
+                              blurRadius: 3,
+                              color: Colors.black.withValues(alpha: 0.5),
+                            ),
+                          ],
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-              ),
+                      if (post.date != null) ...[
               SizedBox(height: DesignTokens.spacingS),
               Text(
-                'Live coverage · Today 7 PM',
+                          _formatDate(post.date!, context),
                 style: TextStyle(
                   fontSize: DesignTokens.fontSizeCaption,
-                  color: tokens.metadata,
-                ),
+                            color: Colors.white.withValues(alpha: 0.9),
+                            shadows: [
+                              Shadow(
+                                offset: Offset(0, 1),
+                                blurRadius: 2,
+                                color: Colors.black.withValues(alpha: 0.5),
               ),
-              Spacer(),
-              Container(
-                height: 36,
-                width: 120,
-                decoration: BoxDecoration(
-                  color: tokens.ctaBackground,
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                child: Center(
-                  child: Text(
-                    'home_news_read_on_site'.tr(),
-                    style: TextStyle(
-                      fontSize: DesignTokens.fontSizeBody,
-                      fontWeight: FontWeight.w600,
-                      color: tokens.ctaText,
-                    ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
-                ),
-              ),
-            ],
-          ),
-          Positioned(
-            bottom: 0,
-            right: 0,
-            child: Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: tokens.iconBackground,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(Icons.article, color: tokens.iconColor, size: 40),
+                ],
             ),
           ),
         ],
+        ),
       ),
     );
+  }
+
+  String _formatDate(DateTime date, BuildContext context) {
+    final now = DateTime.now();
+    final difference = now.difference(date);
+
+    if (difference.inMinutes < 1) {
+      return 'news_just_now'.tr();
+    } else if (difference.inMinutes < 60) {
+      return 'news_minutes_ago'.tr(namedArgs: {'minutes': '${difference.inMinutes}'});
+    } else if (difference.inHours < 24) {
+      return 'news_hours_ago'.tr(namedArgs: {'hours': '${difference.inHours}'});
+    } else if (difference.inDays < 7) {
+      return 'news_days_ago'.tr(namedArgs: {'days': '${difference.inDays}'});
+    } else {
+      final locale = context.locale;
+      if (locale.languageCode == 'id') {
+        return '${date.day}/${date.month}/${date.year}';
+      } else {
+        return '${date.month}/${date.day}/${date.year}';
+      }
+    }
   }
 }

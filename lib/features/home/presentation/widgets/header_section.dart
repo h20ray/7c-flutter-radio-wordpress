@@ -4,6 +4,10 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../../core/themes/component_tokens.dart';
 import '../../../../core/themes/design_tokens.dart';
 import '../../data/models/mock_user_profile.dart';
+import 'package:adaptive_theme/adaptive_theme.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../../../../core/themes/m3x_menu_style.dart';
+import '../../data/social_media_service.dart';
 import 'radio_game_tabs.dart';
 
 class HeaderSection extends StatelessWidget {
@@ -48,31 +52,155 @@ class HeaderSection extends StatelessWidget {
               Expanded(
                 child: Row(
                   children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: tokens.avatarFill,
-                        border: Border.all(
-                          color: tokens.avatarBorder,
-                          width: 2,
-                        ),
-                      ),
-                      child: profile.avatarUrl != null
-                          ? ClipOval(
-                              child: Image.network(
-                                profile.avatarUrl!,
-                                fit: BoxFit.cover,
+                    MenuAnchor(
+                      style: M3XMenuStyle.menuStyle,
+                      builder: (context, controller, child) {
+                        return GestureDetector(
+                          onTap: () {
+                            if (controller.isOpen) {
+                              controller.close();
+                            } else {
+                              controller.open();
+                            }
+                          },
+                          child: Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: tokens.avatarFill,
+                              border: Border.all(
+                                color: tokens.avatarBorder,
+                                width: 2,
                               ),
-                            )
-                          : Icon(
-                              LucideIcons.user,
-                              color: tokens.primaryText,
-                              size: 20,
                             ),
+                            child: profile.avatarUrl != null
+                                ? ClipOval(
+                                    child: Image.network(
+                                      profile.avatarUrl!,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  )
+                                : Icon(
+                                    LucideIcons.user,
+                                    color: tokens.primaryText,
+                                    size: 20,
+                                  ),
+                          ),
+                        );
+                      },
+                      menuChildren: [
+                        MenuItemButton(
+                          style: M3XMenuStyle.itemStyle,
+                          leadingIcon: Icon(LucideIcons.log_in, size: 20),
+                          child: Text('Login'),
+                          onPressed: () {
+                            // TODO: Implement Login
+                          },
+                        ),
+                        Builder(
+                          builder: (context) {
+                            final isDark =
+                                Theme.of(context).brightness == Brightness.dark;
+                            final adaptiveTheme = AdaptiveTheme.of(context);
+                            return MenuItemButton(
+                          style: M3XMenuStyle.itemStyle,
+                          leadingIcon: Icon(
+                                isDark ? LucideIcons.sun : LucideIcons.moon,
+                            size: 20,
+                          ),
+                              child: Text(isDark ? 'Light Mode' : 'Dark Mode'),
+                          onPressed: () {
+                                if (isDark) {
+                                  adaptiveTheme.setLight();
+                                } else {
+                                  adaptiveTheme.setDark();
+                                }
+                              },
+                            );
+                          },
+                        ),
+                        MenuItemButton(
+                          style: M3XMenuStyle.itemStyle,
+                          leadingIcon: Icon(LucideIcons.settings, size: 20),
+                          child: Text('Settings'),
+                          onPressed: () {
+                            // TODO: Implement Settings
+                          },
+                        ),
+                        const SizedBox(height: M3XMenuStyle.gapSize),
+                        const Divider(height: 1, indent: 16, endIndent: 16),
+                        const SizedBox(height: M3XMenuStyle.gapSize),
+                        SubmenuButton(
+                          style: M3XMenuStyle.itemStyle,
+                          leadingIcon: Icon(LucideIcons.share_2, size: 20),
+                          menuChildren: [
+                            FutureBuilder<Map<String, String>>(
+                              future: SocialMediaService().getSocialMediaLinks(),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return const Padding(
+                                    padding: EdgeInsets.all(16.0),
+                                    child: SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                          strokeWidth: 2),
+                                    ),
+                                  );
+                                }
+
+                                if (snapshot.hasError ||
+                                    !snapshot.hasData ||
+                                    snapshot.data!.isEmpty) {
+                                  return const MenuItemButton(
+                                    child: Text('No links available'),
+                                  );
+                                }
+
+                                return Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: snapshot.data!.entries.map((entry) {
+                                    IconData icon;
+                                    switch (entry.key) {
+                                      case 'facebookUrl':
+                                        icon = LucideIcons.facebook;
+                                        break;
+                                      case 'twitterUrl':
+                                        icon = LucideIcons.twitter;
+                                        break;
+                                      case 'instagramUrl':
+                                        icon = LucideIcons.instagram;
+                                        break;
+                                      case 'youtubeUrl':
+                                        icon = LucideIcons.youtube;
+                                        break;
+                                      default:
+                                        icon = LucideIcons.link;
+                                    }
+                                    return MenuItemButton(
+                                      leadingIcon: Icon(icon, size: 18),
+                                      child: Text(entry.key
+                                          .replaceAll('Url', '')
+                                          .toUpperCase()),
+                                      onPressed: () async {
+                                        final uri = Uri.parse(entry.value);
+                                        if (await canLaunchUrl(uri)) {
+                                          await launchUrl(uri);
+                                        }
+                                      },
+                                    );
+                                  }).toList(),
+                                );
+                              },
+                            ),
+                          ],
+                          child: const Text('Follow Us'),
+                        ),
+                      ],
                     ),
-                    SizedBox(width: DesignTokens.spacingM),
+                    SizedBox(width: DesignTokens.spacingL),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,

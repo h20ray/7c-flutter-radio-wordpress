@@ -9,6 +9,9 @@ class HomeState with _$HomeState {
     required String? selectedCategory,
     required NowPlayingEntity nowPlaying,
     String? nowPlayingError,
+    @Default([]) List<CategoryEntity> availableCategories,
+    @Default([]) List<CategoryEntity> filterChipCategories,
+    int? selectedCategoryId,
   }) = _Loaded;
   const factory HomeState.error(String message) = _Error;
 }

@@ -1,39 +1,83 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:get_it/get_it.dart';
 import '../../../../core/themes/app_color_system.dart';
 import '../../../../core/themes/component_tokens.dart';
 import '../../../../core/themes/design_tokens.dart';
-import '../../data/models/mock_promo_card.dart';
+import '../../../../core/utils/debug_logger.dart';
+import '../bloc/home_bloc.dart';
+import 'category_selection_dialog.dart';
+import '../../../promos/domain/entities/promo_entity.dart';
+import '../../../promos/domain/usecases/get_promos_by_category.dart';
 
-class LocalPromosSection extends StatefulWidget {
-  final String? selectedCategory;
-  final ValueChanged<String> onCategoryChanged;
-
-  const LocalPromosSection({
-    super.key,
-    this.selectedCategory,
-    required this.onCategoryChanged,
-  });
+class CategoriesPromosSection extends StatefulWidget {
+  const CategoriesPromosSection({super.key});
 
   @override
-  State<LocalPromosSection> createState() => _LocalPromosSectionState();
+  State<CategoriesPromosSection> createState() => _CategoriesPromosSectionState();
 }
 
-class _LocalPromosSectionState extends State<LocalPromosSection> {
-  final List<String> _categories = [
-    'home_promos_near_you',
-    'home_promos_top_news',
-    'home_promos_music',
-    'home_promos_talk_shows',
-  ];
+class _CategoriesPromosSectionState extends State<CategoriesPromosSection> {
+  late final GetPromosByCategory getPromosByCategory;
+  List<PromoEntity> _promos = [];
+  bool _isLoadingPromos = false;
+
+  @override
+  void initState() {
+    super.initState();
+    getPromosByCategory = GetIt.instance<GetPromosByCategory>();
+    _loadPromos(null);
+  }
+
+  void _loadPromos(int? categoryId) {
+    setState(() {
+      _isLoadingPromos = true;
+    });
+
+    getPromosByCategory(categoryId).then((result) {
+      result.fold(
+        (failure) {
+          setState(() {
+            _isLoadingPromos = false;
+            _promos = [];
+          });
+        },
+        (promos) {
+          setState(() {
+            _isLoadingPromos = false;
+            _promos = promos;
+          });
+        },
+      );
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
     final promoTokens = PromoChipTokens.of(context);
 
-    return Column(
+    return BlocBuilder<HomeBloc, HomeState>(
+      buildWhen: (previous, current) {
+        return previous != current;
+      },
+      builder: (context, state) {
+            DebugLogger.log('CategoriesPromosSection: Building with state: ${state.runtimeType}', tag: 'CategoriesPromosSection');
+            return state.maybeWhen(
+          loaded: (selectedTabIndex, selectedCategory, nowPlaying, nowPlayingError,
+              availableCategories, filterChipCategories, selectedCategoryId) {
+            DebugLogger.log('CategoriesPromosSection: loaded state - filterChipCategories: ${filterChipCategories.length}, availableCategories: ${availableCategories.length}', tag: 'CategoriesPromosSection');
+            
+            if (selectedCategoryId != null && _promos.isEmpty && !_isLoadingPromos) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                _loadPromos(selectedCategoryId);
+              });
+            }
+
+            return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
@@ -50,7 +94,21 @@ class _LocalPromosSectionState extends State<LocalPromosSection> {
                 ),
               ),
               TextButton(
-                onPressed: () {},
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => CategorySelectionDialog(
+                              categories: availableCategories,
+                              selectedCategoryId: selectedCategoryId,
+                              onCategorySelected: (categoryId) {
+                                context.read<HomeBloc>().add(
+                                      HomeEvent.categorySelected(categoryId),
+                                    );
+                                _loadPromos(categoryId);
+                              },
+                            ),
+                          );
+                        },
                 child: Text(
                   'home_promos_see_all'.tr(),
                   style: TextStyle(
@@ -63,22 +121,27 @@ class _LocalPromosSectionState extends State<LocalPromosSection> {
           ),
         ),
         SizedBox(height: DesignTokens.spacingM),
+                if (filterChipCategories.isNotEmpty)
         SizedBox(
           height: 40,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
-            itemCount: _categories.length,
+                      itemCount: filterChipCategories.length,
             itemBuilder: (context, index) {
-              final category = _categories[index];
-              final isSelected = widget.selectedCategory == category;
+                        final category = filterChipCategories[index];
+                        final isSelected = selectedCategoryId == category.id;
               return Padding(
                 padding: EdgeInsets.only(right: DesignTokens.spacingS),
                 child: FilterChip(
                   selected: isSelected,
-                  label: Text(category.tr()),
+                            label: Text(category.name),
                   onSelected: (selected) {
-                    widget.onCategoryChanged(category);
+                              final newCategoryId = isSelected ? null : category.id;
+                              context.read<HomeBloc>().add(
+                                    HomeEvent.categorySelected(newCategoryId),
+                                  );
+                              _loadPromos(newCategoryId);
                   },
                   selectedColor: promoTokens.selectedBackground,
                   checkmarkColor: promoTokens.checkmark,
@@ -106,6 +169,7 @@ class _LocalPromosSectionState extends State<LocalPromosSection> {
             },
           ),
         ),
+                if (filterChipCategories.isNotEmpty)
         SizedBox(height: DesignTokens.spacingM),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
@@ -144,16 +208,42 @@ class _LocalPromosSectionState extends State<LocalPromosSection> {
           ),
         ),
         SizedBox(height: DesignTokens.spacingM),
-        ...MockPromoCard.defaultPromos.map(
+                if (_isLoadingPromos)
+                  Padding(
+                    padding: EdgeInsets.all(DesignTokens.spacingXl),
+                    child: Center(
+                      child: CircularProgressIndicator(color: colors.gradientStart),
+                    ),
+                  )
+                else if (_promos.isEmpty)
+                  Padding(
+                    padding: EdgeInsets.all(DesignTokens.spacingXl),
+                    child: Center(
+                      child: Text(
+                        'No promos available',
+                        style: TextStyle(
+                          color: colors.textSecondary,
+                          fontSize: DesignTokens.fontSizeBody,
+                        ),
+                      ),
+                    ),
+                  )
+                else
+                  ..._promos.map(
           (promo) => _buildPromoCard(context, promo, promoTokens),
         ),
       ],
+            );
+          },
+          orElse: () => const SizedBox.shrink(),
+        );
+      },
     );
   }
 
   Widget _buildPromoCard(
     BuildContext context,
-    MockPromoCard promo,
+    PromoEntity promo,
     PromoChipTokens promoTokens,
   ) {
     final colors = context.appColors;
@@ -191,9 +281,22 @@ class _LocalPromosSectionState extends State<LocalPromosSection> {
             child: promo.thumbnailUrl != null
                 ? ClipRRect(
                     borderRadius: BorderRadius.circular(12),
-                    child: Image.network(
-                      promo.thumbnailUrl!,
+                    child: CachedNetworkImage(
+                      imageUrl: promo.thumbnailUrl!,
                       fit: BoxFit.cover,
+                      placeholder: (context, url) => Container(
+                        color: colors.borderSubtle,
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: colors.gradientStart,
+                          ),
+                        ),
+                      ),
+                      errorWidget: (context, url, error) => Icon(
+                        Icons.image_not_supported,
+                        color: colors.textSecondary,
+                      ),
                     ),
                   )
                 : Icon(Icons.image, color: colors.textSecondary),
@@ -220,7 +323,7 @@ class _LocalPromosSectionState extends State<LocalPromosSection> {
                   ),
                   SizedBox(height: 2),
                   Text(
-                    '${promo.category} • ${promo.time ?? ""}',
+                    '${promo.categoryName ?? ""} • ${promo.time ?? ""}',
                     style: TextStyle(
                       fontSize: 11,
                       color: colors.textSecondary,

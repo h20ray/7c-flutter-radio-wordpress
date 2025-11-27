@@ -14,7 +14,7 @@ import '../../../tamtama/presentation/widgets/tamtama_section.dart';
 import '../bloc/home_bloc.dart';
 import '../widgets/header_section.dart';
 import '../widgets/latest_news_carousel.dart';
-import '../widgets/local_promos_section.dart';
+import '../widgets/categories_promos_section.dart';
 import '../widgets/mode_tabs.dart';
 import '../widgets/swipeable_card_container.dart';
 
@@ -29,12 +29,12 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedTabIndex = 0;
   int _selectedRadioGameTab = 0;
   NavItem _selectedNavItem = NavItem.home;
-  String? _selectedCategory;
 
   @override
   void initState() {
     super.initState();
     context.read<HomeBloc>().add(const LoadFeaturedContentEvent());
+    context.read<HomeBloc>().add(const LoadCategoriesEvent());
   }
 
   Future<bool> _onWillPop() async {
@@ -136,17 +136,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
                         const LatestNewsCarousel(),
                         SizedBox(height: DesignTokens.spacingXl),
-                        LocalPromosSection(
-                          selectedCategory: _selectedCategory,
-                          onCategoryChanged: (category) {
-                            setState(() {
-                              _selectedCategory = category;
-                            });
-                            context.read<HomeBloc>().add(
-                                  FilterChipSelectedEvent(category),
-                                );
-                          },
-                        ),
+                        const CategoriesPromosSection(),
                         SizedBox(height: 120),
                       ],
                     ),

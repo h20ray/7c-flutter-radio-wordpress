@@ -41,6 +41,7 @@ import '../../features/shoutbox/presentation/bloc/shoutbox_bloc.dart';
 
 // WordPress feature imports
 import '../../features/wordpress/data/datasources/wordpress_remote_datasource.dart';
+import '../../features/wordpress/data/datasources/wordpress_local_data_source.dart';
 import '../../features/wordpress/data/repositories/wordpress_repository_impl.dart';
 import '../../features/wordpress/domain/repositories/wordpress_repository.dart';
 import '../../features/wordpress/domain/usecases/get_posts.dart';
@@ -59,6 +60,18 @@ import '../../features/home/data/repositories/home_radio_repository_impl.dart';
 import '../../features/home/domain/repositories/home_radio_repository.dart';
 import '../../features/home/domain/usecases/watch_home_now_playing.dart';
 import '../../features/home/presentation/bloc/home_bloc.dart';
+
+// Categories feature imports
+import '../../features/categories/data/datasources/category_remote_datasource.dart';
+import '../../features/categories/data/datasources/config_remote_datasource.dart';
+import '../../features/categories/data/repositories/category_repository_impl.dart';
+import '../../features/categories/domain/repositories/category_repository.dart';
+
+// Promos feature imports
+import '../../features/promos/data/datasources/promo_remote_datasource.dart';
+import '../../features/promos/data/repositories/promo_repository_impl.dart';
+import '../../features/promos/domain/repositories/promo_repository.dart';
+import '../../features/promos/domain/usecases/get_promos_by_category.dart';
 
 // TamTama feature imports
 import '../../features/tamtama/data/datasources/tamtama_local_data_source.dart';
@@ -111,6 +124,8 @@ Future<void> initDependencies() async {
   _initGamification();
   _initShoutbox();
   _initWordPress();
+  _initCategories();
+  _initPromos();
   _initHome();
   _initTamtama();
 
@@ -208,13 +223,20 @@ void _initWordPress() {
     () => WordPressRemoteDataSourceImpl(apiClient: getIt()),
   );
 
+  getIt.registerLazySingleton<WordPressLocalDataSource>(
+    () => WordPressLocalDataSourceImpl(),
+  );
+
   getIt.registerLazySingleton<WordPressRepository>(
-    () => WordPressRepositoryImpl(remoteDataSource: getIt()),
+    () => WordPressRepositoryImpl(
+      remoteDataSource: getIt(),
+      localDataSource: getIt(),
+    ),
   );
 
   getIt.registerLazySingleton(() => GetPosts(getIt()));
 
-  getIt.registerFactory(
+  getIt.registerLazySingleton(
     () => WordPressBloc(getPosts: getIt()),
   );
 }
@@ -236,8 +258,38 @@ void _initHome() {
   getIt.registerFactory(
     () => HomeBloc(
       watchHomeNowPlaying: getIt(),
+      categoryRepository: getIt(),
     ),
   );
+}
+
+void _initCategories() {
+  getIt.registerLazySingleton<CategoryRemoteDataSource>(
+    () => CategoryRemoteDataSourceImpl(apiClient: getIt()),
+  );
+
+  getIt.registerLazySingleton<ConfigRemoteDataSource>(
+    () => ConfigRemoteDataSourceImpl(apiClient: getIt()),
+  );
+
+  getIt.registerLazySingleton<CategoryRepository>(
+    () => CategoryRepositoryImpl(
+      categoryRemoteDataSource: getIt(),
+      configRemoteDataSource: getIt(),
+    ),
+  );
+}
+
+void _initPromos() {
+  getIt.registerLazySingleton<PromoRemoteDataSource>(
+    () => PromoRemoteDataSourceImpl(apiClient: getIt()),
+  );
+
+  getIt.registerLazySingleton<PromoRepository>(
+    () => PromoRepositoryImpl(remoteDataSource: getIt()),
+  );
+
+  getIt.registerLazySingleton(() => GetPromosByCategory(getIt()));
 }
 
 void _initGamification() {

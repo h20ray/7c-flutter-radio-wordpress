@@ -10,4 +10,7 @@ class HomeEvent with _$HomeEvent {
       NowPlayingUpdatedEvent;
   const factory HomeEvent.nowPlayingError(String message) =
       NowPlayingErrorEvent;
+  const factory HomeEvent.loadCategories() = LoadCategoriesEvent;
+  const factory HomeEvent.categorySelected(int? categoryId) =
+      CategorySelectedEvent;
 }

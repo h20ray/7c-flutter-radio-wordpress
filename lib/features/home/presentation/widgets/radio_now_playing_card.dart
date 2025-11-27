@@ -32,7 +32,7 @@ class RadioNowPlayingCard extends StatelessWidget {
     final child = BlocSelector<HomeBloc, HomeState, _NowPlayingViewData>(
       selector: (state) {
         return state.maybeWhen(
-          loaded: (tabIndex, selectedCategory, nowPlaying, error) =>
+          loaded: (tabIndex, selectedCategory, nowPlaying, error, availableCategories, filterChipCategories, selectedCategoryId) =>
               _NowPlayingViewData.fromEntity(nowPlaying),
           orElse: () => _NowPlayingViewData.fallback(),
         );

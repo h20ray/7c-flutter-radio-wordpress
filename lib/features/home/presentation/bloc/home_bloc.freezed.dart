@@ -55,7 +55,7 @@ extension HomeEventPatterns on HomeEvent {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( TabChangedEvent value)?  tabChanged,TResult Function( FilterChipSelectedEvent value)?  filterChipSelected,TResult Function( LoadFeaturedContentEvent value)?  loadFeaturedContent,TResult Function( NowPlayingUpdatedEvent value)?  nowPlayingUpdated,TResult Function( NowPlayingErrorEvent value)?  nowPlayingError,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( TabChangedEvent value)?  tabChanged,TResult Function( FilterChipSelectedEvent value)?  filterChipSelected,TResult Function( LoadFeaturedContentEvent value)?  loadFeaturedContent,TResult Function( NowPlayingUpdatedEvent value)?  nowPlayingUpdated,TResult Function( NowPlayingErrorEvent value)?  nowPlayingError,TResult Function( LoadCategoriesEvent value)?  loadCategories,TResult Function( CategorySelectedEvent value)?  categorySelected,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case TabChangedEvent() when tabChanged != null:
@@ -63,7 +63,9 @@ return tabChanged(_that);case FilterChipSelectedEvent() when filterChipSelected 
 return filterChipSelected(_that);case LoadFeaturedContentEvent() when loadFeaturedContent != null:
 return loadFeaturedContent(_that);case NowPlayingUpdatedEvent() when nowPlayingUpdated != null:
 return nowPlayingUpdated(_that);case NowPlayingErrorEvent() when nowPlayingError != null:
-return nowPlayingError(_that);case _:
+return nowPlayingError(_that);case LoadCategoriesEvent() when loadCategories != null:
+return loadCategories(_that);case CategorySelectedEvent() when categorySelected != null:
+return categorySelected(_that);case _:
   return orElse();
 
 }
@@ -81,7 +83,7 @@ return nowPlayingError(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( TabChangedEvent value)  tabChanged,required TResult Function( FilterChipSelectedEvent value)  filterChipSelected,required TResult Function( LoadFeaturedContentEvent value)  loadFeaturedContent,required TResult Function( NowPlayingUpdatedEvent value)  nowPlayingUpdated,required TResult Function( NowPlayingErrorEvent value)  nowPlayingError,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( TabChangedEvent value)  tabChanged,required TResult Function( FilterChipSelectedEvent value)  filterChipSelected,required TResult Function( LoadFeaturedContentEvent value)  loadFeaturedContent,required TResult Function( NowPlayingUpdatedEvent value)  nowPlayingUpdated,required TResult Function( NowPlayingErrorEvent value)  nowPlayingError,required TResult Function( LoadCategoriesEvent value)  loadCategories,required TResult Function( CategorySelectedEvent value)  categorySelected,}){
 final _that = this;
 switch (_that) {
 case TabChangedEvent():
@@ -89,7 +91,9 @@ return tabChanged(_that);case FilterChipSelectedEvent():
 return filterChipSelected(_that);case LoadFeaturedContentEvent():
 return loadFeaturedContent(_that);case NowPlayingUpdatedEvent():
 return nowPlayingUpdated(_that);case NowPlayingErrorEvent():
-return nowPlayingError(_that);case _:
+return nowPlayingError(_that);case LoadCategoriesEvent():
+return loadCategories(_that);case CategorySelectedEvent():
+return categorySelected(_that);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -106,7 +110,7 @@ return nowPlayingError(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( TabChangedEvent value)?  tabChanged,TResult? Function( FilterChipSelectedEvent value)?  filterChipSelected,TResult? Function( LoadFeaturedContentEvent value)?  loadFeaturedContent,TResult? Function( NowPlayingUpdatedEvent value)?  nowPlayingUpdated,TResult? Function( NowPlayingErrorEvent value)?  nowPlayingError,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( TabChangedEvent value)?  tabChanged,TResult? Function( FilterChipSelectedEvent value)?  filterChipSelected,TResult? Function( LoadFeaturedContentEvent value)?  loadFeaturedContent,TResult? Function( NowPlayingUpdatedEvent value)?  nowPlayingUpdated,TResult? Function( NowPlayingErrorEvent value)?  nowPlayingError,TResult? Function( LoadCategoriesEvent value)?  loadCategories,TResult? Function( CategorySelectedEvent value)?  categorySelected,}){
 final _that = this;
 switch (_that) {
 case TabChangedEvent() when tabChanged != null:
@@ -114,7 +118,9 @@ return tabChanged(_that);case FilterChipSelectedEvent() when filterChipSelected 
 return filterChipSelected(_that);case LoadFeaturedContentEvent() when loadFeaturedContent != null:
 return loadFeaturedContent(_that);case NowPlayingUpdatedEvent() when nowPlayingUpdated != null:
 return nowPlayingUpdated(_that);case NowPlayingErrorEvent() when nowPlayingError != null:
-return nowPlayingError(_that);case _:
+return nowPlayingError(_that);case LoadCategoriesEvent() when loadCategories != null:
+return loadCategories(_that);case CategorySelectedEvent() when categorySelected != null:
+return categorySelected(_that);case _:
   return null;
 
 }
@@ -131,14 +137,16 @@ return nowPlayingError(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( int tabIndex)?  tabChanged,TResult Function( String category)?  filterChipSelected,TResult Function()?  loadFeaturedContent,TResult Function( NowPlayingEntity nowPlaying)?  nowPlayingUpdated,TResult Function( String message)?  nowPlayingError,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( int tabIndex)?  tabChanged,TResult Function( String category)?  filterChipSelected,TResult Function()?  loadFeaturedContent,TResult Function( NowPlayingEntity nowPlaying)?  nowPlayingUpdated,TResult Function( String message)?  nowPlayingError,TResult Function()?  loadCategories,TResult Function( int? categoryId)?  categorySelected,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case TabChangedEvent() when tabChanged != null:
 return tabChanged(_that.tabIndex);case FilterChipSelectedEvent() when filterChipSelected != null:
 return filterChipSelected(_that.category);case LoadFeaturedContentEvent() when loadFeaturedContent != null:
 return loadFeaturedContent();case NowPlayingUpdatedEvent() when nowPlayingUpdated != null:
 return nowPlayingUpdated(_that.nowPlaying);case NowPlayingErrorEvent() when nowPlayingError != null:
-return nowPlayingError(_that.message);case _:
+return nowPlayingError(_that.message);case LoadCategoriesEvent() when loadCategories != null:
+return loadCategories();case CategorySelectedEvent() when categorySelected != null:
+return categorySelected(_that.categoryId);case _:
   return orElse();
 
 }
@@ -156,14 +164,16 @@ return nowPlayingError(_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( int tabIndex)  tabChanged,required TResult Function( String category)  filterChipSelected,required TResult Function()  loadFeaturedContent,required TResult Function( NowPlayingEntity nowPlaying)  nowPlayingUpdated,required TResult Function( String message)  nowPlayingError,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( int tabIndex)  tabChanged,required TResult Function( String category)  filterChipSelected,required TResult Function()  loadFeaturedContent,required TResult Function( NowPlayingEntity nowPlaying)  nowPlayingUpdated,required TResult Function( String message)  nowPlayingError,required TResult Function()  loadCategories,required TResult Function( int? categoryId)  categorySelected,}) {final _that = this;
 switch (_that) {
 case TabChangedEvent():
 return tabChanged(_that.tabIndex);case FilterChipSelectedEvent():
 return filterChipSelected(_that.category);case LoadFeaturedContentEvent():
 return loadFeaturedContent();case NowPlayingUpdatedEvent():
 return nowPlayingUpdated(_that.nowPlaying);case NowPlayingErrorEvent():
-return nowPlayingError(_that.message);case _:
+return nowPlayingError(_that.message);case LoadCategoriesEvent():
+return loadCategories();case CategorySelectedEvent():
+return categorySelected(_that.categoryId);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -180,14 +190,16 @@ return nowPlayingError(_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( int tabIndex)?  tabChanged,TResult? Function( String category)?  filterChipSelected,TResult? Function()?  loadFeaturedContent,TResult? Function( NowPlayingEntity nowPlaying)?  nowPlayingUpdated,TResult? Function( String message)?  nowPlayingError,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( int tabIndex)?  tabChanged,TResult? Function( String category)?  filterChipSelected,TResult? Function()?  loadFeaturedContent,TResult? Function( NowPlayingEntity nowPlaying)?  nowPlayingUpdated,TResult? Function( String message)?  nowPlayingError,TResult? Function()?  loadCategories,TResult? Function( int? categoryId)?  categorySelected,}) {final _that = this;
 switch (_that) {
 case TabChangedEvent() when tabChanged != null:
 return tabChanged(_that.tabIndex);case FilterChipSelectedEvent() when filterChipSelected != null:
 return filterChipSelected(_that.category);case LoadFeaturedContentEvent() when loadFeaturedContent != null:
 return loadFeaturedContent();case NowPlayingUpdatedEvent() when nowPlayingUpdated != null:
 return nowPlayingUpdated(_that.nowPlaying);case NowPlayingErrorEvent() when nowPlayingError != null:
-return nowPlayingError(_that.message);case _:
+return nowPlayingError(_that.message);case LoadCategoriesEvent() when loadCategories != null:
+return loadCategories();case CategorySelectedEvent() when categorySelected != null:
+return categorySelected(_that.categoryId);case _:
   return null;
 
 }
@@ -492,6 +504,104 @@ as String,
 }
 
 /// @nodoc
+
+
+class LoadCategoriesEvent implements HomeEvent {
+  const LoadCategoriesEvent();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LoadCategoriesEvent);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'HomeEvent.loadCategories()';
+}
+
+
+}
+
+
+
+
+/// @nodoc
+
+
+class CategorySelectedEvent implements HomeEvent {
+  const CategorySelectedEvent(this.categoryId);
+  
+
+ final  int? categoryId;
+
+/// Create a copy of HomeEvent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$CategorySelectedEventCopyWith<CategorySelectedEvent> get copyWith => _$CategorySelectedEventCopyWithImpl<CategorySelectedEvent>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CategorySelectedEvent&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,categoryId);
+
+@override
+String toString() {
+  return 'HomeEvent.categorySelected(categoryId: $categoryId)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $CategorySelectedEventCopyWith<$Res> implements $HomeEventCopyWith<$Res> {
+  factory $CategorySelectedEventCopyWith(CategorySelectedEvent value, $Res Function(CategorySelectedEvent) _then) = _$CategorySelectedEventCopyWithImpl;
+@useResult
+$Res call({
+ int? categoryId
+});
+
+
+
+
+}
+/// @nodoc
+class _$CategorySelectedEventCopyWithImpl<$Res>
+    implements $CategorySelectedEventCopyWith<$Res> {
+  _$CategorySelectedEventCopyWithImpl(this._self, this._then);
+
+  final CategorySelectedEvent _self;
+  final $Res Function(CategorySelectedEvent) _then;
+
+/// Create a copy of HomeEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? categoryId = freezed,}) {
+  return _then(CategorySelectedEvent(
+freezed == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
+as int?,
+  ));
+}
+
+
+}
+
+/// @nodoc
 mixin _$HomeState {
 
 
@@ -608,12 +718,12 @@ return error(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( int selectedTabIndex,  String? selectedCategory,  NowPlayingEntity nowPlaying,  String? nowPlayingError)?  loaded,TResult Function( String message)?  error,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( int selectedTabIndex,  String? selectedCategory,  NowPlayingEntity nowPlaying,  String? nowPlayingError,  List<CategoryEntity> availableCategories,  List<CategoryEntity> filterChipCategories,  int? selectedCategoryId)?  loaded,TResult Function( String message)?  error,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Initial() when initial != null:
 return initial();case _Loading() when loading != null:
 return loading();case _Loaded() when loaded != null:
-return loaded(_that.selectedTabIndex,_that.selectedCategory,_that.nowPlaying,_that.nowPlayingError);case _Error() when error != null:
+return loaded(_that.selectedTabIndex,_that.selectedCategory,_that.nowPlaying,_that.nowPlayingError,_that.availableCategories,_that.filterChipCategories,_that.selectedCategoryId);case _Error() when error != null:
 return error(_that.message);case _:
   return orElse();
 
@@ -632,12 +742,12 @@ return error(_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( int selectedTabIndex,  String? selectedCategory,  NowPlayingEntity nowPlaying,  String? nowPlayingError)  loaded,required TResult Function( String message)  error,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( int selectedTabIndex,  String? selectedCategory,  NowPlayingEntity nowPlaying,  String? nowPlayingError,  List<CategoryEntity> availableCategories,  List<CategoryEntity> filterChipCategories,  int? selectedCategoryId)  loaded,required TResult Function( String message)  error,}) {final _that = this;
 switch (_that) {
 case _Initial():
 return initial();case _Loading():
 return loading();case _Loaded():
-return loaded(_that.selectedTabIndex,_that.selectedCategory,_that.nowPlaying,_that.nowPlayingError);case _Error():
+return loaded(_that.selectedTabIndex,_that.selectedCategory,_that.nowPlaying,_that.nowPlayingError,_that.availableCategories,_that.filterChipCategories,_that.selectedCategoryId);case _Error():
 return error(_that.message);case _:
   throw StateError('Unexpected subclass');
 
@@ -655,12 +765,12 @@ return error(_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( int selectedTabIndex,  String? selectedCategory,  NowPlayingEntity nowPlaying,  String? nowPlayingError)?  loaded,TResult? Function( String message)?  error,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( int selectedTabIndex,  String? selectedCategory,  NowPlayingEntity nowPlaying,  String? nowPlayingError,  List<CategoryEntity> availableCategories,  List<CategoryEntity> filterChipCategories,  int? selectedCategoryId)?  loaded,TResult? Function( String message)?  error,}) {final _that = this;
 switch (_that) {
 case _Initial() when initial != null:
 return initial();case _Loading() when loading != null:
 return loading();case _Loaded() when loaded != null:
-return loaded(_that.selectedTabIndex,_that.selectedCategory,_that.nowPlaying,_that.nowPlayingError);case _Error() when error != null:
+return loaded(_that.selectedTabIndex,_that.selectedCategory,_that.nowPlaying,_that.nowPlayingError,_that.availableCategories,_that.filterChipCategories,_that.selectedCategoryId);case _Error() when error != null:
 return error(_that.message);case _:
   return null;
 
@@ -737,13 +847,28 @@ String toString() {
 
 
 class _Loaded implements HomeState {
-  const _Loaded({required this.selectedTabIndex, required this.selectedCategory, required this.nowPlaying, this.nowPlayingError});
+  const _Loaded({required this.selectedTabIndex, required this.selectedCategory, required this.nowPlaying, this.nowPlayingError, final  List<CategoryEntity> availableCategories = const [], final  List<CategoryEntity> filterChipCategories = const [], this.selectedCategoryId}): _availableCategories = availableCategories,_filterChipCategories = filterChipCategories;
   
 
  final  int selectedTabIndex;
  final  String? selectedCategory;
  final  NowPlayingEntity nowPlaying;
  final  String? nowPlayingError;
+ final  List<CategoryEntity> _availableCategories;
+@JsonKey() List<CategoryEntity> get availableCategories {
+  if (_availableCategories is EqualUnmodifiableListView) return _availableCategories;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_availableCategories);
+}
+
+ final  List<CategoryEntity> _filterChipCategories;
+@JsonKey() List<CategoryEntity> get filterChipCategories {
+  if (_filterChipCategories is EqualUnmodifiableListView) return _filterChipCategories;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_filterChipCategories);
+}
+
+ final  int? selectedCategoryId;
 
 /// Create a copy of HomeState
 /// with the given fields replaced by the non-null parameter values.
@@ -755,16 +880,16 @@ _$LoadedCopyWith<_Loaded> get copyWith => __$LoadedCopyWithImpl<_Loaded>(this, _
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Loaded&&(identical(other.selectedTabIndex, selectedTabIndex) || other.selectedTabIndex == selectedTabIndex)&&(identical(other.selectedCategory, selectedCategory) || other.selectedCategory == selectedCategory)&&(identical(other.nowPlaying, nowPlaying) || other.nowPlaying == nowPlaying)&&(identical(other.nowPlayingError, nowPlayingError) || other.nowPlayingError == nowPlayingError));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Loaded&&(identical(other.selectedTabIndex, selectedTabIndex) || other.selectedTabIndex == selectedTabIndex)&&(identical(other.selectedCategory, selectedCategory) || other.selectedCategory == selectedCategory)&&(identical(other.nowPlaying, nowPlaying) || other.nowPlaying == nowPlaying)&&(identical(other.nowPlayingError, nowPlayingError) || other.nowPlayingError == nowPlayingError)&&const DeepCollectionEquality().equals(other._availableCategories, _availableCategories)&&const DeepCollectionEquality().equals(other._filterChipCategories, _filterChipCategories)&&(identical(other.selectedCategoryId, selectedCategoryId) || other.selectedCategoryId == selectedCategoryId));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,selectedTabIndex,selectedCategory,nowPlaying,nowPlayingError);
+int get hashCode => Object.hash(runtimeType,selectedTabIndex,selectedCategory,nowPlaying,nowPlayingError,const DeepCollectionEquality().hash(_availableCategories),const DeepCollectionEquality().hash(_filterChipCategories),selectedCategoryId);
 
 @override
 String toString() {
-  return 'HomeState.loaded(selectedTabIndex: $selectedTabIndex, selectedCategory: $selectedCategory, nowPlaying: $nowPlaying, nowPlayingError: $nowPlayingError)';
+  return 'HomeState.loaded(selectedTabIndex: $selectedTabIndex, selectedCategory: $selectedCategory, nowPlaying: $nowPlaying, nowPlayingError: $nowPlayingError, availableCategories: $availableCategories, filterChipCategories: $filterChipCategories, selectedCategoryId: $selectedCategoryId)';
 }
 
 
@@ -775,7 +900,7 @@ abstract mixin class _$LoadedCopyWith<$Res> implements $HomeStateCopyWith<$Res> 
   factory _$LoadedCopyWith(_Loaded value, $Res Function(_Loaded) _then) = __$LoadedCopyWithImpl;
 @useResult
 $Res call({
- int selectedTabIndex, String? selectedCategory, NowPlayingEntity nowPlaying, String? nowPlayingError
+ int selectedTabIndex, String? selectedCategory, NowPlayingEntity nowPlaying, String? nowPlayingError, List<CategoryEntity> availableCategories, List<CategoryEntity> filterChipCategories, int? selectedCategoryId
 });
 
 
@@ -792,13 +917,16 @@ class __$LoadedCopyWithImpl<$Res>
 
 /// Create a copy of HomeState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? selectedTabIndex = null,Object? selectedCategory = freezed,Object? nowPlaying = null,Object? nowPlayingError = freezed,}) {
+@pragma('vm:prefer-inline') $Res call({Object? selectedTabIndex = null,Object? selectedCategory = freezed,Object? nowPlaying = null,Object? nowPlayingError = freezed,Object? availableCategories = null,Object? filterChipCategories = null,Object? selectedCategoryId = freezed,}) {
   return _then(_Loaded(
 selectedTabIndex: null == selectedTabIndex ? _self.selectedTabIndex : selectedTabIndex // ignore: cast_nullable_to_non_nullable
 as int,selectedCategory: freezed == selectedCategory ? _self.selectedCategory : selectedCategory // ignore: cast_nullable_to_non_nullable
 as String?,nowPlaying: null == nowPlaying ? _self.nowPlaying : nowPlaying // ignore: cast_nullable_to_non_nullable
 as NowPlayingEntity,nowPlayingError: freezed == nowPlayingError ? _self.nowPlayingError : nowPlayingError // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,availableCategories: null == availableCategories ? _self._availableCategories : availableCategories // ignore: cast_nullable_to_non_nullable
+as List<CategoryEntity>,filterChipCategories: null == filterChipCategories ? _self._filterChipCategories : filterChipCategories // ignore: cast_nullable_to_non_nullable
+as List<CategoryEntity>,selectedCategoryId: freezed == selectedCategoryId ? _self.selectedCategoryId : selectedCategoryId // ignore: cast_nullable_to_non_nullable
+as int?,
   ));
 }
 
