@@ -8,8 +8,18 @@ class GetPosts {
 
   GetPosts(this.repository);
 
-  Future<Either<Failure, List<PostEntity>>> call() async {
-    return await repository.getPosts();
+  Future<Either<Failure, List<PostEntity>>> call({
+    bool forceRefresh = false,
+    int? categoryId,
+  }) async {
+    return repository.getPosts(forceRefresh: forceRefresh, categoryId: categoryId);
+  }
+
+  Future<List<PostEntity>?> getCachedPosts({int? categoryId}) async {
+    return repository.getCachedPosts(categoryId: categoryId);
+  }
+
+  Future<DateTime?> getCacheTimestamp({int? categoryId}) async {
+    return repository.getCacheTimestamp(categoryId: categoryId);
   }
 }
-

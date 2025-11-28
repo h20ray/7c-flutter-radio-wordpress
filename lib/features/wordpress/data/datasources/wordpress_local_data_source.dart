@@ -1,17 +1,17 @@
 import 'package:hive/hive.dart';
+import '../../../../config/news_config.dart';
 import '../models/post_model.dart';
 
 abstract class WordPressLocalDataSource {
-  Future<List<PostModel>?> getCachedPosts();
-  Future<void> cachePosts(List<PostModel> posts);
-  Future<DateTime?> getCacheTimestamp();
+  Future<List<PostModel>?> getCachedPosts({int? categoryId});
+  Future<void> cachePosts(List<PostModel> posts, {int? categoryId});
+  Future<DateTime?> getCacheTimestamp({int? categoryId});
 }
 
 class WordPressLocalDataSourceImpl implements WordPressLocalDataSource {
   static const _boxName = 'wordpress_posts_box';
-  static const _postsKey = 'posts';
-  static const _timestampKey = 'timestamp';
-  static const _cacheDurationMinutes = 10;
+  String _getPostsKey(int? categoryId) => categoryId == null ? 'posts' : 'posts_$categoryId';
+  String _getTimestampKey(int? categoryId) => categoryId == null ? 'timestamp' : 'timestamp_$categoryId';
 
   Future<Box> _openBox() async {
     if (Hive.isBoxOpen(_boxName)) {
@@ -21,10 +21,12 @@ class WordPressLocalDataSourceImpl implements WordPressLocalDataSource {
   }
 
   @override
-  Future<List<PostModel>?> getCachedPosts() async {
+  Future<List<PostModel>?> getCachedPosts({int? categoryId}) async {
     try {
       final box = await _openBox();
-      final timestamp = box.get(_timestampKey) as int?;
+      final postsKey = _getPostsKey(categoryId);
+      final timestampKey = _getTimestampKey(categoryId);
+      final timestamp = box.get(timestampKey) as int?;
       
       if (timestamp == null) return null;
       
@@ -32,11 +34,11 @@ class WordPressLocalDataSourceImpl implements WordPressLocalDataSource {
       final now = DateTime.now();
       final difference = now.difference(cacheTime);
       
-      if (difference.inMinutes > _cacheDurationMinutes) {
+      if (difference > NewsConfig.newsCacheTTL) {
         return null;
       }
       
-      final raw = box.get(_postsKey);
+      final raw = box.get(postsKey);
       if (raw is List) {
         return raw.map((item) {
           if (item is Map) {
@@ -53,22 +55,25 @@ class WordPressLocalDataSourceImpl implements WordPressLocalDataSource {
   }
 
   @override
-  Future<void> cachePosts(List<PostModel> posts) async {
+  Future<void> cachePosts(List<PostModel> posts, {int? categoryId}) async {
     try {
       final box = await _openBox();
+      final postsKey = _getPostsKey(categoryId);
+      final timestampKey = _getTimestampKey(categoryId);
       final postsJson = posts.map((post) => post.toJson()).toList();
-      await box.put(_postsKey, postsJson);
-      await box.put(_timestampKey, DateTime.now().millisecondsSinceEpoch);
+      await box.put(postsKey, postsJson);
+      await box.put(timestampKey, DateTime.now().millisecondsSinceEpoch);
     } catch (e) {
       // Silently fail cache write - app can continue without cache
     }
   }
 
   @override
-  Future<DateTime?> getCacheTimestamp() async {
+  Future<DateTime?> getCacheTimestamp({int? categoryId}) async {
     try {
       final box = await _openBox();
-      final timestamp = box.get(_timestampKey) as int?;
+      final timestampKey = _getTimestampKey(categoryId);
+      final timestamp = box.get(timestampKey) as int?;
       if (timestamp != null) {
         return DateTime.fromMillisecondsSinceEpoch(timestamp);
       }

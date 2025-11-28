@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/themes/app_color_system.dart';
 import '../../../../core/themes/component_tokens.dart';
 import '../../../../core/themes/design_tokens.dart';
+import '../../../../core/widgets/news_card_skeleton.dart';
 import '../../../wordpress/presentation/bloc/wordpress_bloc.dart';
 import '../../../wordpress/domain/entities/post_entity.dart';
 
@@ -16,21 +17,25 @@ class LatestNewsCarousel extends StatefulWidget {
 }
 
 class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
-  final PageController _pageController = PageController();
+  late PageController _pageController;
   int _currentPage = 0;
+  List<PostEntity>? _previousPosts;
 
   @override
   void initState() {
     super.initState();
+    _pageController = PageController();
     final state = context.read<WordPressBloc>().state;
     state.maybeWhen(
-      loaded: (_) {},
-      loading: () {},
+      loaded: (posts, postsByCategory, selectedCategoryId, hasMoreByCategory, isLoadingByCategory, errorsByCategory) {
+        _previousPosts = posts;
+      },
+      loading: (categoryId) {},
       orElse: () {
         context.read<WordPressBloc>().add(const GetPostsEvent());
       },
     );
-    
+
     _pageController.addListener(() {
       final next = _pageController.page?.round() ?? 0;
       if (_currentPage != next) {
@@ -69,21 +74,64 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                 ),
               ),
               SizedBox(height: 4),
-              Text(
-                'home_news_subtitle'.tr(),
-                style: TextStyle(
-                  fontSize: DesignTokens.fontSizeCaption,
-                  color: colors.textSecondary,
-                ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: Text(
+                      'home_news_subtitle'.tr(),
+                      style: TextStyle(
+                        fontSize: DesignTokens.fontSizeCaption,
+                        color: colors.textSecondary,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  SizedBox(width: DesignTokens.spacingS),
+                  _buildNewsProviderChip(context),
+                ],
               ),
             ],
           ),
         ),
         SizedBox(height: DesignTokens.spacingM),
         BlocBuilder<WordPressBloc, WordPressState>(
+          buildWhen: (previous, current) {
+            final previousPosts = previous.maybeWhen(
+              loaded: (posts, postsByCategory, selectedCategoryId, hasMoreByCategory, isLoadingByCategory, errorsByCategory) => posts,
+              orElse: () => <PostEntity>[],
+            );
+            final currentPosts = current.maybeWhen(
+              loaded: (posts, postsByCategory, selectedCategoryId, hasMoreByCategory, isLoadingByCategory, errorsByCategory) => posts,
+              orElse: () => <PostEntity>[],
+            );
+            
+            if (previousPosts.isEmpty && currentPosts.isEmpty) {
+              return previous != current;
+            }
+            
+            if (previousPosts.length != currentPosts.length) {
+              return true;
+            }
+            
+            final previousIds = previousPosts.map((p) => p.id).toSet();
+            final currentIds = currentPosts.map((p) => p.id).toSet();
+            
+            if (previousIds.length != currentIds.length) {
+              return true;
+            }
+            
+            for (final id in previousIds) {
+              if (!currentIds.contains(id)) {
+                return true;
+              }
+            }
+            
+            return previous != current;
+          },
           builder: (context, state) {
             return state.maybeWhen(
-              loaded: (posts) {
+              loaded: (posts, postsByCategory, selectedCategoryId, hasMoreByCategory, isLoadingByCategory, errorsByCategory) {
                 if (posts.isEmpty) {
                   return SizedBox(
                     height: 160,
@@ -96,15 +144,34 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                   );
                 }
 
+                final carouselPosts = posts.length > 5 ? posts.take(5).toList() : posts;
+                final hasPostsChanged = _previousPosts == null ||
+                    _previousPosts!.length != carouselPosts.length ||
+                    !_arePostsEqual(_previousPosts!, carouselPosts);
+                
+                if (hasPostsChanged && _pageController.hasClients) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (_pageController.hasClients && _currentPage > 0) {
+                      final maxPage = (carouselPosts.length - 1).clamp(0, 4);
+                      final targetPage = _currentPage.clamp(0, maxPage);
+                      if (targetPage != _currentPage) {
+                        _pageController.jumpToPage(targetPage);
+                      }
+                    }
+                  });
+                }
+                
+                _previousPosts = carouselPosts;
+
                 return Column(
                   children: [
                     SizedBox(
                       height: 160,
                       child: PageView.builder(
                         controller: _pageController,
-                        itemCount: posts.length > 5 ? 5 : posts.length,
+                        itemCount: carouselPosts.length,
                         itemBuilder: (context, index) {
-                          final post = posts[index];
+                          final post = carouselPosts[index];
                           return _buildNewsCard(context, post, index, tokens);
                         },
                       ),
@@ -113,7 +180,7 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: List.generate(
-                        posts.length > 5 ? 5 : posts.length,
+                        carouselPosts.length,
                         (index) => Container(
                           width: 6,
                           height: 6,
@@ -130,11 +197,56 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                   ],
                 );
               },
-              loading: () => SizedBox(
-                height: 160,
-                child: Center(child: CircularProgressIndicator()),
-              ),
-              error: (failure) => SizedBox(
+              loading: (categoryId) {
+                if (_previousPosts != null && _previousPosts!.isNotEmpty) {
+                  final carouselPosts = _previousPosts!.length > 5
+                      ? _previousPosts!.take(5).toList()
+                      : _previousPosts!;
+                  return Column(
+                    children: [
+                      SizedBox(
+                        height: 160,
+                        child: PageView.builder(
+                          controller: _pageController,
+                          itemCount: carouselPosts.length,
+                          itemBuilder: (context, index) {
+                            final post = carouselPosts[index];
+                            return _buildNewsCard(context, post, index, tokens);
+                          },
+                        ),
+                      ),
+                      SizedBox(height: DesignTokens.spacingS),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(
+                          carouselPosts.length,
+                          (index) => Container(
+                            width: 6,
+                            height: 6,
+                            margin: EdgeInsets.symmetric(horizontal: 2),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: _currentPage == index
+                                  ? colors.gradientStart
+                                  : colors.borderSubtle,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                }
+                return SizedBox(
+                  height: 160,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: 5,
+                    itemBuilder: (context, index) =>
+                        NewsCardSkeleton(index: index, totalItems: 5),
+                  ),
+                );
+              },
+              error: (failure, categoryId) => SizedBox(
                 height: 160,
                 child: Center(
                   child: Text(
@@ -145,7 +257,12 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
               ),
               orElse: () => SizedBox(
                 height: 160,
-                child: Center(child: CircularProgressIndicator()),
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: 5,
+                  itemBuilder: (context, index) =>
+                      NewsCardSkeleton(index: index, totalItems: 5),
+                ),
               ),
             );
           },
@@ -160,8 +277,9 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
     int index,
     NewsCardTokens tokens,
   ) {
-    final hasImage = post.featuredImageUrl != null && post.featuredImageUrl!.isNotEmpty;
-    
+    final hasImage =
+        post.featuredImageUrl != null && post.featuredImageUrl!.isNotEmpty;
+
     return Container(
       margin: EdgeInsets.only(
         left: DesignTokens.spacingL,
@@ -175,8 +293,8 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
-      child: Stack(
-        children: [
+        child: Stack(
+          children: [
             if (hasImage)
               Positioned.fill(
                 child: CachedNetworkImage(
@@ -243,33 +361,34 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
             Padding(
               padding: EdgeInsets.all(DesignTokens.spacingL),
               child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-                  if (post.categoryName != null && post.categoryName!.isNotEmpty)
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: tokens.badgeBackground,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
+                children: [
+                  if (post.categoryName != null &&
+                      post.categoryName!.isNotEmpty)
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: tokens.badgeBackground,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
                         post.categoryName!,
-                  style: TextStyle(
-                    fontSize: DesignTokens.fontSizeCaption,
-                    fontWeight: FontWeight.w600,
-                    color: tokens.badgeText,
-                  ),
-                ),
-              ),
+                        style: TextStyle(
+                          fontSize: DesignTokens.fontSizeCaption,
+                          fontWeight: FontWeight.w600,
+                          color: tokens.badgeText,
+                        ),
+                      ),
+                    ),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                  post.title,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
+                        post.title,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
                           color: Colors.white,
                           shadows: [
                             Shadow(
@@ -278,23 +397,23 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                               color: Colors.black.withValues(alpha: 0.5),
                             ),
                           ],
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                       if (post.date != null) ...[
-              SizedBox(height: DesignTokens.spacingS),
-              Text(
+                        SizedBox(height: DesignTokens.spacingS),
+                        Text(
                           _formatDate(post.date!, context),
-                style: TextStyle(
-                  fontSize: DesignTokens.fontSizeCaption,
+                          style: TextStyle(
+                            fontSize: DesignTokens.fontSizeCaption,
                             color: Colors.white.withValues(alpha: 0.9),
                             shadows: [
                               Shadow(
                                 offset: Offset(0, 1),
                                 blurRadius: 2,
                                 color: Colors.black.withValues(alpha: 0.5),
-              ),
+                              ),
                             ],
                           ),
                         ),
@@ -302,12 +421,20 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                     ],
                   ),
                 ],
+              ),
             ),
-          ),
-        ],
+          ],
         ),
       ),
     );
+  }
+
+  bool _arePostsEqual(List<PostEntity> list1, List<PostEntity> list2) {
+    if (list1.length != list2.length) return false;
+    for (int i = 0; i < list1.length; i++) {
+      if (list1[i].id != list2[i].id) return false;
+    }
+    return true;
   }
 
   String _formatDate(DateTime date, BuildContext context) {
@@ -317,7 +444,9 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
     if (difference.inMinutes < 1) {
       return 'news_just_now'.tr();
     } else if (difference.inMinutes < 60) {
-      return 'news_minutes_ago'.tr(namedArgs: {'minutes': '${difference.inMinutes}'});
+      return 'news_minutes_ago'.tr(
+        namedArgs: {'minutes': '${difference.inMinutes}'},
+      );
     } else if (difference.inHours < 24) {
       return 'news_hours_ago'.tr(namedArgs: {'hours': '${difference.inHours}'});
     } else if (difference.inDays < 7) {
@@ -330,5 +459,28 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
         return '${date.month}/${date.day}/${date.year}';
       }
     }
+  }
+
+  Widget _buildNewsProviderChip(BuildContext context) {
+    final colors = context.appColors;
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: DesignTokens.spacingXs,
+        vertical: DesignTokens.spacingXs / 3,
+      ),
+      decoration: BoxDecoration(
+        color: colors.navBackground.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colors.borderSubtle),
+      ),
+      child: Text(
+        'tujuhcahaya.com',
+        style: TextStyle(
+          fontSize: DesignTokens.fontSizeCaption,
+          fontWeight: FontWeight.w400,
+          color: colors.textPrimary,
+        ),
+      ),
+    );
   }
 }

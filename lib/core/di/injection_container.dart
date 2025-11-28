@@ -63,6 +63,7 @@ import '../../features/home/presentation/bloc/home_bloc.dart';
 
 // Categories feature imports
 import '../../features/categories/data/datasources/category_remote_datasource.dart';
+import '../../features/categories/data/datasources/category_local_data_source.dart';
 import '../../features/categories/data/datasources/config_remote_datasource.dart';
 import '../../features/categories/data/repositories/category_repository_impl.dart';
 import '../../features/categories/domain/repositories/category_repository.dart';
@@ -255,7 +256,7 @@ void _initHome() {
   getIt.registerLazySingleton(
     () => WatchHomeNowPlaying(getIt()),
   );
-  getIt.registerFactory(
+  getIt.registerLazySingleton(
     () => HomeBloc(
       watchHomeNowPlaying: getIt(),
       categoryRepository: getIt(),
@@ -272,10 +273,15 @@ void _initCategories() {
     () => ConfigRemoteDataSourceImpl(apiClient: getIt()),
   );
 
+  getIt.registerLazySingleton<CategoryLocalDataSource>(
+    () => CategoryLocalDataSourceImpl(),
+  );
+
   getIt.registerLazySingleton<CategoryRepository>(
     () => CategoryRepositoryImpl(
       categoryRemoteDataSource: getIt(),
       configRemoteDataSource: getIt(),
+      categoryLocalDataSource: getIt(),
     ),
   );
 }

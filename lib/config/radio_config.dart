@@ -117,6 +117,9 @@ class RadioConfig {
   static const String logoAssetPath = 'assets/images/radio_logo.png';
   static const String? logoNetworkUrl = null;
 
+  /// Sticky player logo path (acts as radio station identity)
+  static const String stickyLogoPath = 'assets/images/fallback_artwork.jpg';
+
   /// Request/Feedback WebView configuration
   static const String requestWebViewTitle = 'Request Lagu';
   static const String requestWebViewUrl = 'https://www.upradio.id/request/';

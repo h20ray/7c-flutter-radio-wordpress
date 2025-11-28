@@ -121,8 +121,8 @@ class HomeHeaderTokens {
   final Color tileIcon;
 }
 
-class PromoChipTokens {
-  PromoChipTokens._({
+class NewsFilterChipTokens {
+  NewsFilterChipTokens._({
     required this.selectedBackground,
     required this.unselectedBackground,
     required this.selectedLabel,
@@ -132,10 +132,10 @@ class PromoChipTokens {
     required this.cardShadow,
   });
 
-  factory PromoChipTokens.of(BuildContext context) {
+  factory NewsFilterChipTokens.of(BuildContext context) {
     final colors = context.appColors;
     final shadows = AppShadowTokens.of(context);
-    return PromoChipTokens._(
+    return NewsFilterChipTokens._(
       selectedBackground: colors.advanced.primaryFixedDim,
       unselectedBackground: colors.cardBackground,
       selectedLabel: colors.advanced.onPrimaryFixed,

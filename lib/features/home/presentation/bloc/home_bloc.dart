@@ -8,7 +8,6 @@ import '../../../../config/radio_config.dart';
 import '../../domain/entities/now_playing_entity.dart';
 import '../../domain/usecases/watch_home_now_playing.dart';
 import '../../../../core/error/failures.dart';
-import '../../../../core/utils/debug_logger.dart';
 import '../../../categories/domain/repositories/category_repository.dart';
 import '../../../categories/domain/entities/category_entity.dart';
 
@@ -215,12 +214,20 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     LoadCategoriesEvent event,
     Emitter<HomeState> emit,
   ) async {
+    state.maybeWhen(
+      loaded: (selectedTabIndex, selectedCategory, nowPlaying, nowPlayingError, availableCategories, filterChipCategories, selectedCategoryId) {
+        if (availableCategories.isNotEmpty && filterChipCategories.isNotEmpty) {
+          return;
+        }
+      },
+      orElse: () {},
+    );
+
     final availableCategoriesResult = await categoryRepository.getAvailableCategories();
     final filterChipCategoriesResult = await categoryRepository.getFilterChipCategories();
 
     availableCategoriesResult.fold(
       (failure) {
-        DebugLogger.log('Failed to load available categories: ${failure.message}', tag: 'HomeBloc');
         state.maybeWhen(
           loaded: (selectedTabIndex, selectedCategory, nowPlaying, nowPlayingError, availableCategories, filterChipCategories, selectedCategoryId) {
             emit(
@@ -249,10 +256,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         );
       },
       (availableCategories) {
-        DebugLogger.log('Loaded ${availableCategories.length} available categories', tag: 'HomeBloc');
         filterChipCategoriesResult.fold(
           (failure) {
-            DebugLogger.log('Failed to load filter chip categories: ${failure.message}', tag: 'HomeBloc');
             state.maybeWhen(
               loaded: (selectedTabIndex, selectedCategory, nowPlaying, nowPlayingError, availableCategoriesParam, filterChipCategories, selectedCategoryId) {
                 emit(
@@ -281,7 +286,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
             );
           },
           (filterChipCategories) {
-            DebugLogger.log('Loaded ${filterChipCategories.length} filter chip categories', tag: 'HomeBloc');
             state.maybeWhen(
               loaded: (selectedTabIndex, selectedCategory, nowPlaying, nowPlayingError, availableCategoriesParam, filterChipCategoriesParam, selectedCategoryId) {
                 emit(

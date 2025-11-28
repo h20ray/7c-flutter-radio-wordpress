@@ -6,55 +6,120 @@ import '../../domain/entities/category_entity.dart';
 import '../../domain/repositories/category_repository.dart';
 import '../datasources/category_remote_datasource.dart';
 import '../datasources/config_remote_datasource.dart';
+import '../datasources/category_local_data_source.dart';
 
 class CategoryRepositoryImpl implements CategoryRepository {
   final CategoryRemoteDataSource categoryRemoteDataSource;
   final ConfigRemoteDataSource configRemoteDataSource;
+  final CategoryLocalDataSource categoryLocalDataSource;
 
   CategoryRepositoryImpl({
     required this.categoryRemoteDataSource,
     required this.configRemoteDataSource,
+    required this.categoryLocalDataSource,
   });
 
   @override
   Future<Either<Failure, List<CategoryEntity>>> getAvailableCategories() async {
+    final cachedCategories = await categoryLocalDataSource.getCachedCategories();
+    final cachedBlockedIds = await categoryLocalDataSource.getCachedBlockedCategories();
+    
+    if (cachedCategories != null && cachedCategories.isNotEmpty && cachedBlockedIds != null) {
+      _fetchAndUpdateAvailableCategoriesInBackground();
+      final availableCategories = cachedCategories
+          .where((category) => !cachedBlockedIds.contains(category.id))
+          .toList();
+      return Right(availableCategories);
+    }
+
     try {
-      DebugLogger.log('Fetching all categories from remote', tag: 'CategoryRepository');
       final allCategories = await categoryRemoteDataSource.getCategories();
-      DebugLogger.log('Fetched ${allCategories.length} categories from API', tag: 'CategoryRepository');
-      
       final blockedCategoryIds = await configRemoteDataSource.getBlockedCategories();
-      DebugLogger.log('Blocked category IDs: $blockedCategoryIds', tag: 'CategoryRepository');
+      
+      await categoryLocalDataSource.cacheCategories(allCategories);
+      await categoryLocalDataSource.cacheBlockedCategories(blockedCategoryIds);
       
       final availableCategories = allCategories
           .where((category) => !blockedCategoryIds.contains(category.id))
           .toList();
       
-      DebugLogger.log('Available categories after filtering: ${availableCategories.length}', tag: 'CategoryRepository');
       return Right(availableCategories);
     } on ServerException catch (e) {
-      DebugLogger.log('ServerException in getAvailableCategories: ${e.message}', tag: 'CategoryRepository');
+      if (cachedCategories != null && cachedCategories.isNotEmpty && cachedBlockedIds != null) {
+        final availableCategories = cachedCategories
+            .where((category) => !cachedBlockedIds.contains(category.id))
+            .toList();
+        return Right(availableCategories);
+      }
       return Left(ServerFailure(e.message));
     } on NetworkException catch (e) {
-      DebugLogger.log('NetworkException in getAvailableCategories: ${e.message}', tag: 'CategoryRepository');
+      if (cachedCategories != null && cachedCategories.isNotEmpty && cachedBlockedIds != null) {
+        final availableCategories = cachedCategories
+            .where((category) => !cachedBlockedIds.contains(category.id))
+            .toList();
+        return Right(availableCategories);
+      }
       return Left(NetworkFailure(e.message));
     } on TimeoutException catch (e) {
-      DebugLogger.log('TimeoutException in getAvailableCategories: ${e.message}', tag: 'CategoryRepository');
+      if (cachedCategories != null && cachedCategories.isNotEmpty && cachedBlockedIds != null) {
+        final availableCategories = cachedCategories
+            .where((category) => !cachedBlockedIds.contains(category.id))
+            .toList();
+        return Right(availableCategories);
+      }
       return Left(TimeoutFailure(e.message));
     } catch (e) {
-      DebugLogger.log('Unknown error in getAvailableCategories: ${e.toString()}', tag: 'CategoryRepository');
+      if (cachedCategories != null && cachedCategories.isNotEmpty && cachedBlockedIds != null) {
+        final availableCategories = cachedCategories
+            .where((category) => !cachedBlockedIds.contains(category.id))
+            .toList();
+        return Right(availableCategories);
+      }
       return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  void _fetchAndUpdateAvailableCategoriesInBackground() async {
+    try {
+      final allCategories = await categoryRemoteDataSource.getCategories();
+      final blockedCategoryIds = await configRemoteDataSource.getBlockedCategories();
+      await categoryLocalDataSource.cacheCategories(allCategories);
+      await categoryLocalDataSource.cacheBlockedCategories(blockedCategoryIds);
+    } catch (e, stackTrace) {
+      DebugLogger.logError(
+        'Background refresh for available categories failed',
+        error: e,
+        stackTrace: stackTrace,
+        tag: 'CategoryRepository',
+      );
     }
   }
 
   @override
   Future<Either<Failure, List<CategoryEntity>>> getFilterChipCategories() async {
+    final cachedCategories = await categoryLocalDataSource.getCachedCategories();
+    final cachedHomeTopTabIds = await categoryLocalDataSource.getCachedHomeTopTabCategories();
+    final cachedBlockedIds = await categoryLocalDataSource.getCachedBlockedCategories();
+    
+    if (cachedCategories != null && cachedCategories.isNotEmpty && 
+        cachedHomeTopTabIds != null && cachedBlockedIds != null) {
+      _fetchAndUpdateFilterChipCategoriesInBackground();
+      final filterChipCategories = cachedCategories
+          .where((category) => 
+              cachedHomeTopTabIds.contains(category.id) &&
+              !cachedBlockedIds.contains(category.id))
+          .toList();
+      return Right(filterChipCategories);
+    }
+
     try {
-      DebugLogger.log('Fetching filter chip categories', tag: 'CategoryRepository');
       final allCategories = await categoryRemoteDataSource.getCategories();
       final homeTopTabCategoryIds = await configRemoteDataSource.getHomeTopTabCategories();
-      DebugLogger.log('Home top tab category IDs: $homeTopTabCategoryIds', tag: 'CategoryRepository');
       final blockedCategoryIds = await configRemoteDataSource.getBlockedCategories();
+      
+      await categoryLocalDataSource.cacheCategories(allCategories);
+      await categoryLocalDataSource.cacheHomeTopTabCategories(homeTopTabCategoryIds);
+      await categoryLocalDataSource.cacheBlockedCategories(blockedCategoryIds);
       
       final filterChipCategories = allCategories
           .where((category) => 
@@ -62,23 +127,69 @@ class CategoryRepositoryImpl implements CategoryRepository {
               !blockedCategoryIds.contains(category.id))
           .toList();
       
-      DebugLogger.log('Filter chip categories after filtering: ${filterChipCategories.length}', tag: 'CategoryRepository');
-      if (filterChipCategories.isEmpty && homeTopTabCategoryIds.isNotEmpty) {
-        DebugLogger.log('WARNING: No filter chip categories found but homeTopTabCategoryIds is not empty. Available category IDs: ${allCategories.map((c) => c.id).toList()}', tag: 'CategoryRepository');
-      }
       return Right(filterChipCategories);
     } on ServerException catch (e) {
-      DebugLogger.log('ServerException in getFilterChipCategories: ${e.message}', tag: 'CategoryRepository');
+      if (cachedCategories != null && cachedCategories.isNotEmpty && 
+          cachedHomeTopTabIds != null && cachedBlockedIds != null) {
+        final filterChipCategories = cachedCategories
+            .where((category) => 
+                cachedHomeTopTabIds.contains(category.id) &&
+                !cachedBlockedIds.contains(category.id))
+            .toList();
+        return Right(filterChipCategories);
+      }
       return Left(ServerFailure(e.message));
     } on NetworkException catch (e) {
-      DebugLogger.log('NetworkException in getFilterChipCategories: ${e.message}', tag: 'CategoryRepository');
+      if (cachedCategories != null && cachedCategories.isNotEmpty && 
+          cachedHomeTopTabIds != null && cachedBlockedIds != null) {
+        final filterChipCategories = cachedCategories
+            .where((category) => 
+                cachedHomeTopTabIds.contains(category.id) &&
+                !cachedBlockedIds.contains(category.id))
+            .toList();
+        return Right(filterChipCategories);
+      }
       return Left(NetworkFailure(e.message));
     } on TimeoutException catch (e) {
-      DebugLogger.log('TimeoutException in getFilterChipCategories: ${e.message}', tag: 'CategoryRepository');
+      if (cachedCategories != null && cachedCategories.isNotEmpty && 
+          cachedHomeTopTabIds != null && cachedBlockedIds != null) {
+        final filterChipCategories = cachedCategories
+            .where((category) => 
+                cachedHomeTopTabIds.contains(category.id) &&
+                !cachedBlockedIds.contains(category.id))
+            .toList();
+        return Right(filterChipCategories);
+      }
       return Left(TimeoutFailure(e.message));
     } catch (e) {
-      DebugLogger.log('Unknown error in getFilterChipCategories: ${e.toString()}', tag: 'CategoryRepository');
+      if (cachedCategories != null && cachedCategories.isNotEmpty && 
+          cachedHomeTopTabIds != null && cachedBlockedIds != null) {
+        final filterChipCategories = cachedCategories
+            .where((category) => 
+                cachedHomeTopTabIds.contains(category.id) &&
+                !cachedBlockedIds.contains(category.id))
+            .toList();
+        return Right(filterChipCategories);
+      }
       return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  void _fetchAndUpdateFilterChipCategoriesInBackground() async {
+    try {
+      final allCategories = await categoryRemoteDataSource.getCategories();
+      final homeTopTabCategoryIds = await configRemoteDataSource.getHomeTopTabCategories();
+      final blockedCategoryIds = await configRemoteDataSource.getBlockedCategories();
+      await categoryLocalDataSource.cacheCategories(allCategories);
+      await categoryLocalDataSource.cacheHomeTopTabCategories(homeTopTabCategoryIds);
+      await categoryLocalDataSource.cacheBlockedCategories(blockedCategoryIds);
+    } catch (e, stackTrace) {
+      DebugLogger.logError(
+        'Background refresh for filter chip categories failed',
+        error: e,
+        stackTrace: stackTrace,
+        tag: 'CategoryRepository',
+      );
     }
   }
 }

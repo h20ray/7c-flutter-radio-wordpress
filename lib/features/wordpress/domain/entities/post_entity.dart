@@ -8,6 +8,7 @@ class PostEntity extends Equatable {
   final String? featuredImageUrl;
   final DateTime? date;
   final String? categoryName;
+  final List<int> categoryIds;
 
   const PostEntity({
     required this.id,
@@ -17,9 +18,10 @@ class PostEntity extends Equatable {
     this.featuredImageUrl,
     this.date,
     this.categoryName,
+    this.categoryIds = const [],
   });
 
   @override
-  List<Object?> get props => [id, title, content, excerpt, featuredImageUrl, date, categoryName];
+  List<Object?> get props => [id, title, content, excerpt, featuredImageUrl, date, categoryName, categoryIds];
 }
 

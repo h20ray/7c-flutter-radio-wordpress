@@ -33,9 +33,7 @@ class FloatingBottomNavBar extends StatelessWidget {
     final navOpacity = isDark ? 0.95 : 0.9;
 
     return Container(
-      margin: EdgeInsets.symmetric(
-        vertical: DesignTokens.spacingS,
-      ),
+      margin: EdgeInsets.symmetric(vertical: DesignTokens.spacingS),
       height: 64,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(24),
@@ -110,25 +108,33 @@ class FloatingBottomNavBar extends StatelessWidget {
     final isSelected = selectedItem == item;
 
     return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          onItemSelected(item);
-          _navigateToRoute(context, item);
-        },
-        child: AnimatedContainer(
-          duration: DesignTokens.animationDurationMedium,
-          curve: DesignTokens.animationCurveSpring,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                size: 24,
-                color: isSelected
-                    ? context.appColors.navIconSelected
-                    : context.appColors.navIconUnselected,
-              ),
-            ],
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(24),
+          onTap: () {
+            if (isSelected) {
+              return;
+            }
+            onItemSelected(item);
+            _navigateToRoute(context, item);
+          },
+          child: AnimatedContainer(
+            duration: DesignTokens.animationDurationMedium,
+            curve: DesignTokens.animationCurveSpring,
+            padding: EdgeInsets.symmetric(vertical: DesignTokens.spacingS),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  icon,
+                  size: 24,
+                  color: isSelected
+                      ? context.appColors.navIconSelected
+                      : context.appColors.navIconUnselected,
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -144,7 +150,7 @@ class FloatingBottomNavBar extends StatelessWidget {
         Navigator.pushReplacementNamed(context, AppRoutes.radio);
         break;
       case NavItem.news:
-        // TODO: Add news route
+        Navigator.pushReplacementNamed(context, AppRoutes.news);
         break;
       case NavItem.shoutbox:
         Navigator.pushNamed(context, AppRoutes.shoutbox);

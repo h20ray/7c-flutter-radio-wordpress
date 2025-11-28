@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../../core/routes/app_routes.dart';
 import '../bloc/radio_bloc.dart';
 import '../widgets/radio_hero_section.dart';
 import '../widgets/radio_now_playing_card.dart';
@@ -16,23 +17,30 @@ class RadioPageView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      bottomNavigationBar: const RadioPlayerControls(),
-      body: BlocBuilder<RadioBloc, RadioState>(
-        buildWhen: (previous, current) => previous != current,
-        builder: (context, state) {
-          return state.maybeWhen(
-            loading: () => const RadioLoadingState(),
-            error: (failure) => RadioErrorState(failure: failure),
-            loaded: (radioEntity) {
-              if (!radioEntity.enabled) {
-                return _buildDisabledState();
-              }
-              return const _RadioHeroLayout();
-            },
-            orElse: () => const RadioLoadingState(),
-          );
-        },
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, dynamic result) async {
+        if (didPop) return;
+        Navigator.pushReplacementNamed(context, AppRoutes.home);
+      },
+      child: Scaffold(
+        bottomNavigationBar: const RadioPlayerControls(),
+        body: BlocBuilder<RadioBloc, RadioState>(
+          buildWhen: (previous, current) => previous != current,
+          builder: (context, state) {
+            return state.maybeWhen(
+              loading: () => const RadioLoadingState(),
+              error: (failure) => RadioErrorState(failure: failure),
+              loaded: (radioEntity) {
+                if (!radioEntity.enabled) {
+                  return _buildDisabledState();
+                }
+                return const _RadioHeroLayout();
+              },
+              orElse: () => const RadioLoadingState(),
+            );
+          },
+        ),
       ),
     );
   }

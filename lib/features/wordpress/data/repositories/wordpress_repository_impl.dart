@@ -16,17 +16,34 @@ class WordPressRepositoryImpl implements WordPressRepository {
   });
 
   @override
-  Future<Either<Failure, List<PostEntity>>> getPosts() async {
-    final cachedPosts = await localDataSource.getCachedPosts();
-    
+  Future<List<PostEntity>?> getCachedPosts({int? categoryId}) async {
+    final cachedPosts = await localDataSource.getCachedPosts(categoryId: categoryId);
     if (cachedPosts != null && cachedPosts.isNotEmpty) {
-      _fetchAndUpdateCacheInBackground();
+      return cachedPosts;
+    }
+    return null;
+  }
+
+  @override
+  Future<DateTime?> getCacheTimestamp({int? categoryId}) async {
+    return localDataSource.getCacheTimestamp(categoryId: categoryId);
+  }
+
+  @override
+  Future<Either<Failure, List<PostEntity>>> getPosts({
+    bool forceRefresh = false,
+    int? categoryId,
+  }) async {
+    final cachedPosts = await localDataSource.getCachedPosts(categoryId: categoryId);
+
+    if (!forceRefresh && cachedPosts != null && cachedPosts.isNotEmpty) {
+      _fetchAndUpdateCacheInBackground(categoryId: categoryId);
       return Right(cachedPosts);
     }
 
     try {
-      final posts = await remoteDataSource.getPosts();
-      await localDataSource.cachePosts(posts);
+      final posts = await remoteDataSource.getPosts(categoryId: categoryId);
+      await localDataSource.cachePosts(posts, categoryId: categoryId);
       return Right(posts);
     } on ServerException catch (e) {
       if (cachedPosts != null && cachedPosts.isNotEmpty) {
@@ -51,13 +68,12 @@ class WordPressRepositoryImpl implements WordPressRepository {
     }
   }
 
-  void _fetchAndUpdateCacheInBackground() async {
+  void _fetchAndUpdateCacheInBackground({int? categoryId}) async {
     try {
-      final posts = await remoteDataSource.getPosts();
-      await localDataSource.cachePosts(posts);
+      final posts = await remoteDataSource.getPosts(categoryId: categoryId);
+      await localDataSource.cachePosts(posts, categoryId: categoryId);
     } catch (e) {
       // Silently fail background cache update - cached data already returned
     }
   }
 }
-

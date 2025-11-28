@@ -30,6 +30,7 @@ class PostModel extends PostEntity {
     super.featuredImageUrl,
     super.date,
     super.categoryName,
+    super.categoryIds,
   });
 
   factory PostModel.fromJson(Map<String, dynamic> json) {
@@ -85,6 +86,15 @@ class PostModel extends PostEntity {
     }
     excerpt = _decodeHtmlEntities(excerpt);
 
+    List<int> categoryIds = [];
+    if (json['categories'] != null && json['categories'] is List) {
+      final categories = json['categories'] as List<dynamic>;
+      categoryIds = categories
+          .map((e) => e is int ? e : (e is String ? int.tryParse(e) : null))
+          .whereType<int>()
+          .toList();
+    }
+
     String? categoryName;
     if (json['categoryName'] != null) {
       categoryName = json['categoryName'] as String?;
@@ -118,6 +128,7 @@ class PostModel extends PostEntity {
       featuredImageUrl: featuredImageUrl,
       date: date,
       categoryName: categoryName,
+      categoryIds: categoryIds,
     );
   }
 
@@ -130,6 +141,7 @@ class PostModel extends PostEntity {
       'featuredImageUrl': featuredImageUrl,
       'date': date?.toIso8601String(),
       'categoryName': categoryName,
+      'categories': categoryIds,
     };
   }
 }

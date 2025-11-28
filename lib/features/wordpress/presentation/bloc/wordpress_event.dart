@@ -1,7 +1,11 @@
 part of 'wordpress_bloc.dart';
 
 @freezed
-class WordPressEvent with _$WordPressEvent {
-  const factory WordPressEvent.getPosts() = GetPostsEvent;
+abstract class WordPressEvent with _$WordPressEvent {
+  const WordPressEvent._();
+  const factory WordPressEvent.getPosts({
+    @Default(false) bool forceRefresh,
+    int? categoryId,
+  }) = GetPostsEvent;
 }
 
