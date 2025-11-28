@@ -11,15 +11,40 @@ class GetPosts {
   Future<Either<Failure, List<PostEntity>>> call({
     bool forceRefresh = false,
     int? categoryId,
+    int page = 1,
+    String? search,
+    bool useNewsPageLimit = false,
   }) async {
-    return repository.getPosts(forceRefresh: forceRefresh, categoryId: categoryId);
+    return repository.getPosts(
+      forceRefresh: forceRefresh,
+      categoryId: categoryId,
+      page: page,
+      search: search,
+      useNewsPageLimit: useNewsPageLimit,
+    );
   }
 
-  Future<List<PostEntity>?> getCachedPosts({int? categoryId}) async {
-    return repository.getCachedPosts(categoryId: categoryId);
+  Future<List<PostEntity>?> getCachedPosts({
+    int? categoryId,
+    int page = 1,
+    String? search,
+  }) async {
+    return repository.getCachedPosts(
+      categoryId: categoryId,
+      page: page,
+      search: search,
+    );
   }
 
-  Future<DateTime?> getCacheTimestamp({int? categoryId}) async {
-    return repository.getCacheTimestamp(categoryId: categoryId);
+  Future<DateTime?> getCacheTimestamp({
+    int? categoryId,
+    int page = 1,
+    String? search,
+  }) async {
+    return repository.getCacheTimestamp(
+      categoryId: categoryId,
+      page: page,
+      search: search,
+    );
   }
 }

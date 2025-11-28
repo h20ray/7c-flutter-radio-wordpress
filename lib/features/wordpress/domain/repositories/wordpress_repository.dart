@@ -6,7 +6,18 @@ abstract class WordPressRepository {
   Future<Either<Failure, List<PostEntity>>> getPosts({
     bool forceRefresh = false,
     int? categoryId,
+    int page = 1,
+    String? search,
+    bool useNewsPageLimit = false,
   });
-  Future<List<PostEntity>?> getCachedPosts({int? categoryId});
-  Future<DateTime?> getCacheTimestamp({int? categoryId});
+  Future<List<PostEntity>?> getCachedPosts({
+    int? categoryId,
+    int page = 1,
+    String? search,
+  });
+  Future<DateTime?> getCacheTimestamp({
+    int? categoryId,
+    int page = 1,
+    String? search,
+  });
 }

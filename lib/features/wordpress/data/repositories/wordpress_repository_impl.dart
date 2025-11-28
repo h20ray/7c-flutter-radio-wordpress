@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import '../../../../config/news_config.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/error/failures.dart';
 import '../../domain/entities/post_entity.dart';
@@ -16,8 +17,16 @@ class WordPressRepositoryImpl implements WordPressRepository {
   });
 
   @override
-  Future<List<PostEntity>?> getCachedPosts({int? categoryId}) async {
-    final cachedPosts = await localDataSource.getCachedPosts(categoryId: categoryId);
+  Future<List<PostEntity>?> getCachedPosts({
+    int? categoryId,
+    int page = 1,
+    String? search,
+  }) async {
+    final cachedPosts = await localDataSource.getCachedPosts(
+      categoryId: categoryId,
+      page: page,
+      search: search,
+    );
     if (cachedPosts != null && cachedPosts.isNotEmpty) {
       return cachedPosts;
     }
@@ -25,25 +34,65 @@ class WordPressRepositoryImpl implements WordPressRepository {
   }
 
   @override
-  Future<DateTime?> getCacheTimestamp({int? categoryId}) async {
-    return localDataSource.getCacheTimestamp(categoryId: categoryId);
+  Future<DateTime?> getCacheTimestamp({
+    int? categoryId,
+    int page = 1,
+    String? search,
+  }) async {
+    return localDataSource.getCacheTimestamp(
+      categoryId: categoryId,
+      page: page,
+      search: search,
+    );
   }
 
   @override
   Future<Either<Failure, List<PostEntity>>> getPosts({
     bool forceRefresh = false,
     int? categoryId,
+    int page = 1,
+    String? search,
+    bool useNewsPageLimit = false,
   }) async {
-    final cachedPosts = await localDataSource.getCachedPosts(categoryId: categoryId);
+    final cachedPosts = await localDataSource.getCachedPosts(
+      categoryId: categoryId,
+      page: page,
+      search: search,
+    );
 
     if (!forceRefresh && cachedPosts != null && cachedPosts.isNotEmpty) {
-      _fetchAndUpdateCacheInBackground(categoryId: categoryId);
+      _fetchAndUpdateCacheInBackground(
+        categoryId: categoryId,
+        page: page,
+        search: search,
+        useNewsPageLimit: useNewsPageLimit,
+      );
       return Right(cachedPosts);
     }
 
     try {
-      final posts = await remoteDataSource.getPosts(categoryId: categoryId);
-      await localDataSource.cachePosts(posts, categoryId: categoryId);
+      final perPage = search != null && search.isNotEmpty
+          ? NewsConfig.newsPageListLimit
+          : (useNewsPageLimit || page > 1
+              ? NewsConfig.newsPageListLimit
+              : NewsConfig.homeNewsListLimit);
+      
+      final posts = await remoteDataSource.getPosts(
+        categoryId: categoryId,
+        page: page,
+        perPage: perPage,
+        search: search,
+      );
+      
+      if (page == 1 || search != null) {
+        await localDataSource.cachePosts(
+          posts,
+          categoryId: categoryId,
+          page: page,
+          search: search,
+        );
+      }
+      
       return Right(posts);
     } on ServerException catch (e) {
       if (cachedPosts != null && cachedPosts.isNotEmpty) {
@@ -68,10 +117,34 @@ class WordPressRepositoryImpl implements WordPressRepository {
     }
   }
 
-  void _fetchAndUpdateCacheInBackground({int? categoryId}) async {
+  void _fetchAndUpdateCacheInBackground({
+    int? categoryId,
+    int page = 1,
+    String? search,
+    bool useNewsPageLimit = false,
+  }) async {
     try {
-      final posts = await remoteDataSource.getPosts(categoryId: categoryId);
-      await localDataSource.cachePosts(posts, categoryId: categoryId);
+      final perPage = search != null && search.isNotEmpty
+          ? NewsConfig.newsPageListLimit
+          : (useNewsPageLimit || page > 1
+              ? NewsConfig.newsPageListLimit
+              : NewsConfig.homeNewsListLimit);
+      
+      final posts = await remoteDataSource.getPosts(
+        categoryId: categoryId,
+        page: page,
+        perPage: perPage,
+        search: search,
+      );
+      
+      if (page == 1 || search != null) {
+        await localDataSource.cachePosts(
+          posts,
+          categoryId: categoryId,
+          page: page,
+          search: search,
+        );
+      }
     } catch (e) {
       // Silently fail background cache update - cached data already returned
     }

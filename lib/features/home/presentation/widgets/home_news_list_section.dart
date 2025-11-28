@@ -123,6 +123,13 @@ class HomeNewsListSection extends StatelessWidget {
                     hasMoreByCategory,
                     isLoadingByCategory,
                     errorsByCategory,
+                    currentPageByCategory,
+                    searchResults,
+                    searchQuery,
+                    searchPage,
+                    hasMoreSearchResults,
+                    isLoadingSearch,
+                    searchError,
                   ) {
                     final categoryId = data.selectedCategoryId;
                     final categoryPosts = categoryId != null

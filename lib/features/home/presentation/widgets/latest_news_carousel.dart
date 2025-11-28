@@ -27,7 +27,7 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
     _pageController = PageController();
     final state = context.read<WordPressBloc>().state;
     state.maybeWhen(
-      loaded: (posts, postsByCategory, selectedCategoryId, hasMoreByCategory, isLoadingByCategory, errorsByCategory) {
+      loaded: (posts, postsByCategory, selectedCategoryId, hasMoreByCategory, isLoadingByCategory, errorsByCategory, currentPageByCategory, searchResults, searchQuery, searchPage, hasMoreSearchResults, isLoadingSearch, searchError) {
         _previousPosts = postsByCategory[null] ?? posts;
       },
       loading: (categoryId) {},
@@ -106,11 +106,11 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
         BlocBuilder<WordPressBloc, WordPressState>(
           buildWhen: (previous, current) {
             final previousPosts = previous.maybeWhen(
-              loaded: (posts, postsByCategory, _, _, _, _) => postsByCategory[null] ?? posts,
+              loaded: (posts, postsByCategory, _, _, _, _, _, _, _, _, _, _, _) => postsByCategory[null] ?? posts,
               orElse: () => const <PostEntity>[],
             );
             final currentPosts = current.maybeWhen(
-              loaded: (posts, postsByCategory, _, _, _, _) => postsByCategory[null] ?? posts,
+              loaded: (posts, postsByCategory, _, _, _, _, _, _, _, _, _, _, _) => postsByCategory[null] ?? posts,
               orElse: () => const <PostEntity>[],
             );
 
@@ -119,7 +119,7 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
           },
           builder: (context, state) {
             return state.maybeWhen(
-              loaded: (posts, postsByCategory, selectedCategoryId, hasMoreByCategory, isLoadingByCategory, errorsByCategory) {
+              loaded: (posts, postsByCategory, selectedCategoryId, hasMoreByCategory, isLoadingByCategory, errorsByCategory, currentPageByCategory, searchResults, searchQuery, searchPage, hasMoreSearchResults, isLoadingSearch, searchError) {
                 final allPosts = postsByCategory[null] ?? posts;
                 final cardSize = _computeCardSize(context);
                 

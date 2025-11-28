@@ -14,62 +14,30 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$WordPressEvent {
 
- bool get forceRefresh; int? get categoryId;
-/// Create a copy of WordPressEvent
-/// with the given fields replaced by the non-null parameter values.
-@JsonKey(includeFromJson: false, includeToJson: false)
-@pragma('vm:prefer-inline')
-$WordPressEventCopyWith<WordPressEvent> get copyWith => _$WordPressEventCopyWithImpl<WordPressEvent>(this as WordPressEvent, _$identity);
+
 
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is WordPressEvent&&(identical(other.forceRefresh, forceRefresh) || other.forceRefresh == forceRefresh)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is WordPressEvent);
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,forceRefresh,categoryId);
+int get hashCode => runtimeType.hashCode;
 
 @override
 String toString() {
-  return 'WordPressEvent(forceRefresh: $forceRefresh, categoryId: $categoryId)';
+  return 'WordPressEvent()';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class $WordPressEventCopyWith<$Res>  {
-  factory $WordPressEventCopyWith(WordPressEvent value, $Res Function(WordPressEvent) _then) = _$WordPressEventCopyWithImpl;
-@useResult
-$Res call({
- bool forceRefresh, int? categoryId
-});
-
-
-
-
-}
-/// @nodoc
-class _$WordPressEventCopyWithImpl<$Res>
-    implements $WordPressEventCopyWith<$Res> {
-  _$WordPressEventCopyWithImpl(this._self, this._then);
-
-  final WordPressEvent _self;
-  final $Res Function(WordPressEvent) _then;
-
-/// Create a copy of WordPressEvent
-/// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? forceRefresh = null,Object? categoryId = freezed,}) {
-  return _then(_self.copyWith(
-forceRefresh: null == forceRefresh ? _self.forceRefresh : forceRefresh // ignore: cast_nullable_to_non_nullable
-as bool,categoryId: freezed == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
-as int?,
-  ));
-}
-
+class $WordPressEventCopyWith<$Res>  {
+$WordPressEventCopyWith(WordPressEvent _, $Res Function(WordPressEvent) __);
 }
 
 
@@ -87,11 +55,15 @@ extension WordPressEventPatterns on WordPressEvent {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( GetPostsEvent value)?  getPosts,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( GetPostsEvent value)?  getPosts,TResult Function( LoadMorePostsEvent value)?  loadMorePosts,TResult Function( SearchPostsEvent value)?  searchPosts,TResult Function( LoadMoreSearchResultsEvent value)?  loadMoreSearchResults,TResult Function( ClearSearchEvent value)?  clearSearch,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case GetPostsEvent() when getPosts != null:
-return getPosts(_that);case _:
+return getPosts(_that);case LoadMorePostsEvent() when loadMorePosts != null:
+return loadMorePosts(_that);case SearchPostsEvent() when searchPosts != null:
+return searchPosts(_that);case LoadMoreSearchResultsEvent() when loadMoreSearchResults != null:
+return loadMoreSearchResults(_that);case ClearSearchEvent() when clearSearch != null:
+return clearSearch(_that);case _:
   return orElse();
 
 }
@@ -109,11 +81,15 @@ return getPosts(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( GetPostsEvent value)  getPosts,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( GetPostsEvent value)  getPosts,required TResult Function( LoadMorePostsEvent value)  loadMorePosts,required TResult Function( SearchPostsEvent value)  searchPosts,required TResult Function( LoadMoreSearchResultsEvent value)  loadMoreSearchResults,required TResult Function( ClearSearchEvent value)  clearSearch,}){
 final _that = this;
 switch (_that) {
 case GetPostsEvent():
-return getPosts(_that);case _:
+return getPosts(_that);case LoadMorePostsEvent():
+return loadMorePosts(_that);case SearchPostsEvent():
+return searchPosts(_that);case LoadMoreSearchResultsEvent():
+return loadMoreSearchResults(_that);case ClearSearchEvent():
+return clearSearch(_that);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -130,11 +106,15 @@ return getPosts(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( GetPostsEvent value)?  getPosts,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( GetPostsEvent value)?  getPosts,TResult? Function( LoadMorePostsEvent value)?  loadMorePosts,TResult? Function( SearchPostsEvent value)?  searchPosts,TResult? Function( LoadMoreSearchResultsEvent value)?  loadMoreSearchResults,TResult? Function( ClearSearchEvent value)?  clearSearch,}){
 final _that = this;
 switch (_that) {
 case GetPostsEvent() when getPosts != null:
-return getPosts(_that);case _:
+return getPosts(_that);case LoadMorePostsEvent() when loadMorePosts != null:
+return loadMorePosts(_that);case SearchPostsEvent() when searchPosts != null:
+return searchPosts(_that);case LoadMoreSearchResultsEvent() when loadMoreSearchResults != null:
+return loadMoreSearchResults(_that);case ClearSearchEvent() when clearSearch != null:
+return clearSearch(_that);case _:
   return null;
 
 }
@@ -151,10 +131,14 @@ return getPosts(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( bool forceRefresh,  int? categoryId)?  getPosts,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( bool forceRefresh,  int? categoryId,  bool useNewsPageLimit)?  getPosts,TResult Function( int? categoryId)?  loadMorePosts,TResult Function( String query)?  searchPosts,TResult Function()?  loadMoreSearchResults,TResult Function()?  clearSearch,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case GetPostsEvent() when getPosts != null:
-return getPosts(_that.forceRefresh,_that.categoryId);case _:
+return getPosts(_that.forceRefresh,_that.categoryId,_that.useNewsPageLimit);case LoadMorePostsEvent() when loadMorePosts != null:
+return loadMorePosts(_that.categoryId);case SearchPostsEvent() when searchPosts != null:
+return searchPosts(_that.query);case LoadMoreSearchResultsEvent() when loadMoreSearchResults != null:
+return loadMoreSearchResults();case ClearSearchEvent() when clearSearch != null:
+return clearSearch();case _:
   return orElse();
 
 }
@@ -172,10 +156,14 @@ return getPosts(_that.forceRefresh,_that.categoryId);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( bool forceRefresh,  int? categoryId)  getPosts,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( bool forceRefresh,  int? categoryId,  bool useNewsPageLimit)  getPosts,required TResult Function( int? categoryId)  loadMorePosts,required TResult Function( String query)  searchPosts,required TResult Function()  loadMoreSearchResults,required TResult Function()  clearSearch,}) {final _that = this;
 switch (_that) {
 case GetPostsEvent():
-return getPosts(_that.forceRefresh,_that.categoryId);case _:
+return getPosts(_that.forceRefresh,_that.categoryId,_that.useNewsPageLimit);case LoadMorePostsEvent():
+return loadMorePosts(_that.categoryId);case SearchPostsEvent():
+return searchPosts(_that.query);case LoadMoreSearchResultsEvent():
+return loadMoreSearchResults();case ClearSearchEvent():
+return clearSearch();case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -192,10 +180,14 @@ return getPosts(_that.forceRefresh,_that.categoryId);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( bool forceRefresh,  int? categoryId)?  getPosts,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( bool forceRefresh,  int? categoryId,  bool useNewsPageLimit)?  getPosts,TResult? Function( int? categoryId)?  loadMorePosts,TResult? Function( String query)?  searchPosts,TResult? Function()?  loadMoreSearchResults,TResult? Function()?  clearSearch,}) {final _that = this;
 switch (_that) {
 case GetPostsEvent() when getPosts != null:
-return getPosts(_that.forceRefresh,_that.categoryId);case _:
+return getPosts(_that.forceRefresh,_that.categoryId,_that.useNewsPageLimit);case LoadMorePostsEvent() when loadMorePosts != null:
+return loadMorePosts(_that.categoryId);case SearchPostsEvent() when searchPosts != null:
+return searchPosts(_that.query);case LoadMoreSearchResultsEvent() when loadMoreSearchResults != null:
+return loadMoreSearchResults();case ClearSearchEvent() when clearSearch != null:
+return clearSearch();case _:
   return null;
 
 }
@@ -207,15 +199,16 @@ return getPosts(_that.forceRefresh,_that.categoryId);case _:
 
 
 class GetPostsEvent extends WordPressEvent {
-  const GetPostsEvent({this.forceRefresh = false, this.categoryId}): super._();
+  const GetPostsEvent({this.forceRefresh = false, this.categoryId, this.useNewsPageLimit = false}): super._();
   
 
-@override@JsonKey() final  bool forceRefresh;
-@override final  int? categoryId;
+@JsonKey() final  bool forceRefresh;
+ final  int? categoryId;
+@JsonKey() final  bool useNewsPageLimit;
 
 /// Create a copy of WordPressEvent
 /// with the given fields replaced by the non-null parameter values.
-@override @JsonKey(includeFromJson: false, includeToJson: false)
+@JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
 $GetPostsEventCopyWith<GetPostsEvent> get copyWith => _$GetPostsEventCopyWithImpl<GetPostsEvent>(this, _$identity);
 
@@ -223,16 +216,16 @@ $GetPostsEventCopyWith<GetPostsEvent> get copyWith => _$GetPostsEventCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is GetPostsEvent&&(identical(other.forceRefresh, forceRefresh) || other.forceRefresh == forceRefresh)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GetPostsEvent&&(identical(other.forceRefresh, forceRefresh) || other.forceRefresh == forceRefresh)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.useNewsPageLimit, useNewsPageLimit) || other.useNewsPageLimit == useNewsPageLimit));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,forceRefresh,categoryId);
+int get hashCode => Object.hash(runtimeType,forceRefresh,categoryId,useNewsPageLimit);
 
 @override
 String toString() {
-  return 'WordPressEvent.getPosts(forceRefresh: $forceRefresh, categoryId: $categoryId)';
+  return 'WordPressEvent.getPosts(forceRefresh: $forceRefresh, categoryId: $categoryId, useNewsPageLimit: $useNewsPageLimit)';
 }
 
 
@@ -241,9 +234,9 @@ String toString() {
 /// @nodoc
 abstract mixin class $GetPostsEventCopyWith<$Res> implements $WordPressEventCopyWith<$Res> {
   factory $GetPostsEventCopyWith(GetPostsEvent value, $Res Function(GetPostsEvent) _then) = _$GetPostsEventCopyWithImpl;
-@override @useResult
+@useResult
 $Res call({
- bool forceRefresh, int? categoryId
+ bool forceRefresh, int? categoryId, bool useNewsPageLimit
 });
 
 
@@ -260,16 +253,213 @@ class _$GetPostsEventCopyWithImpl<$Res>
 
 /// Create a copy of WordPressEvent
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? forceRefresh = null,Object? categoryId = freezed,}) {
+@pragma('vm:prefer-inline') $Res call({Object? forceRefresh = null,Object? categoryId = freezed,Object? useNewsPageLimit = null,}) {
   return _then(GetPostsEvent(
 forceRefresh: null == forceRefresh ? _self.forceRefresh : forceRefresh // ignore: cast_nullable_to_non_nullable
 as bool,categoryId: freezed == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
+as int?,useNewsPageLimit: null == useNewsPageLimit ? _self.useNewsPageLimit : useNewsPageLimit // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class LoadMorePostsEvent extends WordPressEvent {
+  const LoadMorePostsEvent({this.categoryId}): super._();
+  
+
+ final  int? categoryId;
+
+/// Create a copy of WordPressEvent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$LoadMorePostsEventCopyWith<LoadMorePostsEvent> get copyWith => _$LoadMorePostsEventCopyWithImpl<LoadMorePostsEvent>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LoadMorePostsEvent&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,categoryId);
+
+@override
+String toString() {
+  return 'WordPressEvent.loadMorePosts(categoryId: $categoryId)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $LoadMorePostsEventCopyWith<$Res> implements $WordPressEventCopyWith<$Res> {
+  factory $LoadMorePostsEventCopyWith(LoadMorePostsEvent value, $Res Function(LoadMorePostsEvent) _then) = _$LoadMorePostsEventCopyWithImpl;
+@useResult
+$Res call({
+ int? categoryId
+});
+
+
+
+
+}
+/// @nodoc
+class _$LoadMorePostsEventCopyWithImpl<$Res>
+    implements $LoadMorePostsEventCopyWith<$Res> {
+  _$LoadMorePostsEventCopyWithImpl(this._self, this._then);
+
+  final LoadMorePostsEvent _self;
+  final $Res Function(LoadMorePostsEvent) _then;
+
+/// Create a copy of WordPressEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? categoryId = freezed,}) {
+  return _then(LoadMorePostsEvent(
+categoryId: freezed == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
 as int?,
   ));
 }
 
 
 }
+
+/// @nodoc
+
+
+class SearchPostsEvent extends WordPressEvent {
+  const SearchPostsEvent({required this.query}): super._();
+  
+
+ final  String query;
+
+/// Create a copy of WordPressEvent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SearchPostsEventCopyWith<SearchPostsEvent> get copyWith => _$SearchPostsEventCopyWithImpl<SearchPostsEvent>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SearchPostsEvent&&(identical(other.query, query) || other.query == query));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,query);
+
+@override
+String toString() {
+  return 'WordPressEvent.searchPosts(query: $query)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SearchPostsEventCopyWith<$Res> implements $WordPressEventCopyWith<$Res> {
+  factory $SearchPostsEventCopyWith(SearchPostsEvent value, $Res Function(SearchPostsEvent) _then) = _$SearchPostsEventCopyWithImpl;
+@useResult
+$Res call({
+ String query
+});
+
+
+
+
+}
+/// @nodoc
+class _$SearchPostsEventCopyWithImpl<$Res>
+    implements $SearchPostsEventCopyWith<$Res> {
+  _$SearchPostsEventCopyWithImpl(this._self, this._then);
+
+  final SearchPostsEvent _self;
+  final $Res Function(SearchPostsEvent) _then;
+
+/// Create a copy of WordPressEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? query = null,}) {
+  return _then(SearchPostsEvent(
+query: null == query ? _self.query : query // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class LoadMoreSearchResultsEvent extends WordPressEvent {
+  const LoadMoreSearchResultsEvent(): super._();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LoadMoreSearchResultsEvent);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'WordPressEvent.loadMoreSearchResults()';
+}
+
+
+}
+
+
+
+
+/// @nodoc
+
+
+class ClearSearchEvent extends WordPressEvent {
+  const ClearSearchEvent(): super._();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ClearSearchEvent);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'WordPressEvent.clearSearch()';
+}
+
+
+}
+
+
+
 
 /// @nodoc
 mixin _$WordPressState {
@@ -388,12 +578,12 @@ return error(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function( int? categoryId)?  loading,TResult Function( List<PostEntity> posts,  Map<int?, List<PostEntity>> postsByCategory,  int? selectedCategoryId,  Map<int?, bool> hasMoreByCategory,  Map<int?, bool> isLoadingByCategory,  Map<int?, Failure?> errorsByCategory)?  loaded,TResult Function( Failure failure,  int? categoryId)?  error,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function( int? categoryId)?  loading,TResult Function( List<PostEntity> posts,  Map<int?, List<PostEntity>> postsByCategory,  int? selectedCategoryId,  Map<int?, bool> hasMoreByCategory,  Map<int?, bool> isLoadingByCategory,  Map<int?, Failure?> errorsByCategory,  Map<int?, int> currentPageByCategory,  List<PostEntity>? searchResults,  String? searchQuery,  int searchPage,  bool hasMoreSearchResults,  bool isLoadingSearch,  Failure? searchError)?  loaded,TResult Function( Failure failure,  int? categoryId)?  error,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Initial() when initial != null:
 return initial();case _Loading() when loading != null:
 return loading(_that.categoryId);case _Loaded() when loaded != null:
-return loaded(_that.posts,_that.postsByCategory,_that.selectedCategoryId,_that.hasMoreByCategory,_that.isLoadingByCategory,_that.errorsByCategory);case _Error() when error != null:
+return loaded(_that.posts,_that.postsByCategory,_that.selectedCategoryId,_that.hasMoreByCategory,_that.isLoadingByCategory,_that.errorsByCategory,_that.currentPageByCategory,_that.searchResults,_that.searchQuery,_that.searchPage,_that.hasMoreSearchResults,_that.isLoadingSearch,_that.searchError);case _Error() when error != null:
 return error(_that.failure,_that.categoryId);case _:
   return orElse();
 
@@ -412,12 +602,12 @@ return error(_that.failure,_that.categoryId);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function( int? categoryId)  loading,required TResult Function( List<PostEntity> posts,  Map<int?, List<PostEntity>> postsByCategory,  int? selectedCategoryId,  Map<int?, bool> hasMoreByCategory,  Map<int?, bool> isLoadingByCategory,  Map<int?, Failure?> errorsByCategory)  loaded,required TResult Function( Failure failure,  int? categoryId)  error,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function( int? categoryId)  loading,required TResult Function( List<PostEntity> posts,  Map<int?, List<PostEntity>> postsByCategory,  int? selectedCategoryId,  Map<int?, bool> hasMoreByCategory,  Map<int?, bool> isLoadingByCategory,  Map<int?, Failure?> errorsByCategory,  Map<int?, int> currentPageByCategory,  List<PostEntity>? searchResults,  String? searchQuery,  int searchPage,  bool hasMoreSearchResults,  bool isLoadingSearch,  Failure? searchError)  loaded,required TResult Function( Failure failure,  int? categoryId)  error,}) {final _that = this;
 switch (_that) {
 case _Initial():
 return initial();case _Loading():
 return loading(_that.categoryId);case _Loaded():
-return loaded(_that.posts,_that.postsByCategory,_that.selectedCategoryId,_that.hasMoreByCategory,_that.isLoadingByCategory,_that.errorsByCategory);case _Error():
+return loaded(_that.posts,_that.postsByCategory,_that.selectedCategoryId,_that.hasMoreByCategory,_that.isLoadingByCategory,_that.errorsByCategory,_that.currentPageByCategory,_that.searchResults,_that.searchQuery,_that.searchPage,_that.hasMoreSearchResults,_that.isLoadingSearch,_that.searchError);case _Error():
 return error(_that.failure,_that.categoryId);case _:
   throw StateError('Unexpected subclass');
 
@@ -435,12 +625,12 @@ return error(_that.failure,_that.categoryId);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function( int? categoryId)?  loading,TResult? Function( List<PostEntity> posts,  Map<int?, List<PostEntity>> postsByCategory,  int? selectedCategoryId,  Map<int?, bool> hasMoreByCategory,  Map<int?, bool> isLoadingByCategory,  Map<int?, Failure?> errorsByCategory)?  loaded,TResult? Function( Failure failure,  int? categoryId)?  error,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function( int? categoryId)?  loading,TResult? Function( List<PostEntity> posts,  Map<int?, List<PostEntity>> postsByCategory,  int? selectedCategoryId,  Map<int?, bool> hasMoreByCategory,  Map<int?, bool> isLoadingByCategory,  Map<int?, Failure?> errorsByCategory,  Map<int?, int> currentPageByCategory,  List<PostEntity>? searchResults,  String? searchQuery,  int searchPage,  bool hasMoreSearchResults,  bool isLoadingSearch,  Failure? searchError)?  loaded,TResult? Function( Failure failure,  int? categoryId)?  error,}) {final _that = this;
 switch (_that) {
 case _Initial() when initial != null:
 return initial();case _Loading() when loading != null:
 return loading(_that.categoryId);case _Loaded() when loaded != null:
-return loaded(_that.posts,_that.postsByCategory,_that.selectedCategoryId,_that.hasMoreByCategory,_that.isLoadingByCategory,_that.errorsByCategory);case _Error() when error != null:
+return loaded(_that.posts,_that.postsByCategory,_that.selectedCategoryId,_that.hasMoreByCategory,_that.isLoadingByCategory,_that.errorsByCategory,_that.currentPageByCategory,_that.searchResults,_that.searchQuery,_that.searchPage,_that.hasMoreSearchResults,_that.isLoadingSearch,_that.searchError);case _Error() when error != null:
 return error(_that.failure,_that.categoryId);case _:
   return null;
 
@@ -551,7 +741,7 @@ as int?,
 
 
 class _Loaded implements WordPressState {
-  const _Loaded({required final  List<PostEntity> posts, required final  Map<int?, List<PostEntity>> postsByCategory, this.selectedCategoryId, final  Map<int?, bool> hasMoreByCategory = const {}, final  Map<int?, bool> isLoadingByCategory = const {}, final  Map<int?, Failure?> errorsByCategory = const {}}): _posts = posts,_postsByCategory = postsByCategory,_hasMoreByCategory = hasMoreByCategory,_isLoadingByCategory = isLoadingByCategory,_errorsByCategory = errorsByCategory;
+  const _Loaded({required final  List<PostEntity> posts, required final  Map<int?, List<PostEntity>> postsByCategory, this.selectedCategoryId, final  Map<int?, bool> hasMoreByCategory = const {}, final  Map<int?, bool> isLoadingByCategory = const {}, final  Map<int?, Failure?> errorsByCategory = const {}, final  Map<int?, int> currentPageByCategory = const {}, final  List<PostEntity>? searchResults, this.searchQuery, this.searchPage = 1, this.hasMoreSearchResults = false, this.isLoadingSearch = false, this.searchError}): _posts = posts,_postsByCategory = postsByCategory,_hasMoreByCategory = hasMoreByCategory,_isLoadingByCategory = isLoadingByCategory,_errorsByCategory = errorsByCategory,_currentPageByCategory = currentPageByCategory,_searchResults = searchResults;
   
 
  final  List<PostEntity> _posts;
@@ -590,6 +780,27 @@ class _Loaded implements WordPressState {
   return EqualUnmodifiableMapView(_errorsByCategory);
 }
 
+ final  Map<int?, int> _currentPageByCategory;
+@JsonKey() Map<int?, int> get currentPageByCategory {
+  if (_currentPageByCategory is EqualUnmodifiableMapView) return _currentPageByCategory;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(_currentPageByCategory);
+}
+
+ final  List<PostEntity>? _searchResults;
+ List<PostEntity>? get searchResults {
+  final value = _searchResults;
+  if (value == null) return null;
+  if (_searchResults is EqualUnmodifiableListView) return _searchResults;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(value);
+}
+
+ final  String? searchQuery;
+@JsonKey() final  int searchPage;
+@JsonKey() final  bool hasMoreSearchResults;
+@JsonKey() final  bool isLoadingSearch;
+ final  Failure? searchError;
 
 /// Create a copy of WordPressState
 /// with the given fields replaced by the non-null parameter values.
@@ -601,16 +812,16 @@ _$LoadedCopyWith<_Loaded> get copyWith => __$LoadedCopyWithImpl<_Loaded>(this, _
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Loaded&&const DeepCollectionEquality().equals(other._posts, _posts)&&const DeepCollectionEquality().equals(other._postsByCategory, _postsByCategory)&&(identical(other.selectedCategoryId, selectedCategoryId) || other.selectedCategoryId == selectedCategoryId)&&const DeepCollectionEquality().equals(other._hasMoreByCategory, _hasMoreByCategory)&&const DeepCollectionEquality().equals(other._isLoadingByCategory, _isLoadingByCategory)&&const DeepCollectionEquality().equals(other._errorsByCategory, _errorsByCategory));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Loaded&&const DeepCollectionEquality().equals(other._posts, _posts)&&const DeepCollectionEquality().equals(other._postsByCategory, _postsByCategory)&&(identical(other.selectedCategoryId, selectedCategoryId) || other.selectedCategoryId == selectedCategoryId)&&const DeepCollectionEquality().equals(other._hasMoreByCategory, _hasMoreByCategory)&&const DeepCollectionEquality().equals(other._isLoadingByCategory, _isLoadingByCategory)&&const DeepCollectionEquality().equals(other._errorsByCategory, _errorsByCategory)&&const DeepCollectionEquality().equals(other._currentPageByCategory, _currentPageByCategory)&&const DeepCollectionEquality().equals(other._searchResults, _searchResults)&&(identical(other.searchQuery, searchQuery) || other.searchQuery == searchQuery)&&(identical(other.searchPage, searchPage) || other.searchPage == searchPage)&&(identical(other.hasMoreSearchResults, hasMoreSearchResults) || other.hasMoreSearchResults == hasMoreSearchResults)&&(identical(other.isLoadingSearch, isLoadingSearch) || other.isLoadingSearch == isLoadingSearch)&&(identical(other.searchError, searchError) || other.searchError == searchError));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_posts),const DeepCollectionEquality().hash(_postsByCategory),selectedCategoryId,const DeepCollectionEquality().hash(_hasMoreByCategory),const DeepCollectionEquality().hash(_isLoadingByCategory),const DeepCollectionEquality().hash(_errorsByCategory));
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_posts),const DeepCollectionEquality().hash(_postsByCategory),selectedCategoryId,const DeepCollectionEquality().hash(_hasMoreByCategory),const DeepCollectionEquality().hash(_isLoadingByCategory),const DeepCollectionEquality().hash(_errorsByCategory),const DeepCollectionEquality().hash(_currentPageByCategory),const DeepCollectionEquality().hash(_searchResults),searchQuery,searchPage,hasMoreSearchResults,isLoadingSearch,searchError);
 
 @override
 String toString() {
-  return 'WordPressState.loaded(posts: $posts, postsByCategory: $postsByCategory, selectedCategoryId: $selectedCategoryId, hasMoreByCategory: $hasMoreByCategory, isLoadingByCategory: $isLoadingByCategory, errorsByCategory: $errorsByCategory)';
+  return 'WordPressState.loaded(posts: $posts, postsByCategory: $postsByCategory, selectedCategoryId: $selectedCategoryId, hasMoreByCategory: $hasMoreByCategory, isLoadingByCategory: $isLoadingByCategory, errorsByCategory: $errorsByCategory, currentPageByCategory: $currentPageByCategory, searchResults: $searchResults, searchQuery: $searchQuery, searchPage: $searchPage, hasMoreSearchResults: $hasMoreSearchResults, isLoadingSearch: $isLoadingSearch, searchError: $searchError)';
 }
 
 
@@ -621,7 +832,7 @@ abstract mixin class _$LoadedCopyWith<$Res> implements $WordPressStateCopyWith<$
   factory _$LoadedCopyWith(_Loaded value, $Res Function(_Loaded) _then) = __$LoadedCopyWithImpl;
 @useResult
 $Res call({
- List<PostEntity> posts, Map<int?, List<PostEntity>> postsByCategory, int? selectedCategoryId, Map<int?, bool> hasMoreByCategory, Map<int?, bool> isLoadingByCategory, Map<int?, Failure?> errorsByCategory
+ List<PostEntity> posts, Map<int?, List<PostEntity>> postsByCategory, int? selectedCategoryId, Map<int?, bool> hasMoreByCategory, Map<int?, bool> isLoadingByCategory, Map<int?, Failure?> errorsByCategory, Map<int?, int> currentPageByCategory, List<PostEntity>? searchResults, String? searchQuery, int searchPage, bool hasMoreSearchResults, bool isLoadingSearch, Failure? searchError
 });
 
 
@@ -638,7 +849,7 @@ class __$LoadedCopyWithImpl<$Res>
 
 /// Create a copy of WordPressState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? posts = null,Object? postsByCategory = null,Object? selectedCategoryId = freezed,Object? hasMoreByCategory = null,Object? isLoadingByCategory = null,Object? errorsByCategory = null,}) {
+@pragma('vm:prefer-inline') $Res call({Object? posts = null,Object? postsByCategory = null,Object? selectedCategoryId = freezed,Object? hasMoreByCategory = null,Object? isLoadingByCategory = null,Object? errorsByCategory = null,Object? currentPageByCategory = null,Object? searchResults = freezed,Object? searchQuery = freezed,Object? searchPage = null,Object? hasMoreSearchResults = null,Object? isLoadingSearch = null,Object? searchError = freezed,}) {
   return _then(_Loaded(
 posts: null == posts ? _self._posts : posts // ignore: cast_nullable_to_non_nullable
 as List<PostEntity>,postsByCategory: null == postsByCategory ? _self._postsByCategory : postsByCategory // ignore: cast_nullable_to_non_nullable
@@ -646,7 +857,14 @@ as Map<int?, List<PostEntity>>,selectedCategoryId: freezed == selectedCategoryId
 as int?,hasMoreByCategory: null == hasMoreByCategory ? _self._hasMoreByCategory : hasMoreByCategory // ignore: cast_nullable_to_non_nullable
 as Map<int?, bool>,isLoadingByCategory: null == isLoadingByCategory ? _self._isLoadingByCategory : isLoadingByCategory // ignore: cast_nullable_to_non_nullable
 as Map<int?, bool>,errorsByCategory: null == errorsByCategory ? _self._errorsByCategory : errorsByCategory // ignore: cast_nullable_to_non_nullable
-as Map<int?, Failure?>,
+as Map<int?, Failure?>,currentPageByCategory: null == currentPageByCategory ? _self._currentPageByCategory : currentPageByCategory // ignore: cast_nullable_to_non_nullable
+as Map<int?, int>,searchResults: freezed == searchResults ? _self._searchResults : searchResults // ignore: cast_nullable_to_non_nullable
+as List<PostEntity>?,searchQuery: freezed == searchQuery ? _self.searchQuery : searchQuery // ignore: cast_nullable_to_non_nullable
+as String?,searchPage: null == searchPage ? _self.searchPage : searchPage // ignore: cast_nullable_to_non_nullable
+as int,hasMoreSearchResults: null == hasMoreSearchResults ? _self.hasMoreSearchResults : hasMoreSearchResults // ignore: cast_nullable_to_non_nullable
+as bool,isLoadingSearch: null == isLoadingSearch ? _self.isLoadingSearch : isLoadingSearch // ignore: cast_nullable_to_non_nullable
+as bool,searchError: freezed == searchError ? _self.searchError : searchError // ignore: cast_nullable_to_non_nullable
+as Failure?,
   ));
 }
 
