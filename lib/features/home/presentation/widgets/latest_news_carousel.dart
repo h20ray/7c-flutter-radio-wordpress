@@ -28,7 +28,7 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
     final state = context.read<WordPressBloc>().state;
     state.maybeWhen(
       loaded: (posts, postsByCategory, selectedCategoryId, hasMoreByCategory, isLoadingByCategory, errorsByCategory) {
-        _previousPosts = posts;
+        _previousPosts = postsByCategory[null] ?? posts;
       },
       loading: (categoryId) {},
       orElse: () {
@@ -106,11 +106,11 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
         BlocBuilder<WordPressBloc, WordPressState>(
           buildWhen: (previous, current) {
             final previousPosts = previous.maybeWhen(
-              loaded: (posts, _, _, _, _, _) => posts,
+              loaded: (posts, postsByCategory, _, _, _, _) => postsByCategory[null] ?? posts,
               orElse: () => const <PostEntity>[],
             );
             final currentPosts = current.maybeWhen(
-              loaded: (posts, _, _, _, _, _) => posts,
+              loaded: (posts, postsByCategory, _, _, _, _) => postsByCategory[null] ?? posts,
               orElse: () => const <PostEntity>[],
             );
 
@@ -120,9 +120,10 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
           builder: (context, state) {
             return state.maybeWhen(
               loaded: (posts, postsByCategory, selectedCategoryId, hasMoreByCategory, isLoadingByCategory, errorsByCategory) {
+                final allPosts = postsByCategory[null] ?? posts;
                 final cardSize = _computeCardSize(context);
                 
-                if (posts.isEmpty) {
+                if (allPosts.isEmpty) {
                   return SizedBox(
                     height: cardSize.height,
                     child: Center(
@@ -134,7 +135,7 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                   );
                 }
 
-                final carouselPosts = posts.length > 5 ? posts.take(5).toList() : posts;
+                final carouselPosts = allPosts.length > 5 ? allPosts.take(5).toList() : allPosts;
                 final hasPostsChanged = _previousPosts == null ||
                     _previousPosts!.length != carouselPosts.length ||
                     !_arePostsEqual(_previousPosts!, carouselPosts);
