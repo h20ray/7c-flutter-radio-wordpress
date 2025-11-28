@@ -32,7 +32,7 @@ class AlbumArtWidget extends StatefulWidget {
     this.borderRadius,
     this.filterQuality = FilterQuality.low,
     this.fit = BoxFit.cover,
-    this.showLoadingIndicator = true,
+    this.showLoadingIndicator = false,
     this.loadingColor,
     this.transitionDuration = const Duration(milliseconds: 500),
   });
@@ -43,7 +43,7 @@ class AlbumArtWidget extends StatefulWidget {
     required double size,
     this.filterQuality = FilterQuality.high,
     this.fit = BoxFit.cover,
-    this.showLoadingIndicator = true,
+    this.showLoadingIndicator = false,
     this.loadingColor,
     this.transitionDuration = const Duration(milliseconds: 500),
   }) : width = size,
@@ -59,7 +59,7 @@ class AlbumArtWidget extends StatefulWidget {
     this.borderRadius,
     this.filterQuality = FilterQuality.low,
     this.fit = BoxFit.cover,
-    this.showLoadingIndicator = true,
+    this.showLoadingIndicator = false,
     this.loadingColor,
     this.transitionDuration = const Duration(milliseconds: 500),
   }) : shape = AlbumArtShape.roundedRect;
@@ -71,7 +71,7 @@ class AlbumArtWidget extends StatefulWidget {
     required this.height,
     this.filterQuality = FilterQuality.low,
     this.fit = BoxFit.cover,
-    this.showLoadingIndicator = true,
+    this.showLoadingIndicator = false,
     this.loadingColor,
     this.transitionDuration = const Duration(milliseconds: 500),
   }) : shape = AlbumArtShape.rectangle,
@@ -117,8 +117,8 @@ class _AlbumArtWidgetState extends State<AlbumArtWidget> {
   }
 
   Widget _buildAlbumArt(AlbumArtState albumArtState) {
-    if (albumArtState.isLoading && widget.showLoadingIndicator) {
-      return _buildLoadingState();
+    if (albumArtState.isLoading) {
+      return _buildFallbackImage();
     }
 
     if (albumArtState.hasUrl) {
@@ -126,25 +126,6 @@ class _AlbumArtWidgetState extends State<AlbumArtWidget> {
     }
 
     return _buildFallbackImage();
-  }
-
-  Widget _buildLoadingState() {
-    return Container(
-      key: const ValueKey('loading'),
-      decoration: _getShapeDecoration(),
-      child: Center(
-        child: SizedBox(
-          width: widget.width * 0.3,
-          height: widget.height * 0.3,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            valueColor: AlwaysStoppedAnimation<Color>(
-              widget.loadingColor ?? Colors.white70,
-            ),
-          ),
-        ),
-      ),
-    );
   }
 
   Widget _buildNetworkImage(String url) {
@@ -162,28 +143,7 @@ class _AlbumArtWidgetState extends State<AlbumArtWidget> {
           if (loadingProgress == null) {
             return child;
           }
-          // Show loading indicator while image loads
-          if (widget.showLoadingIndicator) {
-            return Stack(
-              fit: StackFit.expand,
-              children: [
-                _buildFallbackImage(),
-                Center(
-                  child: SizedBox(
-                    width: widget.width * 0.3,
-                    height: widget.height * 0.3,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        widget.loadingColor ?? Colors.white70,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            );
-          }
-          return child;
+          return _buildFallbackImage();
         },
         errorBuilder: (context, error, stackTrace) {
           return _buildFallbackImage();

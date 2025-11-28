@@ -274,9 +274,6 @@ class TamtamaSection extends StatelessWidget {
           color: colors.cardBackground,
           borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
         ),
-        child: Center(
-          child: CircularProgressIndicator(),
-        ),
       ),
     );
   }

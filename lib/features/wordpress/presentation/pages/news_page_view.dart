@@ -273,9 +273,6 @@ class _NewsPageViewState extends State<NewsPageView> {
                   memCacheHeight: 450,
                   placeholder: (context, url) => Container(
                     color: colors.borderSubtle,
-                    child: Center(
-                      child: CircularProgressIndicator(),
-                    ),
                   ),
                   errorWidget: (context, url, error) => Container(
                     color: colors.borderSubtle,

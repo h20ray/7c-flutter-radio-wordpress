@@ -151,7 +151,6 @@ class _RadioPlayerControlsState extends State<RadioPlayerControls> {
                   ),
                   BlocBuilder<RadioPlayerBloc, RadioPlayerState>(
                     builder: (context, state) {
-                      final colorScheme = Theme.of(context).colorScheme;
                       bool isPlaying = false;
                       bool isLoading = false;
                       state.maybeWhen(
@@ -188,21 +187,14 @@ class _RadioPlayerControlsState extends State<RadioPlayerControls> {
                                 ],
                               );
                             },
-                            child: isLoading
-                                ? SizedBox(
-                                    key: const ValueKey('center-buf'),
-                                    width: 32,
-                                    height: 32,
-                                    child: CircularProgressIndicator(
-                                      color: colorScheme.onPrimary,
-                                      strokeWidth: 3,
-                                    ),
-                                  )
-                                : Icon(
-                                    isPlaying ? LucideIcons.pause : LucideIcons.play,
-                                    key: const ValueKey('center-pp'),
-                                    size: 32,
-                                  ),
+                            child: Opacity(
+                              opacity: isLoading ? 0.5 : 1.0,
+                              child: Icon(
+                                isPlaying ? LucideIcons.pause : LucideIcons.play,
+                                key: const ValueKey('center-pp'),
+                                size: 32,
+                              ),
+                            ),
                           ),
                         ),
                       );

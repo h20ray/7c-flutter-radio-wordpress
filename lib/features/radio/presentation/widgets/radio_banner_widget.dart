@@ -68,12 +68,6 @@ class RadioBannerWidget extends StatelessWidget {
             fit: BoxFit.cover,
             placeholder: (context, url) => Container(
               color: tokens.placeholderBackground,
-              child: Center(
-                child: CircularProgressIndicator(
-                  color: tokens.progressColor,
-                  strokeWidth: 2,
-                ),
-              ),
             ),
             errorWidget: (context, url, error) => Container(
               color: tokens.placeholderBackground,

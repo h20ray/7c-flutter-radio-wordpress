@@ -140,15 +140,7 @@ class HeaderSection extends StatelessWidget {
                               builder: (context, snapshot) {
                                 if (snapshot.connectionState ==
                                     ConnectionState.waiting) {
-                                  return const Padding(
-                                    padding: EdgeInsets.all(16.0),
-                                    child: SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(
-                                          strokeWidth: 2),
-                                    ),
-                                  );
+                                  return const SizedBox.shrink();
                                 }
 
                                 if (snapshot.hasError ||

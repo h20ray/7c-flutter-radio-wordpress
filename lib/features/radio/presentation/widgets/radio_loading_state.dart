@@ -8,16 +8,9 @@ class RadioLoadingState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const CircularProgressIndicator(),
-          const SizedBox(height: 12),
-          Text(
-            'radio_initializing'.tr(),
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-        ],
+      child: Text(
+        'radio_initializing'.tr(),
+        style: Theme.of(context).textTheme.bodyMedium,
       ),
     );
   }

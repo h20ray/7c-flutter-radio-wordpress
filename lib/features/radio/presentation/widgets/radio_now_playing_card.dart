@@ -635,16 +635,10 @@ class _GlassButton extends StatelessWidget {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Center(
-                    child: isLoading
-                        ? SizedBox(
-                            width: iconSize,
-                            height: iconSize,
-                            child: CircularProgressIndicator(
-                              color: textColor,
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : Icon(icon, size: iconSize, color: textColor),
+                    child: Opacity(
+                      opacity: isLoading ? 0.5 : 1.0,
+                      child: Icon(icon, size: iconSize, color: textColor),
+                    ),
                   ),
                 ),
               ),

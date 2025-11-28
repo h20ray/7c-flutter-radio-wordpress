@@ -22,6 +22,13 @@ class PostModel extends PostEntity {
     
     return result;
   }
+
+  static String _stripHtmlTags(String text) {
+    return text
+        .replaceAll(RegExp(r'<[^>]*>'), '')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+  }
   const PostModel({
     required super.id,
     required super.title,
@@ -69,6 +76,7 @@ class PostModel extends PostEntity {
       title = json['title']?['rendered'] ?? '';
     }
     title = _decodeHtmlEntities(title);
+    title = _stripHtmlTags(title);
 
     String content;
     if (json['content'] is String) {

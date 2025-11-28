@@ -274,12 +274,6 @@ class HomeNewsListSection extends StatelessWidget {
                       fit: BoxFit.cover,
                       placeholder: (context, url) => Container(
                         color: colors.borderSubtle,
-                        child: Center(
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: colors.gradientStart,
-                          ),
-                        ),
                       ),
                       errorWidget: (context, url, error) => Icon(
                         Icons.image_not_supported,

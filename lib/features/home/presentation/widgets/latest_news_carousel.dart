@@ -337,11 +337,6 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                           colors: [tokens.gradientStart, tokens.gradientEnd],
                         ),
                       ),
-                      child: Center(
-                        child: CircularProgressIndicator(
-                          color: Colors.white.withValues(alpha: 0.5),
-                        ),
-                      ),
                     ),
                     errorWidget: (context, url, error) => Container(
                       decoration: BoxDecoration(
