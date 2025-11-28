@@ -106,11 +106,11 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
         BlocBuilder<WordPressBloc, WordPressState>(
           buildWhen: (previous, current) {
             final previousPosts = previous.maybeWhen(
-              loaded: (posts, _, __, ___, ____, _____) => posts,
+              loaded: (posts, _, _, _, _, _) => posts,
               orElse: () => const <PostEntity>[],
             );
             final currentPosts = current.maybeWhen(
-              loaded: (posts, _, __, ___, ____, _____) => posts,
+              loaded: (posts, _, _, _, _, _) => posts,
               orElse: () => const <PostEntity>[],
             );
 

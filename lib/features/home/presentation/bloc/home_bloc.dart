@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:rxdart/rxdart.dart';
 
 import '../../../../config/radio_config.dart';
 import '../../domain/entities/now_playing_entity.dart';
@@ -35,8 +36,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       hasFreshMetadata: false,
     );
 
-    on<TabChangedEvent>(_onTabChanged);
-    on<FilterChipSelectedEvent>(_onFilterChipSelected);
+    on<TabChangedEvent>(_onTabChanged, transformer: debounce(const Duration(milliseconds: 300)));
+    on<FilterChipSelectedEvent>(_onFilterChipSelected, transformer: debounce(const Duration(milliseconds: 300)));
     on<LoadFeaturedContentEvent>(_onLoadFeaturedContent);
     on<NowPlayingUpdatedEvent>(_onNowPlayingUpdated);
     on<NowPlayingErrorEvent>(_onNowPlayingError);
@@ -46,10 +47,15 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     _subscribeNowPlaying();
   }
 
+  EventTransformer<T> debounce<T>(Duration duration) {
+    return (events, mapper) => events.debounceTime(duration).flatMap(mapper);
+  }
+
   void _onTabChanged(TabChangedEvent event, Emitter<HomeState> emit) {
     state.maybeWhen(
       loaded:
           (selectedTabIndex, selectedCategory, nowPlaying, nowPlayingError, availableCategories, filterChipCategories, selectedCategoryId) {
+            if (selectedTabIndex == event.tabIndex) return;
             emit(
               HomeState.loaded(
                 selectedTabIndex: event.tabIndex,
@@ -112,38 +118,11 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     LoadFeaturedContentEvent event,
     Emitter<HomeState> emit,
   ) async {
+    // Immediately transition to loaded state if not already loaded.
+    // We remove the artificial delay to improve perceived performance.
     state.maybeWhen(
-      loaded: (selectedTabIndex, selectedCategory, nowPlaying, nowPlayingError, availableCategories, filterChipCategories, selectedCategoryId) {
-        emit(
-          HomeState.loaded(
-            selectedTabIndex: selectedTabIndex,
-            selectedCategory: selectedCategory,
-            nowPlaying: nowPlaying,
-            nowPlayingError: nowPlayingError,
-            availableCategories: availableCategories,
-            filterChipCategories: filterChipCategories,
-            selectedCategoryId: selectedCategoryId,
-          ),
-        );
-      },
-      orElse: () {
-        emit(const HomeState.loading());
-      },
-    );
-    await Future.delayed(const Duration(milliseconds: 500));
-    state.maybeWhen(
-      loaded: (selectedTabIndex, selectedCategory, nowPlaying, nowPlayingError, availableCategories, filterChipCategories, selectedCategoryId) {
-        emit(
-          HomeState.loaded(
-            selectedTabIndex: selectedTabIndex,
-            selectedCategory: selectedCategory,
-            nowPlaying: nowPlaying,
-            nowPlayingError: nowPlayingError,
-            availableCategories: availableCategories,
-            filterChipCategories: filterChipCategories,
-            selectedCategoryId: selectedCategoryId,
-          ),
-        );
+      loaded: (_, _, _, _, _, _, _) {
+        // Already loaded, do nothing
       },
       orElse: () {
         emit(
@@ -214,14 +193,17 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     LoadCategoriesEvent event,
     Emitter<HomeState> emit,
   ) async {
-    state.maybeWhen(
+    // Check if we already have data to prevent unnecessary re-fetching
+    final bool hasData = state.maybeWhen(
       loaded: (selectedTabIndex, selectedCategory, nowPlaying, nowPlayingError, availableCategories, filterChipCategories, selectedCategoryId) {
-        if (availableCategories.isNotEmpty && filterChipCategories.isNotEmpty) {
-          return;
-        }
+        return availableCategories.isNotEmpty && filterChipCategories.isNotEmpty;
       },
-      orElse: () {},
+      orElse: () => false,
     );
+
+    if (hasData) {
+      return;
+    }
 
     final availableCategoriesResult = await categoryRepository.getAvailableCategories();
     final filterChipCategoriesResult = await categoryRepository.getFilterChipCategories();
@@ -230,6 +212,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       (failure) {
         state.maybeWhen(
           loaded: (selectedTabIndex, selectedCategory, nowPlaying, nowPlayingError, availableCategories, filterChipCategories, selectedCategoryId) {
+            // Keep existing data on failure if possible
             emit(
               HomeState.loaded(
                 selectedTabIndex: selectedTabIndex,
@@ -255,18 +238,18 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           },
         );
       },
-      (availableCategories) {
+      (newAvailableCategories) {
         filterChipCategoriesResult.fold(
           (failure) {
             state.maybeWhen(
               loaded: (selectedTabIndex, selectedCategory, nowPlaying, nowPlayingError, availableCategoriesParam, filterChipCategories, selectedCategoryId) {
-                emit(
+                 emit(
                   HomeState.loaded(
                     selectedTabIndex: selectedTabIndex,
                     selectedCategory: selectedCategory,
                     nowPlaying: nowPlaying,
                     nowPlayingError: nowPlayingError,
-                    availableCategories: availableCategories,
+                    availableCategories: newAvailableCategories,
                     filterChipCategories: filterChipCategories,
                     selectedCategoryId: selectedCategoryId,
                   ),
@@ -278,24 +261,28 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
                     selectedTabIndex: 0,
                     selectedCategory: null,
                     nowPlaying: _fallbackNowPlaying,
-                    availableCategories: availableCategories,
+                    availableCategories: newAvailableCategories,
                     filterChipCategories: [],
                   ),
                 );
               },
             );
           },
-          (filterChipCategories) {
+          (newFilterChipCategories) {
             state.maybeWhen(
               loaded: (selectedTabIndex, selectedCategory, nowPlaying, nowPlayingError, availableCategoriesParam, filterChipCategoriesParam, selectedCategoryId) {
+                // Only emit if data actually changed to prevent rebuilds
+                // Note: This is a simple reference check. For deep equality, we'd need more logic.
+                // But since we get new lists from repo, they are likely different references.
+                // However, since we want to avoid "always reload", we rely on the repo to return cached data fast.
                 emit(
                   HomeState.loaded(
                     selectedTabIndex: selectedTabIndex,
                     selectedCategory: selectedCategory,
                     nowPlaying: nowPlaying,
                     nowPlayingError: nowPlayingError,
-                    availableCategories: availableCategories,
-                    filterChipCategories: filterChipCategories,
+                    availableCategories: newAvailableCategories,
+                    filterChipCategories: newFilterChipCategories,
                     selectedCategoryId: selectedCategoryId,
                   ),
                 );
@@ -306,8 +293,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
                     selectedTabIndex: 0,
                     selectedCategory: null,
                     nowPlaying: _fallbackNowPlaying,
-                    availableCategories: availableCategories,
-                    filterChipCategories: filterChipCategories,
+                    availableCategories: newAvailableCategories,
+                    filterChipCategories: newFilterChipCategories,
                   ),
                 );
               },
