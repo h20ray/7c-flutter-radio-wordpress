@@ -133,8 +133,15 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
             return state.maybeWhen(
               loaded: (posts, postsByCategory, selectedCategoryId, hasMoreByCategory, isLoadingByCategory, errorsByCategory) {
                 if (posts.isEmpty) {
+                  final screenWidth = MediaQuery.sizeOf(context).width;
+                  final horizontalPadding = DesignTokens.spacingL * 2;
+                  final cardWidth = screenWidth > horizontalPadding
+                      ? screenWidth - horizontalPadding
+                      : screenWidth;
+                  final cardHeight = cardWidth / (16 / 9);
+                  
                   return SizedBox(
-                    height: 160,
+                    height: cardHeight,
                     child: Center(
                       child: Text(
                         'No news available',
@@ -163,10 +170,17 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                 
                 _previousPosts = carouselPosts;
 
+                final screenWidth = MediaQuery.sizeOf(context).width;
+                final horizontalPadding = DesignTokens.spacingL * 2;
+                final cardWidth = screenWidth > horizontalPadding
+                    ? screenWidth - horizontalPadding
+                    : screenWidth;
+                final cardHeight = cardWidth / (16 / 9);
+
                 return Column(
                   children: [
                     SizedBox(
-                      height: 160,
+                      height: cardHeight,
                       child: PageView.builder(
                         controller: _pageController,
                         itemCount: carouselPosts.length,
@@ -202,10 +216,17 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                   final carouselPosts = _previousPosts!.length > 5
                       ? _previousPosts!.take(5).toList()
                       : _previousPosts!;
+                  final screenWidth = MediaQuery.sizeOf(context).width;
+                  final horizontalPadding = DesignTokens.spacingL * 2;
+                  final cardWidth = screenWidth > horizontalPadding
+                      ? screenWidth - horizontalPadding
+                      : screenWidth;
+                  final cardHeight = cardWidth / (16 / 9);
+                  
                   return Column(
                     children: [
                       SizedBox(
-                        height: 160,
+                        height: cardHeight,
                         child: PageView.builder(
                           controller: _pageController,
                           itemCount: carouselPosts.length,
@@ -246,24 +267,42 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                   ),
                 );
               },
-              error: (failure, categoryId) => SizedBox(
-                height: 160,
-                child: Center(
-                  child: Text(
-                    'Failed to load news',
-                    style: TextStyle(color: colors.textSecondary),
+              error: (failure, categoryId) {
+                final screenWidth = MediaQuery.sizeOf(context).width;
+                final horizontalPadding = DesignTokens.spacingL * 2;
+                final cardWidth = screenWidth > horizontalPadding
+                    ? screenWidth - horizontalPadding
+                    : screenWidth;
+                final cardHeight = cardWidth / (16 / 9);
+                
+                return SizedBox(
+                  height: cardHeight,
+                  child: Center(
+                    child: Text(
+                      'Failed to load news',
+                      style: TextStyle(color: colors.textSecondary),
+                    ),
                   ),
-                ),
-              ),
-              orElse: () => SizedBox(
-                height: 160,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: 5,
-                  itemBuilder: (context, index) =>
-                      NewsCardSkeleton(index: index, totalItems: 5),
-                ),
-              ),
+                );
+              },
+              orElse: () {
+                final screenWidth = MediaQuery.sizeOf(context).width;
+                final horizontalPadding = DesignTokens.spacingL * 2;
+                final cardWidth = screenWidth > horizontalPadding
+                    ? screenWidth - horizontalPadding
+                    : screenWidth;
+                final cardHeight = cardWidth / (16 / 9);
+                
+                return SizedBox(
+                  height: cardHeight,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: 5,
+                    itemBuilder: (context, index) =>
+                        NewsCardSkeleton(index: index, totalItems: 5),
+                  ),
+                );
+              },
             );
           },
         ),
@@ -279,8 +318,14 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
   ) {
     final hasImage =
         post.featuredImageUrl != null && post.featuredImageUrl!.isNotEmpty;
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final horizontalPadding = DesignTokens.spacingL * 2;
+    final cardWidth = screenWidth > horizontalPadding
+        ? screenWidth - horizontalPadding
+        : screenWidth;
 
     return Container(
+      width: cardWidth,
       margin: EdgeInsets.only(
         left: DesignTokens.spacingL,
         right: index == 4 ? DesignTokens.spacingL : DesignTokens.spacingM,
@@ -293,137 +338,140 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
-        child: Stack(
-          children: [
-            if (hasImage)
-              Positioned.fill(
-                child: CachedNetworkImage(
-                  imageUrl: post.featuredImageUrl!,
-                  fit: BoxFit.cover,
-                  memCacheWidth: 800,
-                  memCacheHeight: 600,
-                  placeholder: (context, url) => Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [tokens.gradientStart, tokens.gradientEnd],
+        child: AspectRatio(
+          aspectRatio: 16 / 9,
+          child: Stack(
+            children: [
+              if (hasImage)
+                Positioned.fill(
+                  child: CachedNetworkImage(
+                    imageUrl: post.featuredImageUrl!,
+                    fit: BoxFit.cover,
+                    memCacheWidth: 800,
+                    memCacheHeight: 450,
+                    placeholder: (context, url) => Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [tokens.gradientStart, tokens.gradientEnd],
+                        ),
+                      ),
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          color: Colors.white.withValues(alpha: 0.5),
+                        ),
                       ),
                     ),
-                    child: Center(
-                      child: CircularProgressIndicator(
-                        color: Colors.white.withValues(alpha: 0.5),
+                    errorWidget: (context, url, error) => Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [tokens.gradientStart, tokens.gradientEnd],
+                        ),
+                      ),
+                      child: Icon(
+                        Icons.image_not_supported,
+                        color: Colors.white.withValues(alpha: 0.3),
+                        size: 48,
                       ),
                     ),
                   ),
-                  errorWidget: (context, url, error) => Container(
+                )
+              else
+                Positioned.fill(
+                  child: Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [tokens.gradientStart, tokens.gradientEnd],
                       ),
-                    ),
-                    child: Icon(
-                      Icons.image_not_supported,
-                      color: Colors.white.withValues(alpha: 0.3),
-                      size: 48,
                     ),
                   ),
                 ),
-              )
-            else
               Positioned.fill(
                 child: Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [tokens.gradientStart, tokens.gradientEnd],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withValues(alpha: 0.7),
+                      ],
                     ),
                   ),
                 ),
               ),
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.transparent,
-                      Colors.black.withValues(alpha: 0.7),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.all(DesignTokens.spacingL),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  if (post.categoryName != null &&
-                      post.categoryName!.isNotEmpty)
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: tokens.badgeBackground,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        post.categoryName!,
-                        style: TextStyle(
-                          fontSize: DesignTokens.fontSizeCaption,
-                          fontWeight: FontWeight.w600,
-                          color: tokens.badgeText,
+              Padding(
+                padding: EdgeInsets.all(DesignTokens.spacingL),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    if (post.categoryName != null &&
+                        post.categoryName!.isNotEmpty)
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: tokens.badgeBackground,
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                      ),
-                    ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        post.title,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                          shadows: [
-                            Shadow(
-                              offset: Offset(0, 1),
-                              blurRadius: 3,
-                              color: Colors.black.withValues(alpha: 0.5),
-                            ),
-                          ],
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      if (post.date != null) ...[
-                        SizedBox(height: DesignTokens.spacingS),
-                        Text(
-                          _formatDate(post.date!, context),
+                        child: Text(
+                          post.categoryName!,
                           style: TextStyle(
                             fontSize: DesignTokens.fontSizeCaption,
-                            color: Colors.white.withValues(alpha: 0.9),
+                            fontWeight: FontWeight.w600,
+                            color: tokens.badgeText,
+                          ),
+                        ),
+                      ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          post.title,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
                             shadows: [
                               Shadow(
                                 offset: Offset(0, 1),
-                                blurRadius: 2,
+                                blurRadius: 3,
                                 color: Colors.black.withValues(alpha: 0.5),
                               ),
                             ],
                           ),
+                          maxLines: 4,
+                          overflow: TextOverflow.ellipsis,
                         ),
+                        if (post.date != null) ...[
+                          SizedBox(height: DesignTokens.spacingS),
+                          Text(
+                            _formatDate(post.date!, context),
+                            style: TextStyle(
+                              fontSize: DesignTokens.fontSizeCaption,
+                              color: Colors.white.withValues(alpha: 0.9),
+                              shadows: [
+                                Shadow(
+                                  offset: Offset(0, 1),
+                                  blurRadius: 2,
+                                  color: Colors.black.withValues(alpha: 0.5),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ],
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

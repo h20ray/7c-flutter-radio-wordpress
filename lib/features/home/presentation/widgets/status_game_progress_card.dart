@@ -24,42 +24,49 @@ class StatusGameProgressCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
 
+    final navigate = onTap ??
+        () => Navigator.of(context).pushNamed(AppRoutes.levelDetails);
+
     final child = Padding(
       padding: EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
-      child: BlocBuilder<GamificationBloc, GamificationState>(
-        builder: (context, state) {
-          return state.maybeWhen(
-            loaded: (data) => _StatusCardShell(
-              colors: colors,
-              child: _TappableStatusCardBody(data: data, onTap: onTap),
-            ),
-            error: (failure) => _StatusCardShell(
-              colors: colors,
-              child: _StatusCardError(message: failure.message),
-            ),
-            orElse: () => _StatusCardShell(
-              colors: colors,
-              child: const _StatusCardSkeleton(),
-            ),
-          );
-        },
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
+          onTap: navigate,
+          child: BlocBuilder<GamificationBloc, GamificationState>(
+            builder: (context, state) {
+              return state.maybeWhen(
+                loaded: (data) => _StatusCardShell(
+                  colors: colors,
+                  child: _StatusCardBody(
+                    data: data,
+                    onArtworkTap: navigate,
+                  ),
+                ),
+                error: (failure) => _StatusCardShell(
+                  colors: colors,
+                  child: _StatusCardError(message: failure.message),
+                ),
+                orElse: () => _StatusCardShell(
+                  colors: colors,
+                  child: const _StatusCardSkeleton(),
+                ),
+              );
+            },
+          ),
+        ),
       ),
     );
 
-    final content = GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap ??
-          () => Navigator.of(context).pushNamed(AppRoutes.levelDetails),
-      child: child,
-    );
-
     if (skipWrapper) {
-      return content;
+      return child;
     }
 
     return Transform.translate(
       offset: Offset(0, -DesignTokens.spacingXl * 1.7),
-      child: content,
+      child: child,
     );
   }
 }
@@ -82,29 +89,6 @@ class _StatusCardShell extends StatelessWidget {
         borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
       ),
       child: child,
-    );
-  }
-}
-
-class _TappableStatusCardBody extends StatelessWidget {
-  final GamificationStatusViewData data;
-  final VoidCallback? onTap;
-
-  const _TappableStatusCardBody({required this.data, this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final navigate = onTap ??
-        () {
-          Navigator.of(context).pushNamed(AppRoutes.levelDetails);
-        };
-    return InkWell(
-      onTap: navigate,
-      borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
-      child: _StatusCardBody(
-        data: data,
-        onArtworkTap: navigate,
-      ),
     );
   }
 }

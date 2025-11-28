@@ -29,6 +29,8 @@ class RadioNowPlayingCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
 
+    final navigate = onTap ?? () => Navigator.pushNamed(context, AppRoutes.radio);
+
     final child = BlocSelector<HomeBloc, HomeState, _NowPlayingViewData>(
       selector: (state) {
         return state.maybeWhen(
@@ -40,28 +42,29 @@ class RadioNowPlayingCard extends StatelessWidget {
       builder: (context, viewData) {
         return Padding(
           padding: EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
-          child: _DynamicNowPlayingCard(
-            viewData: viewData,
-            colors: colors,
-            onTap: onTap,
+          child: Material(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
+              onTap: navigate,
+              child: _DynamicNowPlayingCard(
+                viewData: viewData,
+                colors: colors,
+              ),
+            ),
           ),
         );
       },
     );
 
-    final content = GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap ?? () => Navigator.pushNamed(context, AppRoutes.radio),
-      child: child,
-    );
-
     if (skipWrapper) {
-      return content;
+      return child;
     }
 
     return Transform.translate(
       offset: Offset(0, -DesignTokens.spacingXl * 1.7),
-      child: content,
+      child: child,
     );
   }
 }
@@ -69,12 +72,10 @@ class RadioNowPlayingCard extends StatelessWidget {
 class _DynamicNowPlayingCard extends StatefulWidget {
   final _NowPlayingViewData viewData;
   final AppSemanticColors colors;
-  final VoidCallback? onTap;
 
   const _DynamicNowPlayingCard({
     required this.viewData,
     required this.colors,
-    this.onTap,
   });
 
   @override
@@ -155,45 +156,37 @@ class _DynamicNowPlayingCardState extends State<_DynamicNowPlayingCard> {
         ? textColor.withValues(alpha: 0.9)
         : widget.colors.textPrimary;
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 320),
+      curve: Curves.easeOutCubic,
+      padding: EdgeInsets.all(DesignTokens.spacingM),
+      constraints: const BoxConstraints(minHeight: 68),
+      decoration: BoxDecoration(
+        color: cardColor,
         borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
-        onTap: widget.onTap ??
-            () => Navigator.pushNamed(context, AppRoutes.radio),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 320),
-          curve: Curves.easeOutCubic,
-          padding: EdgeInsets.all(DesignTokens.spacingM),
-          constraints: const BoxConstraints(minHeight: 68),
-          decoration: BoxDecoration(
-            color: cardColor,
-            borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const _AlbumArt(size: 68),
+          SizedBox(width: DesignTokens.spacingL),
+          Expanded(
+            child: _MetadataSection(
+              title: widget.viewData.title,
+              artist: widget.viewData.artist,
+              isPlaying: widget.viewData.isPlaying,
+              titleColor: textColor,
+              subtitleColor: subtitleColor,
+              indicatorColor: indicatorColor,
+            ),
           ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              _AlbumArt(size: 68),
-              SizedBox(width: DesignTokens.spacingL),
-              Expanded(
-                child: _MetadataSection(
-                  title: widget.viewData.title,
-                  artist: widget.viewData.artist,
-                  isPlaying: widget.viewData.isPlaying,
-                  titleColor: textColor,
-                  subtitleColor: subtitleColor,
-                  indicatorColor: indicatorColor,
-                ),
-              ),
-              SizedBox(width: DesignTokens.spacingS),
-              Icon(
-                LucideIcons.chevron_right,
-                size: 20,
-                color: textColor.withValues(alpha: 0.75),
-              ),
-            ],
+          SizedBox(width: DesignTokens.spacingS),
+          Icon(
+            LucideIcons.chevron_right,
+            size: 20,
+            color: textColor.withValues(alpha: 0.75),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -284,6 +277,7 @@ class _MetadataSection extends StatelessWidget {
           child: AnimatedSwitcher(
             duration: const Duration(milliseconds: 200),
             child: SmoothMarqueeAuto(
+              key: ValueKey(normalizedTitle),
               text: normalizedTitle,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 color: titleColor,
@@ -299,6 +293,7 @@ class _MetadataSection extends StatelessWidget {
         AnimatedSwitcher(
           duration: const Duration(milliseconds: 200),
           child: SmoothMarqueeAuto(
+            key: ValueKey(normalizedArtist),
             text: normalizedArtist,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: subtitleColor,
@@ -365,10 +360,19 @@ class _LiveIndicatorState extends State<_LiveIndicator>
     super.dispose();
   }
 
+  Color _createActiveIndicatorColor(Color baseColor) {
+    final brightness = ThemeData.estimateBrightnessForColor(baseColor);
+    if (brightness == Brightness.dark) {
+      return const Color(0xFF4CAF50);
+    } else {
+      return const Color(0xFF66BB6A);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final baseColor = widget.isActive
-        ? Colors.greenAccent
+        ? _createActiveIndicatorColor(widget.indicatorColor)
         : widget.indicatorColor.withValues(alpha: 0.4);
 
     return Row(
