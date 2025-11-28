@@ -52,6 +52,14 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
     super.dispose();
   }
 
+  Size _computeCardSize(BuildContext context) {
+    final width = MediaQuery.sizeOf(context).width;
+    final horizontalPadding = DesignTokens.spacingL * 2;
+    final cardWidth = width > horizontalPadding ? width - horizontalPadding : width;
+    final cardHeight = cardWidth / (16 / 9);
+    return Size(cardWidth, cardHeight);
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
@@ -98,50 +106,25 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
         BlocBuilder<WordPressBloc, WordPressState>(
           buildWhen: (previous, current) {
             final previousPosts = previous.maybeWhen(
-              loaded: (posts, postsByCategory, selectedCategoryId, hasMoreByCategory, isLoadingByCategory, errorsByCategory) => posts,
-              orElse: () => <PostEntity>[],
+              loaded: (posts, _, __, ___, ____, _____) => posts,
+              orElse: () => const <PostEntity>[],
             );
             final currentPosts = current.maybeWhen(
-              loaded: (posts, postsByCategory, selectedCategoryId, hasMoreByCategory, isLoadingByCategory, errorsByCategory) => posts,
-              orElse: () => <PostEntity>[],
+              loaded: (posts, _, __, ___, ____, _____) => posts,
+              orElse: () => const <PostEntity>[],
             );
-            
-            if (previousPosts.isEmpty && currentPosts.isEmpty) {
-              return previous != current;
-            }
-            
-            if (previousPosts.length != currentPosts.length) {
-              return true;
-            }
-            
-            final previousIds = previousPosts.map((p) => p.id).toSet();
-            final currentIds = currentPosts.map((p) => p.id).toSet();
-            
-            if (previousIds.length != currentIds.length) {
-              return true;
-            }
-            
-            for (final id in previousIds) {
-              if (!currentIds.contains(id)) {
-                return true;
-              }
-            }
-            
-            return previous != current;
+
+            return !_arePostsEqual(previousPosts, currentPosts) ||
+                previous.runtimeType != current.runtimeType;
           },
           builder: (context, state) {
             return state.maybeWhen(
               loaded: (posts, postsByCategory, selectedCategoryId, hasMoreByCategory, isLoadingByCategory, errorsByCategory) {
+                final cardSize = _computeCardSize(context);
+                
                 if (posts.isEmpty) {
-                  final screenWidth = MediaQuery.sizeOf(context).width;
-                  final horizontalPadding = DesignTokens.spacingL * 2;
-                  final cardWidth = screenWidth > horizontalPadding
-                      ? screenWidth - horizontalPadding
-                      : screenWidth;
-                  final cardHeight = cardWidth / (16 / 9);
-                  
                   return SizedBox(
-                    height: cardHeight,
+                    height: cardSize.height,
                     child: Center(
                       child: Text(
                         'No news available',
@@ -170,23 +153,23 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                 
                 _previousPosts = carouselPosts;
 
-                final screenWidth = MediaQuery.sizeOf(context).width;
-                final horizontalPadding = DesignTokens.spacingL * 2;
-                final cardWidth = screenWidth > horizontalPadding
-                    ? screenWidth - horizontalPadding
-                    : screenWidth;
-                final cardHeight = cardWidth / (16 / 9);
-
                 return Column(
                   children: [
                     SizedBox(
-                      height: cardHeight,
+                      height: cardSize.height,
                       child: PageView.builder(
                         controller: _pageController,
                         itemCount: carouselPosts.length,
                         itemBuilder: (context, index) {
                           final post = carouselPosts[index];
-                          return _buildNewsCard(context, post, index, tokens);
+                          final isLast = index == carouselPosts.length - 1;
+                          return _buildNewsCard(
+                            context,
+                            post,
+                            isLast,
+                            tokens,
+                            cardSize.width,
+                          );
                         },
                       ),
                     ),
@@ -212,27 +195,39 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                 );
               },
               loading: (categoryId) {
+                final cardSize = _computeCardSize(context);
+                
                 if (_previousPosts != null && _previousPosts!.isNotEmpty) {
                   final carouselPosts = _previousPosts!.length > 5
                       ? _previousPosts!.take(5).toList()
                       : _previousPosts!;
-                  final screenWidth = MediaQuery.sizeOf(context).width;
-                  final horizontalPadding = DesignTokens.spacingL * 2;
-                  final cardWidth = screenWidth > horizontalPadding
-                      ? screenWidth - horizontalPadding
-                      : screenWidth;
-                  final cardHeight = cardWidth / (16 / 9);
+                  
+                  final safeCurrentPage = _currentPage.clamp(0, carouselPosts.length - 1);
+                  if (safeCurrentPage != _currentPage && _pageController.hasClients) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (_pageController.hasClients) {
+                        _pageController.jumpToPage(safeCurrentPage);
+                      }
+                    });
+                  }
                   
                   return Column(
                     children: [
                       SizedBox(
-                        height: cardHeight,
+                        height: cardSize.height,
                         child: PageView.builder(
                           controller: _pageController,
                           itemCount: carouselPosts.length,
                           itemBuilder: (context, index) {
                             final post = carouselPosts[index];
-                            return _buildNewsCard(context, post, index, tokens);
+                            final isLast = index == carouselPosts.length - 1;
+                            return _buildNewsCard(
+                              context,
+                              post,
+                              isLast,
+                              tokens,
+                              cardSize.width,
+                            );
                           },
                         ),
                       ),
@@ -258,7 +253,7 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                   );
                 }
                 return SizedBox(
-                  height: 160,
+                  height: cardSize.height,
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     itemCount: 5,
@@ -268,15 +263,9 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                 );
               },
               error: (failure, categoryId) {
-                final screenWidth = MediaQuery.sizeOf(context).width;
-                final horizontalPadding = DesignTokens.spacingL * 2;
-                final cardWidth = screenWidth > horizontalPadding
-                    ? screenWidth - horizontalPadding
-                    : screenWidth;
-                final cardHeight = cardWidth / (16 / 9);
-                
+                final cardSize = _computeCardSize(context);
                 return SizedBox(
-                  height: cardHeight,
+                  height: cardSize.height,
                   child: Center(
                     child: Text(
                       'Failed to load news',
@@ -286,15 +275,9 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                 );
               },
               orElse: () {
-                final screenWidth = MediaQuery.sizeOf(context).width;
-                final horizontalPadding = DesignTokens.spacingL * 2;
-                final cardWidth = screenWidth > horizontalPadding
-                    ? screenWidth - horizontalPadding
-                    : screenWidth;
-                final cardHeight = cardWidth / (16 / 9);
-                
+                final cardSize = _computeCardSize(context);
                 return SizedBox(
-                  height: cardHeight,
+                  height: cardSize.height,
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     itemCount: 5,
@@ -313,22 +296,18 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
   Widget _buildNewsCard(
     BuildContext context,
     PostEntity post,
-    int index,
+    bool isLast,
     NewsCardTokens tokens,
+    double cardWidth,
   ) {
     final hasImage =
         post.featuredImageUrl != null && post.featuredImageUrl!.isNotEmpty;
-    final screenWidth = MediaQuery.sizeOf(context).width;
-    final horizontalPadding = DesignTokens.spacingL * 2;
-    final cardWidth = screenWidth > horizontalPadding
-        ? screenWidth - horizontalPadding
-        : screenWidth;
 
     return Container(
       width: cardWidth,
       margin: EdgeInsets.only(
         left: DesignTokens.spacingL,
-        right: index == 4 ? DesignTokens.spacingL : DesignTokens.spacingM,
+        right: isLast ? DesignTokens.spacingL : DesignTokens.spacingM,
       ),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
@@ -487,7 +466,11 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
 
   String _formatDate(DateTime date, BuildContext context) {
     final now = DateTime.now();
-    final difference = now.difference(date);
+    var difference = now.difference(date);
+    
+    if (difference.isNegative) {
+      difference = Duration.zero;
+    }
 
     if (difference.inMinutes < 1) {
       return 'news_just_now'.tr();
