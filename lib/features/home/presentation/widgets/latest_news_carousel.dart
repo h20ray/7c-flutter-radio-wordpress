@@ -128,7 +128,7 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                     height: cardSize.height,
                     child: Center(
                       child: Text(
-                        'No news available',
+                        'news_empty_no_items'.tr(),
                         style: TextStyle(color: colors.textSecondary),
                       ),
                     ),

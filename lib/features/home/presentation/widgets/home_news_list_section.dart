@@ -182,7 +182,7 @@ class HomeNewsListSection extends StatelessWidget {
                           horizontal: DesignTokens.spacingL,
                         ),
                         child: Text(
-                          'No news available',
+                          'news_empty_no_items'.tr(),
                           style: TextStyle(
                             color: context.appColors.textSecondary,
                           ),

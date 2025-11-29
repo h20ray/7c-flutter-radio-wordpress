@@ -46,6 +46,7 @@ import '../../features/wordpress/data/repositories/wordpress_repository_impl.dar
 import '../../features/wordpress/domain/repositories/wordpress_repository.dart';
 import '../../features/wordpress/domain/usecases/get_posts.dart';
 import '../../features/wordpress/presentation/bloc/wordpress_bloc.dart';
+import '../../features/wordpress/presentation/bloc/news_bloc.dart';
 
 // Home feature imports
 import '../../features/gamification/data/datasources/listening_stats_local_data_source.dart';
@@ -239,6 +240,10 @@ void _initWordPress() {
 
   getIt.registerLazySingleton(
     () => WordPressBloc(getPosts: getIt()),
+  );
+
+  getIt.registerLazySingleton(
+    () => NewsBloc(getPosts: getIt()),
   );
 }
 
