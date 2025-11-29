@@ -54,6 +54,7 @@ class HeaderSection extends StatelessWidget {
                   children: [
                     MenuAnchor(
                       style: M3XMenuStyle.menuStyle,
+                      alignmentOffset: const Offset(0, 8),
                       builder: (context, controller, child) {
                         return GestureDetector(
                           onTap: () {
