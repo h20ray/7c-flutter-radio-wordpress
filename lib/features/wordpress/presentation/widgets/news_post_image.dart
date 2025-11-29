@@ -35,27 +35,13 @@ class NewsPostImage extends StatelessWidget {
             fit: BoxFit.cover,
             memCacheWidth: 800,
             memCacheHeight: 450,
+            fadeInDuration: const Duration(milliseconds: 200),
             placeholder: (context, url) => SkeletonBox(
               width: double.infinity,
               height: double.infinity,
               color: skeletonColor,
               borderRadius: 0,
             ),
-            imageBuilder: (context, provider) {
-              return AnimatedOpacity(
-                opacity: 1,
-                duration: const Duration(milliseconds: 250),
-                curve: Curves.easeOut,
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      image: provider,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-              );
-            },
             errorWidget: (context, url, error) => Container(
               color: colors.borderSubtle,
               child: Icon(

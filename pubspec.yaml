@@ -38,6 +38,7 @@ dependencies:
   volume_regulator: ^2.4.2
 
   cached_network_image: ^3.2.0
+  flutter_cache_manager: ^3.4.1
   url_launcher: ^6.2.0
 
   material_color_utilities: ^0.13.0
