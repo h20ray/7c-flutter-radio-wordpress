@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/routes/app_routes.dart';
 import '../../../../core/widgets/app_network_image.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -251,68 +252,90 @@ class HomeNewsListSection extends StatelessWidget {
     final hasImage =
         post.featuredImageUrl != null && post.featuredImageUrl!.isNotEmpty;
 
-    return Container(
-      margin: EdgeInsets.fromLTRB(
-        DesignTokens.spacingL,
-        DesignTokens.spacingS,
-        DesignTokens.spacingL,
-        0,
-      ),
-      padding: EdgeInsets.all(DesignTokens.spacingM),
-      decoration: BoxDecoration(
-        color: colors.cardBackground,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          Navigator.pushNamed(
+            context,
+            AppRoutes.postDetail,
+            arguments: {'post': post, 'heroTag': 'home-list-post-image-${post.id}'},
+          );
+        },
         borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 72,
-            height: 72,
-            decoration: BoxDecoration(
-              color: colors.borderSubtle,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: hasImage
-                ? ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: AppNetworkImage(
-                      imageUrl: post.featuredImageUrl!,
-                      fit: BoxFit.cover,
-                      placeholder: (context, url) => Container(
-                        color: colors.borderSubtle,
-                      ),
-                      errorWidget: (context, url, error) => Icon(
-                        Icons.image_not_supported,
-                        color: colors.textSecondary,
-                      ),
-                    ),
-                  )
-                : Icon(Icons.image, color: colors.textSecondary),
+        child: Container(
+          margin: EdgeInsets.fromLTRB(
+            DesignTokens.spacingL,
+            DesignTokens.spacingS,
+            DesignTokens.spacingL,
+            0,
           ),
-          SizedBox(width: DesignTokens.spacingM),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  post.title,
-                  style: TextStyle(
-                    fontSize: DesignTokens.fontSizeCaption,
-                    fontWeight: FontWeight.w500,
-                    color: colors.textPrimary,
-                    height: 1.25,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+          padding: EdgeInsets.all(DesignTokens.spacingM),
+          decoration: BoxDecoration(
+            color: colors.cardBackground,
+            borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  color: colors.borderSubtle,
+                  borderRadius: BorderRadius.circular(16),
                 ),
-                SizedBox(height: DesignTokens.spacingS),
-                _buildInfoPills(context, post, chipTokens),
-              ],
-            ),
+                child: hasImage
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: Hero(
+                          tag: 'home-list-post-image-${post.id}',
+                          child: RepaintBoundary(
+                            child: Material(
+                              color: Colors.transparent,
+                              child: AppNetworkImage(
+                            imageUrl: post.featuredImageUrl!,
+                            fit: BoxFit.cover,
+                            fadeInDuration: Duration.zero,
+                            placeholder: (context, url) => Container(
+                              color: colors.borderSubtle,
+                            ),
+                            errorWidget: (context, url, error) => Icon(
+                              Icons.image_not_supported,
+                              color: colors.textSecondary,
+                            ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      )
+                    : Icon(Icons.image, color: colors.textSecondary),
+              ),
+              SizedBox(width: DesignTokens.spacingM),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      post.title,
+                      style: TextStyle(
+                        fontSize: DesignTokens.fontSizeCaption,
+                        fontWeight: FontWeight.w500,
+                        color: colors.textPrimary,
+                        height: 1.25,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: DesignTokens.spacingS),
+                    _buildInfoPills(context, post, chipTokens),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

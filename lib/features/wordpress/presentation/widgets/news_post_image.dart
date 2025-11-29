@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/themes/app_color_system.dart';
 import '../../../../core/themes/design_tokens.dart';
-import '../../../../core/widgets/skeleton_box.dart';
 
 class NewsPostImage extends StatelessWidget {
   final String imageUrl;
@@ -35,12 +34,9 @@ class NewsPostImage extends StatelessWidget {
             fit: BoxFit.cover,
             memCacheWidth: 800,
             memCacheHeight: 450,
-            fadeInDuration: const Duration(milliseconds: 200),
-            placeholder: (context, url) => SkeletonBox(
-              width: double.infinity,
-              height: double.infinity,
+            fadeInDuration: Duration.zero,
+            placeholder: (context, url) => Container(
               color: skeletonColor,
-              borderRadius: 0,
             ),
             errorWidget: (context, url, error) => Container(
               color: colors.borderSubtle,

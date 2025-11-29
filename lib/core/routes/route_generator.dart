@@ -11,6 +11,8 @@ import '../../features/home/presentation/pages/home_screen.dart';
 import '../../features/home/presentation/bloc/home_bloc.dart';
 import '../../features/wordpress/presentation/bloc/wordpress_bloc.dart';
 import '../../features/wordpress/presentation/pages/news_page.dart';
+import '../../features/wordpress/presentation/pages/post_detail_page.dart';
+import '../../features/wordpress/domain/entities/post_entity.dart';
 import '../../features/tamtama/presentation/bloc/tamtama_bloc.dart';
 import '../di/injection_container.dart';
 import 'app_routes.dart';
@@ -55,6 +57,23 @@ class RouteGenerator {
             child: const LevelDetailsPage(),
           );
         });
+      case AppRoutes.postDetail:
+        final args = settings.arguments;
+        if (args is Map<String, dynamic> && args['post'] is PostEntity) {
+          final post = args['post'] as PostEntity;
+          final heroTag = args['heroTag'] as String?;
+          return PostDetailPage.route(post, heroTag: heroTag);
+        } else if (args is PostEntity) {
+          return PostDetailPage.route(args);
+        }
+        return _buildPageRoute(
+          settings,
+          (_) => Scaffold(
+            body: Center(
+              child: Text('Invalid post data'),
+            ),
+          ),
+        );
       default:
         return _buildPageRoute(
           settings,

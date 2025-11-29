@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../core/routes/app_routes.dart';
 import '../../../../core/themes/app_color_system.dart';
 import '../../../../core/themes/component_tokens.dart';
 import '../../../../core/themes/design_tokens.dart';
@@ -38,43 +39,64 @@ class NewsCard extends StatelessWidget {
           ),
         ],
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (hasImage)
-              NewsPostImage(
-                imageUrl: post.featuredImageUrl!,
-                semanticLabel: post.title,
-              ),
-            Padding(
-              padding: EdgeInsets.all(DesignTokens.spacingM),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _NewsMetadataRow(
-                    post: post,
-                    compact: compact,
-                    colors: colors,
-                    chipTokens: chipTokens,
-                  ),
-                  SizedBox(height: DesignTokens.spacingS),
-                  Text(
-                    post.title,
-                    style: TextStyle(
-                      fontSize: DesignTokens.fontSizeH2,
-                      fontWeight: FontWeight.bold,
-                      color: colors.textPrimary,
-                      height: 1.3,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            Navigator.pushNamed(
+              context,
+              AppRoutes.postDetail,
+              arguments: {'post': post, 'heroTag': 'news-page-post-image-${post.id}'},
+            );
+          },
+          borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (hasImage)
+                  Hero(
+                    tag: 'news-page-post-image-${post.id}',
+                    child: RepaintBoundary(
+                      child: Material(
+                        color: Colors.transparent,
+                        child: NewsPostImage(
+                          imageUrl: post.featuredImageUrl!,
+                          semanticLabel: post.title,
+                        ),
+                      ),
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
                   ),
-                ],
-              ),
+                Padding(
+                  padding: EdgeInsets.all(DesignTokens.spacingM),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _NewsMetadataRow(
+                        post: post,
+                        compact: compact,
+                        colors: colors,
+                        chipTokens: chipTokens,
+                      ),
+                      SizedBox(height: DesignTokens.spacingS),
+                      Text(
+                        post.title,
+                        style: TextStyle(
+                          fontSize: DesignTokens.fontSizeH2,
+                          fontWeight: FontWeight.bold,
+                          color: colors.textPrimary,
+                          height: 1.3,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
