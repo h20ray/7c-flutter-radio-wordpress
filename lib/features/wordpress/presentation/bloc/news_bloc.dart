@@ -44,65 +44,65 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
         searchError,
       ) async {
         await _handleGetPostsForCategory(
-          event,
-          emit,
-          categoryId,
-          posts,
-          postsByCategory,
-          selectedCategoryId,
-          hasMoreByCategory,
-          isLoadingByCategory,
-          errorsByCategory,
-          currentPageByCategory,
-          searchResults,
-          searchQuery,
-          searchPage,
-          hasMoreSearchResults,
-          isLoadingSearch,
-          searchError,
+          event: event,
+          emit: emit,
+          categoryId: categoryId,
+          posts: posts,
+          postsByCategory: postsByCategory,
+          selectedCategoryId: selectedCategoryId,
+          hasMoreByCategory: hasMoreByCategory,
+          isLoadingByCategory: isLoadingByCategory,
+          errorsByCategory: errorsByCategory,
+          currentPageByCategory: currentPageByCategory,
+          searchResults: searchResults,
+          searchQuery: searchQuery,
+          searchPage: searchPage,
+          hasMoreSearchResults: hasMoreSearchResults,
+          isLoadingSearch: isLoadingSearch,
+          searchError: searchError,
         );
       },
       orElse: () async {
         await _handleGetPostsForCategory(
-          event,
-          emit,
-          categoryId,
-          [],
-          {},
-          null,
-          {},
-          {},
-          {},
-          {},
-          null,
-          null,
-          1,
-          false,
-          false,
-          null,
+          event: event,
+          emit: emit,
+          categoryId: categoryId,
+          posts: const [],
+          postsByCategory: const {},
+          selectedCategoryId: null,
+          hasMoreByCategory: const {},
+          isLoadingByCategory: const {},
+          errorsByCategory: const {},
+          currentPageByCategory: const {},
+          searchResults: null,
+          searchQuery: null,
+          searchPage: 1,
+          hasMoreSearchResults: false,
+          isLoadingSearch: false,
+          searchError: null,
         );
       },
     );
   }
 
-  Future<void> _handleGetPostsForCategory(
-    GetNewsPostsEvent event,
-    Emitter<NewsState> emit,
-    int? categoryId,
-    List<PostEntity> currentPosts,
-    Map<int?, List<PostEntity>> postsByCategory,
+  Future<void> _handleGetPostsForCategory({
+    required GetNewsPostsEvent event,
+    required Emitter<NewsState> emit,
+    required int? categoryId,
+    required List<PostEntity> posts,
+    required Map<int?, List<PostEntity>> postsByCategory,
     int? selectedCategoryId,
-    Map<int?, bool> hasMoreByCategory,
-    Map<int?, bool> isLoadingByCategory,
-    Map<int?, Failure?> errorsByCategory,
-    Map<int?, int> currentPageByCategory,
+    required Map<int?, bool> hasMoreByCategory,
+    required Map<int?, bool> isLoadingByCategory,
+    required Map<int?, Failure?> errorsByCategory,
+    required Map<int?, int> currentPageByCategory,
     List<PostEntity>? searchResults,
     String? searchQuery,
-    int searchPage,
-    bool hasMoreSearchResults,
-    bool isLoadingSearch,
+    required int searchPage,
+    required bool hasMoreSearchResults,
+    required bool isLoadingSearch,
     Failure? searchError,
-  ) async {
+  }) async {
     final existingPosts = postsByCategory[categoryId] ?? [];
     
     if (event.forceRefresh) {
@@ -113,8 +113,8 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
       final updatedPages = Map<int?, int>.from(currentPageByCategory);
       updatedPages[categoryId] = 1;
       
-      emit(NewsState.loaded(
-        posts: currentPosts,
+      emit(_buildLoadedState(
+        posts: posts,
         postsByCategory: postsByCategory,
         selectedCategoryId: categoryId,
         hasMoreByCategory: hasMoreByCategory,
@@ -144,7 +144,7 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
           updatedErrors2[categoryId] = null;
           updatedPages2[categoryId] = 1;
           updatedHasMore[categoryId] = fallback.length >= NewsConfig.newsPageListLimit;
-          emit(NewsState.loaded(
+          emit(_buildLoadedState(
             posts: fallback,
             postsByCategory: updatedPostsByCategory,
             selectedCategoryId: categoryId,
@@ -162,8 +162,8 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
         } else {
           updatedLoading2[categoryId] = false;
           updatedErrors2[categoryId] = failure;
-          emit(NewsState.loaded(
-            posts: existingPosts.isNotEmpty ? existingPosts : currentPosts,
+          emit(_buildLoadedState(
+            posts: existingPosts.isNotEmpty ? existingPosts : posts,
             postsByCategory: postsByCategory,
             selectedCategoryId: categoryId,
             hasMoreByCategory: hasMoreByCategory,
@@ -190,7 +190,7 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
         final updatedHasMore = Map<int?, bool>.from(hasMoreByCategory);
         updatedHasMore[categoryId] = posts.length >= NewsConfig.newsPageListLimit;
         
-        emit(NewsState.loaded(
+        emit(_buildLoadedState(
           posts: posts,
           postsByCategory: updatedPostsByCategory,
           selectedCategoryId: categoryId,
@@ -225,7 +225,7 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
       final updatedHasMore = Map<int?, bool>.from(hasMoreByCategory);
       updatedHasMore[categoryId] = existingPosts.length >= NewsConfig.newsPageListLimit;
       
-      emit(NewsState.loaded(
+      emit(_buildLoadedState(
         posts: existingPosts,
         postsByCategory: updatedPostsByCategory,
         selectedCategoryId: categoryId,
@@ -259,7 +259,7 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
       updatedHasMore[categoryId] = cachedPosts.length >= NewsConfig.newsPageListLimit;
       
       if (!shouldForceRefresh) {
-        emit(NewsState.loaded(
+        emit(_buildLoadedState(
           posts: cachedPosts,
           postsByCategory: updatedPostsByCategory,
           selectedCategoryId: categoryId,
@@ -282,7 +282,7 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
         final updatedLoading = Map<int?, bool>.from(isLoadingByCategory);
         updatedLoading[categoryId] = true;
         
-        emit(NewsState.loaded(
+        emit(_buildLoadedState(
           posts: cachedPosts,
           postsByCategory: updatedPostsByCategory,
           selectedCategoryId: categoryId,
@@ -305,7 +305,7 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
         updatedLoading2[categoryId] = false;
         final updatedErrors = Map<int?, Failure?>.from(errorsByCategory);
         updatedErrors[categoryId] = failure;
-        emit(NewsState.loaded(
+        emit(_buildLoadedState(
           posts: cachedPosts,
           postsByCategory: updatedPostsByCategory,
           selectedCategoryId: categoryId,
@@ -327,7 +327,7 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
         updatedHasMore2[categoryId] = posts.length >= NewsConfig.newsPageListLimit;
         final updatedLoading2 = Map<int?, bool>.from(isLoadingByCategory);
         updatedLoading2[categoryId] = false;
-        emit(NewsState.loaded(
+        emit(_buildLoadedState(
           posts: posts,
           postsByCategory: updatedPostsByCategory2,
           selectedCategoryId: categoryId,
@@ -351,8 +351,8 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
     final updatedErrors = Map<int?, Failure?>.from(errorsByCategory);
     updatedErrors[categoryId] = null;
     
-    emit(NewsState.loaded(
-      posts: existingPosts.isNotEmpty ? existingPosts : currentPosts,
+    emit(_buildLoadedState(
+      posts: existingPosts.isNotEmpty ? existingPosts : posts,
       postsByCategory: postsByCategory,
       selectedCategoryId: categoryId,
       hasMoreByCategory: hasMoreByCategory,
@@ -374,8 +374,8 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
         updatedLoading2[categoryId] = false;
         final updatedErrors2 = Map<int?, Failure?>.from(updatedErrors);
         updatedErrors2[categoryId] = failure;
-        emit(NewsState.loaded(
-          posts: existingPosts.isNotEmpty ? existingPosts : currentPosts,
+        emit(_buildLoadedState(
+          posts: existingPosts.isNotEmpty ? existingPosts : posts,
           postsByCategory: postsByCategory,
           selectedCategoryId: categoryId,
           hasMoreByCategory: hasMoreByCategory,
@@ -401,7 +401,7 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
         updatedPages[categoryId] = 1;
         final updatedHasMore = Map<int?, bool>.from(hasMoreByCategory);
         updatedHasMore[categoryId] = posts.length >= NewsConfig.newsPageListLimit;
-        emit(NewsState.loaded(
+        emit(_buildLoadedState(
           posts: posts,
           postsByCategory: updatedPostsByCategory,
           selectedCategoryId: categoryId,
@@ -442,6 +442,8 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
       ) async {
         final categoryId = event.categoryId ?? selectedCategoryId;
         
+
+        
         final currentPage = currentPageByCategory[categoryId] ?? 1;
         final hasMore = hasMoreByCategory[categoryId] ?? false;
         final isLoading = isLoadingByCategory[categoryId] ?? false;
@@ -453,15 +455,12 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
         final nextPage = currentPage + 1;
         final existingPosts = postsByCategory[categoryId] ?? [];
         
-        final updatedLoading = Map<int?, bool>.from(isLoadingByCategory);
-        updatedLoading[categoryId] = true;
-        
-        emit(NewsState.loaded(
+        emit(_updateCategoryLoading(
           posts: posts,
           postsByCategory: postsByCategory,
           selectedCategoryId: selectedCategoryId,
           hasMoreByCategory: hasMoreByCategory,
-          isLoadingByCategory: updatedLoading,
+          isLoadingByCategory: isLoadingByCategory,
           errorsByCategory: errorsByCategory,
           currentPageByCategory: currentPageByCategory,
           searchResults: searchResults,
@@ -470,6 +469,8 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
           hasMoreSearchResults: hasMoreSearchResults,
           isLoadingSearch: isLoadingSearch,
           searchError: searchError,
+          categoryId: categoryId,
+          isLoading: true,
         ));
         
         final cachedNextPage = await getPosts.getCachedPosts(
@@ -479,48 +480,43 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
         
         if (cachedNextPage != null && cachedNextPage.isNotEmpty) {
           final mergedPosts = [...existingPosts, ...cachedNextPage];
-          final updatedPostsByCategory = Map<int?, List<PostEntity>>.from(postsByCategory);
-          updatedPostsByCategory[categoryId] = mergedPosts;
-          final updatedPages = Map<int?, int>.from(currentPageByCategory);
-          updatedPages[categoryId] = nextPage;
-          final updatedHasMore = Map<int?, bool>.from(hasMoreByCategory);
-          updatedHasMore[categoryId] = cachedNextPage.length >= NewsConfig.newsPageListLimit;
-          final updatedLoading2 = Map<int?, bool>.from(updatedLoading);
-          updatedLoading2[categoryId] = false;
+          final updatedHasMore = cachedNextPage.length >= NewsConfig.newsPageListLimit;
           
-          emit(NewsState.loaded(
-            posts: mergedPosts,
-            postsByCategory: updatedPostsByCategory,
+          emit(_updateCategoryPosts(
+            postsByCategory: postsByCategory,
             selectedCategoryId: selectedCategoryId,
-            hasMoreByCategory: updatedHasMore,
-            isLoadingByCategory: updatedLoading2,
+            hasMoreByCategory: hasMoreByCategory,
+            isLoadingByCategory: isLoadingByCategory,
             errorsByCategory: errorsByCategory,
-            currentPageByCategory: updatedPages,
+            currentPageByCategory: currentPageByCategory,
             searchResults: searchResults,
             searchQuery: searchQuery,
             searchPage: searchPage,
             hasMoreSearchResults: hasMoreSearchResults,
             isLoadingSearch: isLoadingSearch,
             searchError: searchError,
+            categoryId: categoryId,
+            newPosts: mergedPosts,
+            page: nextPage,
+            hasMore: updatedHasMore,
+            isLoading: false,
+            error: null,
           ));
           
           _fetchAndUpdateCacheInBackground(categoryId: categoryId, page: nextPage, useNewsPageLimit: true);
+          return;
         }
         
         final result = await getPosts(categoryId: categoryId, page: nextPage, useNewsPageLimit: true);
         result.fold(
           (failure) {
-            final updatedLoading2 = Map<int?, bool>.from(updatedLoading);
-            updatedLoading2[categoryId] = false;
-            final updatedErrors = Map<int?, Failure?>.from(errorsByCategory);
-            updatedErrors[categoryId] = failure;
-            emit(NewsState.loaded(
+            emit(_updateCategoryError(
               posts: posts,
               postsByCategory: postsByCategory,
               selectedCategoryId: selectedCategoryId,
               hasMoreByCategory: hasMoreByCategory,
-              isLoadingByCategory: updatedLoading2,
-              errorsByCategory: updatedErrors,
+              isLoadingByCategory: isLoadingByCategory,
+              errorsByCategory: errorsByCategory,
               currentPageByCategory: currentPageByCategory,
               searchResults: searchResults,
               searchQuery: searchQuery,
@@ -528,35 +524,34 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
               hasMoreSearchResults: hasMoreSearchResults,
               isLoadingSearch: isLoadingSearch,
               searchError: searchError,
+              categoryId: categoryId,
+              isLoading: false,
+              error: failure,
             ));
           },
           (newPosts) {
             final mergedPosts = [...existingPosts, ...newPosts];
-            final updatedPostsByCategory = Map<int?, List<PostEntity>>.from(postsByCategory);
-            updatedPostsByCategory[categoryId] = mergedPosts;
-            final updatedPages = Map<int?, int>.from(currentPageByCategory);
-            updatedPages[categoryId] = nextPage;
-            final updatedHasMore = Map<int?, bool>.from(hasMoreByCategory);
-            updatedHasMore[categoryId] = newPosts.length >= NewsConfig.newsPageListLimit;
-            final updatedLoading2 = Map<int?, bool>.from(updatedLoading);
-            updatedLoading2[categoryId] = false;
-            final updatedErrors = Map<int?, Failure?>.from(errorsByCategory);
-            updatedErrors[categoryId] = null;
+            final updatedHasMore = newPosts.length >= NewsConfig.newsPageListLimit;
             
-            emit(NewsState.loaded(
-              posts: mergedPosts,
-              postsByCategory: updatedPostsByCategory,
+            emit(_updateCategoryPosts(
+              postsByCategory: postsByCategory,
               selectedCategoryId: selectedCategoryId,
-              hasMoreByCategory: updatedHasMore,
-              isLoadingByCategory: updatedLoading2,
-              errorsByCategory: updatedErrors,
-              currentPageByCategory: updatedPages,
+              hasMoreByCategory: hasMoreByCategory,
+              isLoadingByCategory: isLoadingByCategory,
+              errorsByCategory: errorsByCategory,
+              currentPageByCategory: currentPageByCategory,
               searchResults: searchResults,
               searchQuery: searchQuery,
               searchPage: searchPage,
               hasMoreSearchResults: hasMoreSearchResults,
               isLoadingSearch: isLoadingSearch,
               searchError: searchError,
+              categoryId: categoryId,
+              newPosts: mergedPosts,
+              page: nextPage,
+              hasMore: updatedHasMore,
+              isLoading: false,
+              error: null,
             ));
           },
         );
@@ -592,7 +587,7 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
         isLoadingSearch,
         searchError,
       ) async {
-        emit(NewsState.loaded(
+        emit(_updateSearchLoading(
           posts: posts,
           postsByCategory: postsByCategory,
           selectedCategoryId: selectedCategoryId,
@@ -604,7 +599,6 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
           searchQuery: query,
           searchPage: 1,
           hasMoreSearchResults: false,
-          isLoadingSearch: true,
           searchError: null,
         ));
         
@@ -612,7 +606,7 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
         
         if (cachedResults != null && cachedResults.isNotEmpty) {
           final updatedHasMore = cachedResults.length >= NewsConfig.newsPageListLimit;
-          emit(NewsState.loaded(
+          emit(_updateSearchResults(
             posts: posts,
             postsByCategory: postsByCategory,
             selectedCategoryId: selectedCategoryId,
@@ -624,7 +618,6 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
             searchQuery: query,
             searchPage: 1,
             hasMoreSearchResults: updatedHasMore,
-            isLoadingSearch: false,
             searchError: null,
           ));
           
@@ -634,7 +627,7 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
         final result = await getPosts(search: query, page: 1);
         result.fold(
           (failure) {
-            emit(NewsState.loaded(
+            emit(_updateSearchError(
               posts: posts,
               postsByCategory: postsByCategory,
               selectedCategoryId: selectedCategoryId,
@@ -646,13 +639,12 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
               searchQuery: query,
               searchPage: 1,
               hasMoreSearchResults: false,
-              isLoadingSearch: false,
               searchError: failure,
             ));
           },
           (results) {
             final updatedHasMore = results.length >= NewsConfig.newsPageListLimit;
-            emit(NewsState.loaded(
+            emit(_updateSearchResults(
               posts: posts,
               postsByCategory: postsByCategory,
               selectedCategoryId: selectedCategoryId,
@@ -664,7 +656,6 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
               searchQuery: query,
               searchPage: 1,
               hasMoreSearchResults: updatedHasMore,
-              isLoadingSearch: false,
               searchError: null,
             ));
           },
@@ -679,14 +670,20 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
           },
           (results) {
             final updatedHasMore = results.length >= NewsConfig.newsPageListLimit;
-            emit(NewsState.loaded(
-              posts: [],
-              postsByCategory: {},
+            emit(_buildLoadedState(
+              posts: const [],
+              postsByCategory: const {},
               selectedCategoryId: null,
+              hasMoreByCategory: const {},
+              isLoadingByCategory: const {},
+              errorsByCategory: const {},
+              currentPageByCategory: const {},
               searchResults: results,
               searchQuery: query,
               searchPage: 1,
               hasMoreSearchResults: updatedHasMore,
+              isLoadingSearch: false,
+              searchError: null,
             ));
           },
         );
@@ -720,7 +717,7 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
         final nextPage = searchPage + 1;
         final existingResults = searchResults ?? [];
         
-        emit(NewsState.loaded(
+        emit(_updateSearchLoading(
           posts: posts,
           postsByCategory: postsByCategory,
           selectedCategoryId: selectedCategoryId,
@@ -732,7 +729,6 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
           searchQuery: searchQuery,
           searchPage: searchPage,
           hasMoreSearchResults: hasMoreSearchResults,
-          isLoadingSearch: true,
           searchError: null,
         ));
         
@@ -741,7 +737,8 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
         if (cachedNextPage != null && cachedNextPage.isNotEmpty) {
           final mergedResults = [...existingResults, ...cachedNextPage];
           final updatedHasMore = cachedNextPage.length >= NewsConfig.newsPageListLimit;
-          emit(NewsState.loaded(
+          
+          emit(_updateSearchResults(
             posts: posts,
             postsByCategory: postsByCategory,
             selectedCategoryId: selectedCategoryId,
@@ -753,17 +750,17 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
             searchQuery: searchQuery,
             searchPage: nextPage,
             hasMoreSearchResults: updatedHasMore,
-            isLoadingSearch: false,
             searchError: null,
           ));
           
           _fetchAndUpdateCacheInBackground(search: searchQuery, page: nextPage);
+          return;
         }
         
         final result = await getPosts(search: searchQuery, page: nextPage);
         result.fold(
           (failure) {
-            emit(NewsState.loaded(
+            emit(_updateSearchError(
               posts: posts,
               postsByCategory: postsByCategory,
               selectedCategoryId: selectedCategoryId,
@@ -775,14 +772,14 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
               searchQuery: searchQuery,
               searchPage: searchPage,
               hasMoreSearchResults: hasMoreSearchResults,
-              isLoadingSearch: false,
               searchError: failure,
             ));
           },
           (newResults) {
             final mergedResults = [...existingResults, ...newResults];
             final updatedHasMore = newResults.length >= NewsConfig.newsPageListLimit;
-            emit(NewsState.loaded(
+            
+            emit(_updateSearchResults(
               posts: posts,
               postsByCategory: postsByCategory,
               selectedCategoryId: selectedCategoryId,
@@ -794,7 +791,6 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
               searchQuery: searchQuery,
               searchPage: nextPage,
               hasMoreSearchResults: updatedHasMore,
-              isLoadingSearch: false,
               searchError: null,
             ));
           },
@@ -824,7 +820,7 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
         isLoadingSearch,
         searchError,
       ) async {
-        emit(NewsState.loaded(
+        emit(_buildLoadedState(
           posts: posts,
           postsByCategory: postsByCategory,
           selectedCategoryId: selectedCategoryId,
@@ -862,18 +858,266 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
           // Background errors are ignored
         },
         (posts) {
-          if (!isClosed) {
-            // Successful fetch updates the cache via the repository
-          }
+          // Successful fetch updates the cache via the repository
         },
       );
     });
+  }
+
+  NewsState _updateCategoryLoading({
+    required List<PostEntity> posts,
+    required Map<int?, List<PostEntity>> postsByCategory,
+    int? selectedCategoryId,
+    required Map<int?, bool> hasMoreByCategory,
+    required Map<int?, bool> isLoadingByCategory,
+    required Map<int?, Failure?> errorsByCategory,
+    required Map<int?, int> currentPageByCategory,
+    List<PostEntity>? searchResults,
+    String? searchQuery,
+    required int searchPage,
+    required bool hasMoreSearchResults,
+    required bool isLoadingSearch,
+    Failure? searchError,
+    required int? categoryId,
+    required bool isLoading,
+  }) {
+    final updatedLoading = Map<int?, bool>.from(isLoadingByCategory);
+    updatedLoading[categoryId] = isLoading;
+    
+    return _buildLoadedState(
+      posts: posts,
+      postsByCategory: postsByCategory,
+      selectedCategoryId: selectedCategoryId,
+      hasMoreByCategory: hasMoreByCategory,
+      isLoadingByCategory: updatedLoading,
+      errorsByCategory: errorsByCategory,
+      currentPageByCategory: currentPageByCategory,
+      searchResults: searchResults,
+      searchQuery: searchQuery,
+      searchPage: searchPage,
+      hasMoreSearchResults: hasMoreSearchResults,
+      isLoadingSearch: isLoadingSearch,
+      searchError: searchError,
+    );
+  }
+
+  NewsState _updateCategoryPosts({
+    required Map<int?, List<PostEntity>> postsByCategory,
+    int? selectedCategoryId,
+    required Map<int?, bool> hasMoreByCategory,
+    required Map<int?, bool> isLoadingByCategory,
+    required Map<int?, Failure?> errorsByCategory,
+    required Map<int?, int> currentPageByCategory,
+    List<PostEntity>? searchResults,
+    String? searchQuery,
+    required int searchPage,
+    required bool hasMoreSearchResults,
+    required bool isLoadingSearch,
+    Failure? searchError,
+    required int? categoryId,
+    required List<PostEntity> newPosts,
+    required int page,
+    required bool hasMore,
+    required bool isLoading,
+    Failure? error,
+  }) {
+    final updatedPostsByCategory = Map<int?, List<PostEntity>>.from(postsByCategory);
+    updatedPostsByCategory[categoryId] = newPosts;
+    final updatedPages = Map<int?, int>.from(currentPageByCategory);
+    updatedPages[categoryId] = page;
+    final updatedHasMore = Map<int?, bool>.from(hasMoreByCategory);
+    updatedHasMore[categoryId] = hasMore;
+    final updatedLoading = Map<int?, bool>.from(isLoadingByCategory);
+    updatedLoading[categoryId] = isLoading;
+    final updatedErrors = Map<int?, Failure?>.from(errorsByCategory);
+    updatedErrors[categoryId] = error;
+    
+    return _buildLoadedState(
+      posts: newPosts,
+      postsByCategory: updatedPostsByCategory,
+      selectedCategoryId: selectedCategoryId,
+      hasMoreByCategory: updatedHasMore,
+      isLoadingByCategory: updatedLoading,
+      errorsByCategory: updatedErrors,
+      currentPageByCategory: updatedPages,
+      searchResults: searchResults,
+      searchQuery: searchQuery,
+      searchPage: searchPage,
+      hasMoreSearchResults: hasMoreSearchResults,
+      isLoadingSearch: isLoadingSearch,
+      searchError: searchError,
+    );
+  }
+
+  NewsState _updateCategoryError({
+    required List<PostEntity> posts,
+    required Map<int?, List<PostEntity>> postsByCategory,
+    int? selectedCategoryId,
+    required Map<int?, bool> hasMoreByCategory,
+    required Map<int?, bool> isLoadingByCategory,
+    required Map<int?, Failure?> errorsByCategory,
+    required Map<int?, int> currentPageByCategory,
+    List<PostEntity>? searchResults,
+    String? searchQuery,
+    required int searchPage,
+    required bool hasMoreSearchResults,
+    required bool isLoadingSearch,
+    Failure? searchError,
+    required int? categoryId,
+    required bool isLoading,
+    required Failure? error,
+  }) {
+    final updatedLoading = Map<int?, bool>.from(isLoadingByCategory);
+    updatedLoading[categoryId] = isLoading;
+    final updatedErrors = Map<int?, Failure?>.from(errorsByCategory);
+    updatedErrors[categoryId] = error;
+    
+    return _buildLoadedState(
+      posts: posts,
+      postsByCategory: postsByCategory,
+      selectedCategoryId: selectedCategoryId,
+      hasMoreByCategory: hasMoreByCategory,
+      isLoadingByCategory: updatedLoading,
+      errorsByCategory: updatedErrors,
+      currentPageByCategory: currentPageByCategory,
+      searchResults: searchResults,
+      searchQuery: searchQuery,
+      searchPage: searchPage,
+      hasMoreSearchResults: hasMoreSearchResults,
+      isLoadingSearch: isLoadingSearch,
+      searchError: searchError,
+    );
+  }
+
+  NewsState _buildLoadedState({
+    required List<PostEntity> posts,
+    required Map<int?, List<PostEntity>> postsByCategory,
+    int? selectedCategoryId,
+    required Map<int?, bool> hasMoreByCategory,
+    required Map<int?, bool> isLoadingByCategory,
+    required Map<int?, Failure?> errorsByCategory,
+    required Map<int?, int> currentPageByCategory,
+    List<PostEntity>? searchResults,
+    String? searchQuery,
+    required int searchPage,
+    required bool hasMoreSearchResults,
+    required bool isLoadingSearch,
+    Failure? searchError,
+  }) {
+    return NewsState.loaded(
+      posts: posts,
+      postsByCategory: postsByCategory,
+      selectedCategoryId: selectedCategoryId,
+      hasMoreByCategory: hasMoreByCategory,
+      isLoadingByCategory: isLoadingByCategory,
+      errorsByCategory: errorsByCategory,
+      currentPageByCategory: currentPageByCategory,
+      searchResults: searchResults,
+      searchQuery: searchQuery,
+      searchPage: searchPage,
+      hasMoreSearchResults: hasMoreSearchResults,
+      isLoadingSearch: isLoadingSearch,
+      searchError: searchError,
+    );
+  }
+
+  NewsState _updateSearchLoading({
+    required List<PostEntity> posts,
+    required Map<int?, List<PostEntity>> postsByCategory,
+    int? selectedCategoryId,
+    required Map<int?, bool> hasMoreByCategory,
+    required Map<int?, bool> isLoadingByCategory,
+    required Map<int?, Failure?> errorsByCategory,
+    required Map<int?, int> currentPageByCategory,
+    List<PostEntity>? searchResults,
+    String? searchQuery,
+    required int searchPage,
+    required bool hasMoreSearchResults,
+    Failure? searchError,
+  }) {
+    return _buildLoadedState(
+      posts: posts,
+      postsByCategory: postsByCategory,
+      selectedCategoryId: selectedCategoryId,
+      hasMoreByCategory: hasMoreByCategory,
+      isLoadingByCategory: isLoadingByCategory,
+      errorsByCategory: errorsByCategory,
+      currentPageByCategory: currentPageByCategory,
+      searchResults: searchResults,
+      searchQuery: searchQuery,
+      searchPage: searchPage,
+      hasMoreSearchResults: hasMoreSearchResults,
+      isLoadingSearch: true,
+      searchError: searchError,
+    );
+  }
+
+  NewsState _updateSearchResults({
+    required List<PostEntity> posts,
+    required Map<int?, List<PostEntity>> postsByCategory,
+    int? selectedCategoryId,
+    required Map<int?, bool> hasMoreByCategory,
+    required Map<int?, bool> isLoadingByCategory,
+    required Map<int?, Failure?> errorsByCategory,
+    required Map<int?, int> currentPageByCategory,
+    List<PostEntity>? searchResults,
+    String? searchQuery,
+    required int searchPage,
+    required bool hasMoreSearchResults,
+    Failure? searchError,
+  }) {
+    return _buildLoadedState(
+      posts: posts,
+      postsByCategory: postsByCategory,
+      selectedCategoryId: selectedCategoryId,
+      hasMoreByCategory: hasMoreByCategory,
+      isLoadingByCategory: isLoadingByCategory,
+      errorsByCategory: errorsByCategory,
+      currentPageByCategory: currentPageByCategory,
+      searchResults: searchResults,
+      searchQuery: searchQuery,
+      searchPage: searchPage,
+      hasMoreSearchResults: hasMoreSearchResults,
+      isLoadingSearch: false,
+      searchError: searchError,
+    );
+  }
+
+  NewsState _updateSearchError({
+    required List<PostEntity> posts,
+    required Map<int?, List<PostEntity>> postsByCategory,
+    int? selectedCategoryId,
+    required Map<int?, bool> hasMoreByCategory,
+    required Map<int?, bool> isLoadingByCategory,
+    required Map<int?, Failure?> errorsByCategory,
+    required Map<int?, int> currentPageByCategory,
+    List<PostEntity>? searchResults,
+    String? searchQuery,
+    required int searchPage,
+    required bool hasMoreSearchResults,
+    required Failure? searchError,
+  }) {
+    return _buildLoadedState(
+      posts: posts,
+      postsByCategory: postsByCategory,
+      selectedCategoryId: selectedCategoryId,
+      hasMoreByCategory: hasMoreByCategory,
+      isLoadingByCategory: isLoadingByCategory,
+      errorsByCategory: errorsByCategory,
+      currentPageByCategory: currentPageByCategory,
+      searchResults: searchResults,
+      searchQuery: searchQuery,
+      searchPage: searchPage,
+      hasMoreSearchResults: hasMoreSearchResults,
+      isLoadingSearch: false,
+      searchError: searchError,
+    );
   }
 
   bool _isCacheFresh(DateTime? cacheTimestamp) {
     if (cacheTimestamp == null) return false;
     final now = DateTime.now();
     final difference = now.difference(cacheTimestamp);
-    return difference.inMinutes < 5; // Consider cache fresh for 5 minutes
+    return difference.inMinutes < 5;
   }
 }

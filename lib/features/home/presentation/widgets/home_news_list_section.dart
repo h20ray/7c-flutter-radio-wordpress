@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import '../../../../core/widgets/app_network_image.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 
@@ -276,7 +276,7 @@ class HomeNewsListSection extends StatelessWidget {
             child: hasImage
                 ? ClipRRect(
                     borderRadius: BorderRadius.circular(16),
-                    child: CachedNetworkImage(
+                    child: AppNetworkImage(
                       imageUrl: post.featuredImageUrl!,
                       fit: BoxFit.cover,
                       placeholder: (context, url) => Container(

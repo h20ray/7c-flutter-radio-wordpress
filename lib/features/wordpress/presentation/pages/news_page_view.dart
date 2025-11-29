@@ -19,8 +19,13 @@ class NewsPageView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => getIt<NewsBloc>(),
+    final bloc = getIt<NewsBloc>();
+    if (bloc.state == const NewsState.initial()) {
+      bloc.add(const NewsEvent.getPosts(useNewsPageLimit: true));
+    }
+    
+    return BlocProvider.value(
+      value: bloc,
       child: const _NewsPageViewContent(),
     );
   }
@@ -36,25 +41,12 @@ class _NewsPageViewContent extends StatefulWidget {
 class _NewsPageViewContentState extends State<_NewsPageViewContent> {
   NavItem _selectedNavItem = NavItem.news;
   late ScrollController _scrollController;
-  late final NewsBloc _newsBloc;
   bool _didInitialAutoLoadCheck = false;
 
   @override
   void initState() {
     super.initState();
     _scrollController = ScrollController()..addListener(_onScroll);
-    _newsBloc = context.read<NewsBloc>();
-
-    final state = _newsBloc.state;
-    state.maybeWhen(
-      loaded: (_, _, _, _, _, _, _, _, _, _, _, _, _) {},
-      loading: (_) {},
-      orElse: () {
-        if (!_newsBloc.isClosed) {
-          _newsBloc.add(const NewsEvent.getPosts(useNewsPageLimit: true));
-        }
-      },
-    );
   }
 
   Future<void> _scrollToTop() async {
@@ -75,14 +67,14 @@ class _NewsPageViewContentState extends State<_NewsPageViewContent> {
 
   void _onScroll() {
     if (!mounted || !_scrollController.hasClients) return;
-    if (_newsBloc.isClosed) return;
     
     final maxScroll = _scrollController.position.maxScrollExtent;
     final currentScroll = _scrollController.position.pixels;
     
     if (currentScroll < maxScroll - 200) return;
 
-    final state = _newsBloc.state;
+    final bloc = context.read<NewsBloc>();
+    final state = bloc.state;
     state.maybeWhen(
       loaded: (
         posts,
@@ -99,22 +91,23 @@ class _NewsPageViewContentState extends State<_NewsPageViewContent> {
         isLoadingSearch,
         searchError,
       ) {
-        final isSearchMode = searchQuery != null && searchQuery.isNotEmpty;
+        final isShowingSearchResults = searchQuery != null && searchQuery.isNotEmpty;
 
-        if (isSearchMode) {
-          if (hasMoreSearchResults && !isLoadingSearch && !_newsBloc.isClosed) {
-            _newsBloc.add(const NewsEvent.loadMoreSearchResults());
+        if (isShowingSearchResults) {
+          if (hasMoreSearchResults && !isLoadingSearch) {
+            bloc.add(const NewsEvent.loadMoreSearchResults());
           }
           return;
         }
 
-        final categoryId = selectedCategoryId;
-        final hasMore = hasMoreByCategory[categoryId] ?? false;
-        final isLoading = isLoadingByCategory[categoryId] ?? false;
 
-        if (hasMore && !isLoading && !_newsBloc.isClosed) {
-          _newsBloc.add(
-            NewsEvent.loadMorePosts(categoryId: categoryId),
+
+        final hasMore = hasMoreByCategory[selectedCategoryId] ?? false;
+        final isLoading = isLoadingByCategory[selectedCategoryId] ?? false;
+
+        if (hasMore && !isLoading) {
+          bloc.add(
+            NewsEvent.loadMorePosts(categoryId: selectedCategoryId),
           );
         }
       },
@@ -126,7 +119,6 @@ class _NewsPageViewContentState extends State<_NewsPageViewContent> {
     if (_didInitialAutoLoadCheck) return;
     if (!mounted) return;
     if (!_scrollController.hasClients) return;
-    if (_newsBloc.isClosed) return;
 
     state.maybeWhen(
       loaded: (
@@ -148,24 +140,26 @@ class _NewsPageViewContentState extends State<_NewsPageViewContent> {
         final canScroll = position.maxScrollExtent > 0;
         if (canScroll) return;
 
-        final isSearchMode = searchQuery != null && searchQuery.isNotEmpty;
+        final bloc = context.read<NewsBloc>();
+        final isShowingSearchResults = searchQuery != null && searchQuery.isNotEmpty;
 
-        if (isSearchMode) {
-          if (hasMoreSearchResults && !isLoadingSearch && !_newsBloc.isClosed) {
+        if (isShowingSearchResults) {
+          if (hasMoreSearchResults && !isLoadingSearch) {
             _didInitialAutoLoadCheck = true;
-            _newsBloc.add(const NewsEvent.loadMoreSearchResults());
+            bloc.add(const NewsEvent.loadMoreSearchResults());
           }
           return;
         }
 
-        final categoryId = selectedCategoryId;
-        final hasMore = hasMoreByCategory[categoryId] ?? false;
-        final isLoading = isLoadingByCategory[categoryId] ?? false;
 
-        if (hasMore && !isLoading && !_newsBloc.isClosed) {
+
+        final hasMore = hasMoreByCategory[selectedCategoryId] ?? false;
+        final isLoading = isLoadingByCategory[selectedCategoryId] ?? false;
+
+        if (hasMore && !isLoading) {
           _didInitialAutoLoadCheck = true;
-          _newsBloc.add(
-            NewsEvent.loadMorePosts(categoryId: categoryId),
+          bloc.add(
+            NewsEvent.loadMorePosts(categoryId: selectedCategoryId),
           );
         }
       },
@@ -290,14 +284,14 @@ class _NewsPageViewContentState extends State<_NewsPageViewContent> {
                           isLoadingSearch,
                           searchError,
                         ) {
-                          final isSearchMode = searchQuery != null && searchQuery.isNotEmpty;
-                          final displayPosts = isSearchMode
+                          final isShowingSearchResults = searchQuery != null && searchQuery.isNotEmpty;
+                          final displayPosts = isShowingSearchResults
                               ? (searchResults ?? [])
                               : (selectedCategoryId != null
                                   ? postsByCategory[selectedCategoryId] ?? posts
                                   : posts);
                           
-                          final isLoadingMore = isSearchMode
+                          final isLoadingMore = isShowingSearchResults
                               ? isLoadingSearch
                               : (isLoadingByCategory[selectedCategoryId] ?? false);
                               
@@ -310,15 +304,15 @@ class _NewsPageViewContentState extends State<_NewsPageViewContent> {
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Icon(
-                                        isSearchMode
+                                        isShowingSearchResults
                                             ? Icons.search_off
                                             : Icons.article_outlined,
                                         size: 64,
                                         color: colors.textSecondary,
                                       ),
-                                      SizedBox(height: DesignTokens.spacingM),
+                                      const SizedBox(height: DesignTokens.spacingM),
                                       Text(
-                                        isSearchMode
+                                        isShowingSearchResults
                                             ? 'news_empty_no_results'.tr()
                                             : 'news_empty_no_items'.tr(),
                                         style: TextStyle(
@@ -339,7 +333,7 @@ class _NewsPageViewContentState extends State<_NewsPageViewContent> {
                               delegate: SliverChildBuilderDelegate(
                                 (context, index) {
                                   if (index == 0) {
-                                    if (isSearchMode) {
+                                    if (isShowingSearchResults) {
                                       return Padding(
                                         padding: EdgeInsets.only(
                                           top: DesignTokens.spacingL,
@@ -349,7 +343,7 @@ class _NewsPageViewContentState extends State<_NewsPageViewContent> {
                                           children: [
                                             Expanded(
                                               child: Text(
-                                                'Search results for "$searchQuery"',
+                                                'news_search_results_for'.tr(namedArgs: {'query': searchQuery}),
                                                 style: TextStyle(
                                                   fontSize: DesignTokens.fontSizeBody,
                                                   color: colors.textSecondary,
@@ -363,13 +357,13 @@ class _NewsPageViewContentState extends State<_NewsPageViewContent> {
                                                 );
                                               },
                                               icon: const Icon(Icons.close, size: 16),
-                                              label: const Text('Clear'),
+                                              label: Text('news_search_clear'.tr()),
                                             ),
                                           ],
                                         ),
                                       );
                                     } else {
-                                      return SizedBox(height: DesignTokens.spacingL);
+                                      return const SizedBox(height: DesignTokens.spacingL);
                                     }
                                   }
                                   
@@ -378,19 +372,12 @@ class _NewsPageViewContentState extends State<_NewsPageViewContent> {
                                   if (postIndex < displayPosts.length) {
                                     return NewsCard(
                                       post: displayPosts[postIndex],
-                                      compact: isSearchMode,
+                                      compact: isShowingSearchResults,
                                     );
                                   }
                                   
                                   if (isLoadingMore) {
-                                    return Padding(
-                                      padding: EdgeInsets.symmetric(
-                                        vertical: DesignTokens.spacingL,
-                                      ),
-                                      child: _NewsLoadMoreFooter(
-                                        isSearchMode: isSearchMode,
-                                      ),
-                                    );
+                                    return _NewsLoadMoreFooter();
                                   }
                                   
                                   return const SizedBox.shrink();
@@ -418,9 +405,9 @@ class _NewsPageViewContentState extends State<_NewsPageViewContent> {
                                     size: 64,
                                     color: colors.textSecondary,
                                   ),
-                                  SizedBox(height: DesignTokens.spacingM),
+                                  const SizedBox(height: DesignTokens.spacingM),
                                   Text(
-                                    'Failed to load news',
+                                    'news_error_failed_to_load'.tr(),
                                     style: TextStyle(
                                       fontSize: DesignTokens.fontSizeH2,
                                       color: colors.textSecondary,
@@ -440,7 +427,7 @@ class _NewsPageViewContentState extends State<_NewsPageViewContent> {
                       );
                     },
                   ),
-                  SliverToBoxAdapter(
+                  const SliverToBoxAdapter(
                     child: SizedBox(height: 120),
                   ),
                 ],
@@ -489,54 +476,99 @@ class _NewsPageViewContentState extends State<_NewsPageViewContent> {
 }
 
 class _NewsLoadMoreFooter extends StatelessWidget {
-  final bool isSearchMode;
-
-  const _NewsLoadMoreFooter({
-    required this.isSearchMode,
-  });
+  const _NewsLoadMoreFooter();
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.appColors;
     final skeletonColor = Theme.of(context).colorScheme.surfaceContainerHighest;
-    final label = isSearchMode
-        ? 'Loading more results…'
-        : 'Loading more articles…';
 
-    return Center(
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          SkeletonBox(
-            width: 32,
-            height: 32,
-            color: skeletonColor,
-            borderRadius: 16,
-          ),
-          SizedBox(width: DesignTokens.spacingM),
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SkeletonBox(
-                width: 120,
-                height: 14,
-                color: skeletonColor,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final availableWidth = constraints.maxWidth.isFinite
+            ? constraints.maxWidth
+            : MediaQuery.sizeOf(context).width;
+
+        return Column(
+          children: List.generate(
+            3,
+            (index) => Container(
+              margin: EdgeInsets.only(bottom: DesignTokens.spacingL),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                borderRadius: BorderRadius.circular(
+                  DesignTokens.cornerRadiusCard,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
-              SizedBox(height: DesignTokens.spacingXs),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: DesignTokens.fontSizeCaption,
-                  color: colors.textSecondary,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(
+                  DesignTokens.cornerRadiusCard,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AspectRatio(
+                      aspectRatio: 16 / 9,
+                      child: SkeletonBox(
+                        width: availableWidth,
+                        height: availableWidth / (16 / 9),
+                        color: skeletonColor,
+                        borderRadius: 0,
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.all(DesignTokens.spacingM),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              SkeletonBox(
+                                width: 60,
+                                height: 20,
+                                color: skeletonColor,
+                                borderRadius: 12,
+                              ),
+                              const SizedBox(width: DesignTokens.spacingS),
+                              SkeletonBox(
+                                width: 80,
+                                height: 20,
+                                color: skeletonColor,
+                                borderRadius: 12,
+                              ),
+                            ],
+                          ),
+                      const SizedBox(height: DesignTokens.spacingS),
+                      SkeletonBox(
+                        width: availableWidth - (DesignTokens.spacingM * 2),
+                        height: 20,
+                        color: skeletonColor,
+                      ),
+                      const SizedBox(height: DesignTokens.spacingS),
+                          SkeletonBox(
+                            width: availableWidth - (DesignTokens.spacingM * 2),
+                            height: 16,
+                            color: skeletonColor,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
+            ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
+
+
 

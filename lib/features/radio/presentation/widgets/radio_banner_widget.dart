@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import '../../../../core/widgets/app_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'dart:math';
@@ -63,7 +63,7 @@ class RadioBannerWidget extends StatelessWidget {
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(16),
-          child: CachedNetworkImage(
+          child: AppNetworkImage(
             imageUrl: selectedBanner.imageUrl,
             fit: BoxFit.cover,
             placeholder: (context, url) => Container(

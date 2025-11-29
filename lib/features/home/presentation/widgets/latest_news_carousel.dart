@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/themes/app_color_system.dart';
 import '../../../../core/themes/component_tokens.dart';
 import '../../../../core/themes/design_tokens.dart';
@@ -324,7 +324,7 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
             children: [
               if (hasImage)
                 Positioned.fill(
-                  child: CachedNetworkImage(
+                  child: AppNetworkImage(
                     imageUrl: post.featuredImageUrl!,
                     fit: BoxFit.cover,
                     memCacheWidth: 800,

@@ -1,4 +1,4 @@
-import 'package:cached_network_image/cached_network_image.dart';
+import '../../../../core/widgets/app_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/themes/app_color_system.dart';
@@ -30,7 +30,7 @@ class NewsPostImage extends StatelessWidget {
             topLeft: Radius.circular(DesignTokens.cornerRadiusCard),
             topRight: Radius.circular(DesignTokens.cornerRadiusCard),
           ),
-          child: CachedNetworkImage(
+          child: AppNetworkImage(
             imageUrl: imageUrl,
             fit: BoxFit.cover,
             memCacheWidth: 800,

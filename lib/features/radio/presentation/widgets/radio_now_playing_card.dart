@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:ui';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/widgets/album_art_widget.dart';
 import '../../../../core/widgets/smooth_marquee_text.dart';
 import '../../../../core/services/palette_service.dart';
@@ -675,7 +675,7 @@ class _BlurredAlbumArtBackground extends StatelessWidget {
         final albumArtState = snapshot.data ?? AlbumArtService.instance.currentState;
         
         if (albumArtState.hasUrl) {
-          return CachedNetworkImage(
+          return AppNetworkImage(
             imageUrl: albumArtState.url!,
             fit: BoxFit.cover,
             filterQuality: filterQuality,

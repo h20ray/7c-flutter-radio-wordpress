@@ -87,7 +87,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
     const double cardOverlap = DesignTokens.spacingXl * 1.7;
-    final double headerHeight = 190 + statusBarHeight;
+    final double headerHeight = 180 + statusBarHeight;
     final double headerStackHeight =
         headerHeight + (DesignTokens.cardHeightStandard - cardOverlap);
 
