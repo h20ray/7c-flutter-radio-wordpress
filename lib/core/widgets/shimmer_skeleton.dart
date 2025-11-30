@@ -107,3 +107,39 @@ class ShimmerContainer extends StatelessWidget {
   }
 }
 
+class SkeletonBox extends StatelessWidget {
+  final double width;
+  final double height;
+  final Color color;
+  final double borderRadius;
+  final Duration period;
+
+  const SkeletonBox({
+    super.key,
+    required this.width,
+    required this.height,
+    required this.color,
+    this.borderRadius = 8,
+    this.period = const Duration(milliseconds: 1500),
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final baseColor = color.withValues(alpha: 0.25);
+    final highlight = color.withValues(alpha: 0.5);
+
+    return ShimmerSkeleton(
+      baseColor: baseColor,
+      highlightColor: highlight,
+      period: period,
+      child: Container(
+        width: width,
+        height: height,
+        decoration: BoxDecoration(
+          color: baseColor,
+          borderRadius: BorderRadius.circular(borderRadius),
+        ),
+      ),
+    );
+  }
+}

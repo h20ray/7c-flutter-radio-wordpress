@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../themes/component_tokens.dart';
 import '../themes/design_tokens.dart';
-import 'skeleton_box.dart';
+import 'shimmer_skeleton.dart';
 
 class NewsCardSkeleton extends StatelessWidget {
   final int index;

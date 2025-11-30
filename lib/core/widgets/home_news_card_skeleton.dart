@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../themes/app_color_system.dart';
 import '../themes/design_tokens.dart';
-import 'skeleton_box.dart';
+import 'shimmer_skeleton.dart';
 
 class HomeNewsCardSkeleton extends StatelessWidget {
   final int itemCount;
@@ -87,4 +87,3 @@ class HomeNewsCardSkeleton extends StatelessWidget {
     );
   }
 }
-

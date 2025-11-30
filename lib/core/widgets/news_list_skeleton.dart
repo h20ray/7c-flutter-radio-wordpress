@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../themes/design_tokens.dart';
-import 'skeleton_box.dart';
+import 'shimmer_skeleton.dart';
 
 class NewsListSkeleton extends StatelessWidget {
   final int itemCount;

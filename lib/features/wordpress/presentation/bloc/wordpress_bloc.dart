@@ -104,6 +104,12 @@ class WordPressBloc extends Bloc<WordPressEvent, WordPressState> {
     Failure? searchError,
   ) async {
     final existingPosts = postsByCategory[categoryId] ?? [];
+    final alreadyLoading = isLoadingByCategory[categoryId] ?? false;
+    if (alreadyLoading && !event.forceRefresh) {
+      // Prevent parallel identical fetches for the same category unless
+      // the caller explicitly requests a refresh.
+      return;
+    }
     
     if (event.forceRefresh) {
       final updatedLoading = Map<int?, bool>.from(isLoadingByCategory);

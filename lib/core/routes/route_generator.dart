@@ -60,13 +60,13 @@ class RouteGenerator {
       case AppRoutes.postDetail:
         final args = settings.arguments;
         PostEntity? post;
-        
         if (args is PostEntity) {
           post = args;
-        } else if (args is Map) {
-          post = args['post'] as PostEntity?;
+        } else if (args is Map<String, dynamic> &&
+            args['post'] is PostEntity) {
+          post = args['post'] as PostEntity;
         }
-        
+
         if (post == null) {
           return _buildPageRoute(
             settings,
@@ -117,8 +117,11 @@ class RouteGenerator {
       transitionDuration: const Duration(milliseconds: 300),
       reverseTransitionDuration: const Duration(milliseconds: 250),
       pageBuilder: (context, animation, secondaryAnimation) {
-        return PostDetailPageView(
-          post: post,
+        return BlocProvider.value(
+          value: getIt<WordPressBloc>(),
+          child: PostDetailPageView(
+            post: post,
+          ),
         );
       },
       transitionsBuilder: (context, animation, secondaryAnimation, child) {

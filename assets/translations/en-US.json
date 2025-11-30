@@ -157,6 +157,8 @@
   "news_search_results_for": "Search results for \"{query}\"",
   "news_search_clear": "Clear",
   "news_error_failed_to_load": "Failed to load news",
+  "news_link_unavailable": "This link is not available",
+  "news_link_error": "Unable to open link",
   "home_promos_title": "Trending & Categories",
   "home_promos_see_all": "See All",
   "home_promos_near_you": "Near You",

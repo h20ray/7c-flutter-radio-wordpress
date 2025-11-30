@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -21,6 +23,7 @@ class _GlobalLevelUpOverlayState extends State<GlobalLevelUpOverlay>
   LevelUpCelebrationService? _service;
   LevelUpCelebrationData? _currentCelebration;
   bool _hasError = false;
+  StreamSubscription<LevelUpCelebrationData?>? _celebrationSubscription;
 
   late final AnimationController _levelUpController;
   late final AnimationController _transitionController;
@@ -82,7 +85,9 @@ class _GlobalLevelUpOverlayState extends State<GlobalLevelUpOverlay>
   void _initializeService() {
     if (getIt.isRegistered<LevelCelebrationLocalDataSource>()) {
       _service = LevelUpCelebrationService.instance;
-      _service!.celebrationStream.listen(_onCelebrationChanged);
+      _celebrationSubscription?.cancel();
+      _celebrationSubscription =
+          _service!.celebrationStream.listen(_onCelebrationChanged);
     } else {
       Future.delayed(const Duration(milliseconds: 100), () {
         if (mounted) {
@@ -122,6 +127,7 @@ class _GlobalLevelUpOverlayState extends State<GlobalLevelUpOverlay>
     _levelUpController.removeListener(_checkTransition);
     _levelUpController.dispose();
     _transitionController.dispose();
+    _celebrationSubscription?.cancel();
     super.dispose();
   }
 
@@ -296,4 +302,3 @@ class _GlobalLevelUpOverlayState extends State<GlobalLevelUpOverlay>
     );
   }
 }
-

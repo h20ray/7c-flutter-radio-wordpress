@@ -78,10 +78,9 @@ class HomeNewsListSection extends StatelessWidget {
                                 HomeEvent.categorySelected(nextId),
                               );
 
-                              context.read<WordPressBloc>().add(
-                                WordPressEvent.getPosts(
-                                  categoryId: nextId,
-                                ),
+                              _requestPosts(
+                                context,
+                                categoryId: nextId,
                               );
                             },
                             selectedColor: chipTokens.selectedBackground,
@@ -160,11 +159,10 @@ class HomeNewsListSection extends StatelessWidget {
                             SizedBox(height: DesignTokens.spacingS),
                             TextButton(
                               onPressed: () {
-                                context.read<WordPressBloc>().add(
-                                  WordPressEvent.getPosts(
-                                    categoryId: categoryId,
-                                    forceRefresh: true,
-                                  ),
+                                _requestPosts(
+                                  context,
+                                  categoryId: categoryId,
+                                  forceRefresh: true,
                                 );
                               },
                               child: Text('Retry'),
@@ -221,11 +219,10 @@ class HomeNewsListSection extends StatelessWidget {
                             SizedBox(height: DesignTokens.spacingS),
                             TextButton(
                               onPressed: () {
-                                context.read<WordPressBloc>().add(
-                                  WordPressEvent.getPosts(
-                                    categoryId: categoryId,
-                                    forceRefresh: true,
-                                  ),
+                                _requestPosts(
+                                  context,
+                                  categoryId: categoryId,
+                                  forceRefresh: true,
                                 );
                               },
                               child: Text('Retry'),
@@ -246,6 +243,45 @@ class HomeNewsListSection extends StatelessWidget {
     );
   }
 
+
+  void _requestPosts(
+    BuildContext context, {
+    int? categoryId,
+    bool forceRefresh = false,
+  }) {
+    final bloc = context.read<WordPressBloc>();
+    final isAlreadyLoading = bloc.state.maybeWhen(
+      loading: (activeCategoryId) => activeCategoryId == categoryId,
+      loaded: (
+        _,
+        _,
+        _,
+        _,
+        isLoadingByCategory,
+        _,
+        _,
+        _,
+        _,
+        _,
+        _,
+        _,
+        _,
+      ) =>
+          isLoadingByCategory[categoryId] ?? false,
+      orElse: () => false,
+    );
+
+    if (isAlreadyLoading && !forceRefresh) {
+      return;
+    }
+
+    bloc.add(
+      WordPressEvent.getPosts(
+        categoryId: categoryId,
+        forceRefresh: forceRefresh,
+      ),
+    );
+  }
 
   Widget _buildNewsCard(BuildContext context, PostEntity post) {
     final colors = context.appColors;

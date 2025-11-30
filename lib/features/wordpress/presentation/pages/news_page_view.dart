@@ -10,7 +10,7 @@ import '../../../../core/widgets/floating_bottom_nav_bar.dart';
 import '../../../../core/widgets/floating_play_fab.dart';
 import '../../../../core/widgets/glass_app_bar_background.dart';
 import '../../../../core/widgets/news_list_skeleton.dart';
-import '../../../../core/widgets/skeleton_box.dart';
+import '../../../../core/widgets/shimmer_skeleton.dart';
 import '../bloc/news_bloc.dart';
 import '../widgets/news_card.dart';
 
@@ -569,6 +569,5 @@ class _NewsLoadMoreFooter extends StatelessWidget {
     );
   }
 }
-
 
 

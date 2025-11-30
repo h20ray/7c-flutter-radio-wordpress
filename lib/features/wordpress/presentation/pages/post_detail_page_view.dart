@@ -1,21 +1,147 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:flutter_html/flutter_html.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../config/app_config.dart';
 import '../../../../core/themes/app_color_system.dart';
 import '../../../../core/themes/design_tokens.dart';
 import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/widgets/glass_app_bar_background.dart';
 import '../../domain/entities/post_entity.dart';
+import '../bloc/wordpress_bloc.dart';
 
-class PostDetailPageView extends StatelessWidget {
+class PostDetailPageView extends StatefulWidget {
   final PostEntity post;
 
   const PostDetailPageView({
     super.key,
     required this.post,
   });
+
+  @override
+  State<PostDetailPageView> createState() => _PostDetailPageViewState();
+}
+
+class _PostDetailPageViewState extends State<PostDetailPageView> {
+  static final Map<int?, DateTime> _categoryRefreshTimestamps = {};
+
+  late PostEntity _currentPost;
+  int? _trackedCategoryId;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentPost = widget.post;
+    _trackedCategoryId = _currentPost.categoryIds.isNotEmpty
+        ? _currentPost.categoryIds.first
+        : null;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _requestBackgroundRefresh();
+      }
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant PostDetailPageView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.post != widget.post) {
+      _currentPost = widget.post;
+      _trackedCategoryId = _currentPost.categoryIds.isNotEmpty
+          ? _currentPost.categoryIds.first
+          : null;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _requestBackgroundRefresh();
+        }
+      });
+    }
+  }
+
+  void _requestBackgroundRefresh() {
+    final bloc = context.read<WordPressBloc>();
+    final now = DateTime.now();
+    final categoryId = _trackedCategoryId;
+    final lastRefresh = _categoryRefreshTimestamps[categoryId];
+
+    final alreadyLoading = bloc.state.maybeWhen(
+      loading: (activeCategoryId) => activeCategoryId == categoryId,
+      loaded: (
+        _,
+        _,
+        _,
+        _,
+        isLoadingByCategory,
+        _,
+        _,
+        _,
+        _,
+        _,
+        _,
+        _,
+        _,
+      ) =>
+          isLoadingByCategory[categoryId] ?? false,
+      orElse: () => false,
+    );
+
+    if (alreadyLoading) {
+      return;
+    }
+
+    if (lastRefresh != null &&
+        now.difference(lastRefresh) < const Duration(seconds: 45)) {
+      return;
+    }
+
+    _categoryRefreshTimestamps[categoryId] = now;
+    bloc.add(WordPressEvent.getPosts(
+      categoryId: categoryId,
+      forceRefresh: true,
+    ));
+  }
+
+  void _syncPostFromState(WordPressState state) {
+    state.maybeWhen(
+      loaded: (
+        posts,
+        postsByCategory,
+        selectedCategoryId,
+        hasMoreByCategory,
+        isLoadingByCategory,
+        errorsByCategory,
+        currentPageByCategory,
+        searchResults,
+        searchQuery,
+        searchPage,
+        hasMoreSearchResults,
+        isLoadingSearch,
+        searchError,
+      ) {
+        final updated = _findMatchingPost(postsByCategory[_trackedCategoryId]) ??
+            _findMatchingPost(posts);
+        if (updated != null && updated != _currentPost) {
+          setState(() {
+            _currentPost = updated;
+          });
+        }
+      },
+      orElse: () {},
+    );
+  }
+
+  PostEntity? _findMatchingPost(List<PostEntity>? posts) {
+    if (posts == null) return null;
+    for (final post in posts) {
+      if (post.id == _currentPost.id) {
+        return post;
+      }
+    }
+    return null;
+  }
 
   String _formatNewsDate(DateTime date, BuildContext context) {
     final now = DateTime.now();
@@ -39,10 +165,79 @@ class PostDetailPageView extends StatelessWidget {
     }
   }
 
-  Widget _buildFeaturedImage(BuildContext context) {
+  bool _isInternalLink(String url) {
+    try {
+      final uri = Uri.parse(url);
+      if (!uri.hasScheme || !uri.hasAuthority) {
+        return true;
+      }
+      final host = uri.host.toLowerCase();
+      final baseDomain = AppConfig.url.toLowerCase();
+      return host == baseDomain || host.endsWith('.$baseDomain');
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<void> _handleLinkTap(String? url, Map<String, String> attributes, dynamic element) async {
+    if (url == null || url.isEmpty) return;
+
+    try {
+      Uri uri;
+      if (url.startsWith('http://') || url.startsWith('https://')) {
+        uri = Uri.parse(url);
+      } else if (url.startsWith('//')) {
+        uri = Uri.parse('https:$url');
+      } else if (url.startsWith('/')) {
+        uri = Uri.parse('https://${AppConfig.url}$url');
+      } else if (url.startsWith('mailto:') || url.startsWith('tel:') || url.startsWith('sms:')) {
+        uri = Uri.parse(url);
+      } else {
+        uri = Uri.parse('https://${AppConfig.url}/$url');
+      }
+
+      if (!uri.hasScheme || (!uri.hasAuthority && !uri.scheme.startsWith('mailto') && !uri.scheme.startsWith('tel') && !uri.scheme.startsWith('sms'))) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('news_link_unavailable'.tr()),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+        return;
+      }
+
+      final isInternal = _isInternalLink(uri.toString());
+      final launched = await launchUrl(
+        uri,
+        mode: isInternal ? LaunchMode.inAppWebView : LaunchMode.externalApplication,
+      );
+
+      if (!launched && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('news_link_unavailable'.tr()),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('news_link_error'.tr()),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    }
+  }
+
+  Widget _buildFeaturedImage(BuildContext context, PostEntity post) {
     final colors = context.appColors;
     final hasImage = post.featuredImageUrl != null && post.featuredImageUrl!.isNotEmpty;
-    
+
     if (!hasImage) {
       return const SizedBox.shrink();
     }
@@ -75,69 +270,80 @@ class PostDetailPageView extends StatelessWidget {
     final colors = context.appColors;
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
-    final hasImage = post.featuredImageUrl != null && post.featuredImageUrl!.isNotEmpty;
+    final hasImage =
+        _currentPost.featuredImageUrl != null && _currentPost.featuredImageUrl!.isNotEmpty;
 
-    return Scaffold(
-      backgroundColor: colors.primaryBackground,
-      body: CustomScrollView(
-        physics: const ClampingScrollPhysics(),
-        slivers: [
-          SliverAppBar(
-            pinned: true,
-            leading: IconButton(
-              icon: const Icon(LucideIcons.arrow_left),
-              onPressed: () => Navigator.of(context).pop(),
+    return BlocListener<WordPressBloc, WordPressState>(
+      listenWhen: (previous, current) => previous != current,
+      listener: (context, state) => _syncPostFromState(state),
+      child: Scaffold(
+        backgroundColor: colors.primaryBackground,
+        body: CustomScrollView(
+          physics: const ClampingScrollPhysics(),
+          slivers: [
+            SliverAppBar(
+              pinned: true,
+              leading: IconButton(
+                icon: const Icon(LucideIcons.arrow_left),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+              backgroundColor: Colors.transparent,
+              surfaceTintColor: theme.colorScheme.surfaceTint,
+              elevation: 0,
+              scrolledUnderElevation: 0,
+              flexibleSpace: GlassAppBarBackground(
+                child: Container(),
+              ),
             ),
-            backgroundColor: Colors.transparent,
-            surfaceTintColor: theme.colorScheme.surfaceTint,
-            elevation: 0,
-            scrolledUnderElevation: 0,
-            flexibleSpace: GlassAppBarBackground(
-              child: Container(),
-            ),
-          ),
-          SliverPadding(
-            padding: EdgeInsets.fromLTRB(
-              DesignTokens.spacingL,
-              DesignTokens.spacingL,
-              DesignTokens.spacingL,
-              0,
-            ),
-            sliver: SliverToBoxAdapter(
-              child: Text(
-                post.title,
-                style: textTheme.headlineMedium?.copyWith(
-                  color: colors.textPrimary,
+            SliverPadding(
+              padding: EdgeInsets.fromLTRB(
+                DesignTokens.spacingL,
+                DesignTokens.spacingL,
+                DesignTokens.spacingL,
+                0,
+              ),
+              sliver: SliverToBoxAdapter(
+                child: Text(
+                  _currentPost.title,
+                  style: textTheme.headlineMedium?.copyWith(
+                    color: colors.textPrimary,
+                  ),
                 ),
               ),
             ),
-          ),
-          if (hasImage)
-            SliverToBoxAdapter(
-              child: _buildFeaturedImage(context),
-            ),
-          SliverPadding(
-            padding: EdgeInsets.all(DesignTokens.spacingL),
-            sliver: SliverToBoxAdapter(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _PostMetadataRow(
-                    post: post,
-                    colors: colors,
-                    formatDate: _formatNewsDate,
-                  ),
-                  SizedBox(height: DesignTokens.spacingXl),
-                  _PostContentHtml(
-                    htmlContent: post.content,
-                    colors: colors,
-                    textTheme: textTheme,
-                  ),
-                ],
+            if (hasImage)
+              SliverToBoxAdapter(
+                child: _buildFeaturedImage(context, _currentPost),
+              ),
+            SliverPadding(
+              padding: EdgeInsets.fromLTRB(
+                DesignTokens.spacingL,
+                DesignTokens.spacingL,
+                DesignTokens.spacingL,
+                DesignTokens.spacingL,
+              ),
+              sliver: SliverToBoxAdapter(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _PostMetadataRow(
+                      post: _currentPost,
+                      colors: colors,
+                      formatDate: _formatNewsDate,
+                    ),
+                    SizedBox(height: DesignTokens.spacingL),
+                    _PostContentHtml(
+                      htmlContent: _currentPost.content,
+                      colors: colors,
+                      textTheme: textTheme,
+                      onLinkTap: _handleLinkTap,
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -218,11 +424,13 @@ class _PostContentHtml extends StatelessWidget {
   final String htmlContent;
   final AppSemanticColors colors;
   final TextTheme textTheme;
+  final Function(String?, Map<String, String>, dynamic)? onLinkTap;
 
   const _PostContentHtml({
     required this.htmlContent,
     required this.colors,
     required this.textTheme,
+    this.onLinkTap,
   });
 
   @override
@@ -231,6 +439,7 @@ class _PostContentHtml extends StatelessWidget {
 
     return Html(
       data: htmlContent,
+      onLinkTap: onLinkTap,
       style: {
         'body': Style(
           margin: Margins.zero,
@@ -276,6 +485,11 @@ class _PostContentHtml extends StatelessWidget {
         'a': Style(
           color: colors.gradientStart,
           textDecoration: TextDecoration.underline,
+          display: Display.inlineBlock,
+          padding: HtmlPaddings.symmetric(
+            horizontal: 4,
+            vertical: 12,
+          ),
         ),
         'img': Style(
           width: Width(100, Unit.percent),
