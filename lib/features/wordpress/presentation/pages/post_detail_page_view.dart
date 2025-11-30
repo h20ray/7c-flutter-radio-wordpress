@@ -2,7 +2,11 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import 'dart:io';
+import 'dart:ui' as ui;
+import 'package:flutter/rendering.dart';
 import 'package:flutter_html/flutter_html.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -13,6 +17,7 @@ import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/widgets/glass_app_bar_background.dart';
 import '../../domain/entities/post_entity.dart';
 import '../bloc/wordpress_bloc.dart';
+import '../widgets/news_share_card.dart';
 
 class PostDetailPageView extends StatefulWidget {
   final PostEntity post;
@@ -28,6 +33,7 @@ class PostDetailPageView extends StatefulWidget {
 
 class _PostDetailPageViewState extends State<PostDetailPageView> {
   static final Map<int?, DateTime> _categoryRefreshTimestamps = {};
+  final GlobalKey _shareCardKey = GlobalKey();
 
   late PostEntity _currentPost;
   int? _trackedCategoryId;
@@ -235,6 +241,52 @@ class _PostDetailPageViewState extends State<PostDetailPageView> {
     }
   }
 
+  Future<void> _captureAndShare() async {
+    try {
+      // 1. Find the render object
+      final boundary = _shareCardKey.currentContext?.findRenderObject()
+          as RenderRepaintBoundary?;
+
+      if (boundary == null) {
+        debugPrint('Could not find render boundary');
+        return;
+      }
+
+      // 2. Capture image
+      // Use a pixel ratio > 1.0 for better quality
+      final image = await boundary.toImage(pixelRatio: 3.0);
+      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      final pngBytes = byteData?.buffer.asUint8List();
+
+      if (pngBytes == null) {
+        debugPrint('Could not generate PNG bytes');
+        return;
+      }
+
+      // 3. Save to temp file
+      final directory = await getTemporaryDirectory();
+      final fileName = 'share_${DateTime.now().millisecondsSinceEpoch}.png';
+      final file = File('${directory.path}/$fileName');
+      await file.writeAsBytes(pngBytes);
+
+      // 4. Share
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(file.path)],
+          text: '${_currentPost.title}\n\n${_currentPost.link}',
+          subject: _currentPost.title,
+        ),
+      );
+    } catch (e) {
+      debugPrint('Error capturing share card: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('news_link_error'.tr())),
+        );
+      }
+    }
+  }
+
   Widget _buildFeaturedImage(BuildContext context, PostEntity post) {
     final colors = context.appColors;
     final hasImage = post.featuredImageUrl != null && post.featuredImageUrl!.isNotEmpty;
@@ -279,9 +331,19 @@ class _PostDetailPageViewState extends State<PostDetailPageView> {
       listener: (context, state) => _syncPostFromState(state),
       child: Scaffold(
         backgroundColor: colors.primaryBackground,
-        body: CustomScrollView(
-          physics: const ClampingScrollPhysics(),
-          slivers: [
+        body: Stack(
+          children: [
+            // Hidden Share Card
+            Transform.translate(
+              offset: const Offset(-10000, -10000),
+              child: RepaintBoundary(
+                key: _shareCardKey,
+                child: NewsShareCard(post: _currentPost),
+              ),
+            ),
+            CustomScrollView(
+              physics: const ClampingScrollPhysics(),
+              slivers: [
             SliverAppBar(
               pinned: true,
               leading: IconButton(
@@ -298,12 +360,7 @@ class _PostDetailPageViewState extends State<PostDetailPageView> {
               actions: [
                 IconButton(
                   icon: const Icon(LucideIcons.share_2),
-                  onPressed: () {
-                    Share.share(
-                      '${_currentPost.title}\n\n${_currentPost.link}',
-                      subject: _currentPost.title,
-                    );
-                  },
+                  onPressed: _captureAndShare,
                 ),
               ],
             ),
@@ -357,6 +414,8 @@ class _PostDetailPageViewState extends State<PostDetailPageView> {
                   ],
                 ),
               ),
+            ),
+          ],
             ),
           ],
         ),
