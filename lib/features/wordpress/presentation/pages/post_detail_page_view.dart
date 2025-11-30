@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:flutter_html/flutter_html.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../config/app_config.dart';
@@ -294,6 +295,17 @@ class _PostDetailPageViewState extends State<PostDetailPageView> {
               flexibleSpace: GlassAppBarBackground(
                 child: Container(),
               ),
+              actions: [
+                IconButton(
+                  icon: const Icon(LucideIcons.share_2),
+                  onPressed: () {
+                    Share.share(
+                      '${_currentPost.title}\n\n${_currentPost.link}',
+                      subject: _currentPost.title,
+                    );
+                  },
+                ),
+              ],
             ),
             SliverPadding(
               padding: EdgeInsets.fromLTRB(
@@ -311,10 +323,14 @@ class _PostDetailPageViewState extends State<PostDetailPageView> {
                 ),
               ),
             ),
-            if (hasImage)
+            if (hasImage) ...[
+              SliverToBoxAdapter(
+                child: SizedBox(height: DesignTokens.spacingM),
+              ),
               SliverToBoxAdapter(
                 child: _buildFeaturedImage(context, _currentPost),
               ),
+            ],
             SliverPadding(
               padding: EdgeInsets.fromLTRB(
                 DesignTokens.spacingL,

@@ -5,6 +5,7 @@ class PostEntity extends Equatable {
   final String title;
   final String content;
   final String excerpt;
+  final String link;
   final String? featuredImageUrl;
   final DateTime? date;
   final String? categoryName;
@@ -15,6 +16,7 @@ class PostEntity extends Equatable {
     required this.title,
     required this.content,
     required this.excerpt,
+    required this.link,
     this.featuredImageUrl,
     this.date,
     this.categoryName,
@@ -22,6 +24,6 @@ class PostEntity extends Equatable {
   });
 
   @override
-  List<Object?> get props => [id, title, content, excerpt, featuredImageUrl, date, categoryName, categoryIds];
+  List<Object?> get props => [id, title, content, excerpt, link, featuredImageUrl, date, categoryName, categoryIds];
 }
 

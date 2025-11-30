@@ -34,6 +34,7 @@ class PostModel extends PostEntity {
     required super.title,
     required super.content,
     required super.excerpt,
+    required super.link,
     super.featuredImageUrl,
     super.date,
     super.categoryName,
@@ -93,6 +94,8 @@ class PostModel extends PostEntity {
       excerpt = json['excerpt']?['rendered'] ?? '';
     }
     excerpt = _decodeHtmlEntities(excerpt);
+    
+    String link = json['link'] as String? ?? '';
 
     List<int> categoryIds = [];
     if (json['categories'] != null && json['categories'] is List) {
@@ -133,6 +136,7 @@ class PostModel extends PostEntity {
       title: title,
       content: content,
       excerpt: excerpt,
+      link: link,
       featuredImageUrl: featuredImageUrl,
       date: date,
       categoryName: categoryName,
@@ -146,6 +150,7 @@ class PostModel extends PostEntity {
       'title': {'rendered': title},
       'content': {'rendered': content},
       'excerpt': {'rendered': excerpt},
+      'link': link,
       'featuredImageUrl': featuredImageUrl,
       'date': date?.toIso8601String(),
       'categoryName': categoryName,

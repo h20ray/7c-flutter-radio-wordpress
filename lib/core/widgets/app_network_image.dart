@@ -192,6 +192,16 @@ class _AvifCachedImageState extends State<_AvifCachedImage> {
   }
 
   @override
+  void didUpdateWidget(_AvifCachedImage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.imageUrl != oldWidget.imageUrl) {
+      _currentUrl = widget.imageUrl;
+      _fallbackIndex = 0;
+      _avifDecodeFailed = false;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     if (!_isAvifUrl(_currentUrl!)) {
       return CachedNetworkImage(

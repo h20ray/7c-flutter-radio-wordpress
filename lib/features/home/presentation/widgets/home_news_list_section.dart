@@ -15,15 +15,165 @@ import '../../../wordpress/presentation/bloc/wordpress_bloc.dart';
 import '../../../categories/domain/entities/category_entity.dart';
 import '../bloc/home_bloc.dart';
 
-class HomeNewsListSection extends StatelessWidget {
+class HomeNewsListSection extends StatefulWidget {
   const HomeNewsListSection({super.key});
 
   @override
+  State<HomeNewsListSection> createState() => _HomeNewsListSectionState();
+}
+
+class _HomeNewsListSectionState extends State<HomeNewsListSection> {
+  bool _hasTriggeredInitialLoad = false;
+  int? _lastRequestedCategoryId;
+
+  void _checkAndTriggerInitialLoad(BuildContext context) {
+    if (_hasTriggeredInitialLoad) return;
+    
+    final homeState = context.read<HomeBloc>().state;
+    homeState.maybeWhen(
+      loaded: (
+        _,
+        _,
+        _,
+        _,
+        _,
+        filterChipCategories,
+        _,
+      ) {
+        if (filterChipCategories.isNotEmpty) {
+          _hasTriggeredInitialLoad = true;
+          _lastRequestedCategoryId = null;
+          _requestPosts(context, categoryId: null);
+        }
+      },
+      orElse: () {},
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAndTriggerInitialLoad(context);
+    });
     final chipTokens = NewsFilterChipTokens.of(context);
-    return BlocBuilder<HomeBloc, HomeState>(
-      buildWhen: (previous, current) => previous != current,
-      builder: (context, homeState) {
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<HomeBloc, HomeState>(
+          listenWhen: (previous, current) {
+            final prevData = previous.maybeWhen(
+              loaded: (
+                _,
+                _,
+                _,
+                _,
+                _,
+                prevFilterChipCategories,
+                _,
+              ) => _HomeNewsData(
+                categories: prevFilterChipCategories,
+                selectedCategoryId: null,
+              ),
+              orElse: () => const _HomeNewsData(categories: [], selectedCategoryId: null),
+            );
+            
+            final currData = current.maybeWhen(
+              loaded: (
+                _,
+                _,
+                _,
+                _,
+                _,
+                currFilterChipCategories,
+                _,
+              ) => _HomeNewsData(
+                categories: currFilterChipCategories,
+                selectedCategoryId: null,
+              ),
+              orElse: () => const _HomeNewsData(categories: [], selectedCategoryId: null),
+            );
+            
+            final categoriesBecameAvailable = 
+                prevData.categories.isEmpty && 
+                currData.categories.isNotEmpty;
+            
+            return categoriesBecameAvailable;
+          },
+          listener: (context, homeState) {
+            homeState.maybeWhen(
+              loaded: (
+                _,
+                _,
+                _,
+                _,
+                _,
+                filterChipCategories,
+                _,
+              ) {
+                if (filterChipCategories.isNotEmpty && !_hasTriggeredInitialLoad) {
+                  _hasTriggeredInitialLoad = true;
+                  _lastRequestedCategoryId = null;
+                  _requestPosts(context, categoryId: null);
+                }
+              },
+              orElse: () {},
+            );
+          },
+        ),
+        BlocListener<HomeBloc, HomeState>(
+          listenWhen: (previous, current) {
+            final prevCategoryId = previous.maybeWhen(
+              loaded: (
+                _,
+                _,
+                _,
+                _,
+                _,
+                _,
+                prevSelectedCategoryId,
+              ) => prevSelectedCategoryId,
+              orElse: () => null,
+            );
+            
+            final currCategoryId = current.maybeWhen(
+              loaded: (
+                _,
+                _,
+                _,
+                _,
+                _,
+                _,
+                currSelectedCategoryId,
+              ) => currSelectedCategoryId,
+              orElse: () => null,
+            );
+            
+            return prevCategoryId != currCategoryId;
+          },
+          listener: (context, homeState) {
+            homeState.maybeWhen(
+              loaded: (
+                _,
+                _,
+                _,
+                _,
+                _,
+                filterChipCategories,
+                selectedCategoryId,
+              ) {
+                if (filterChipCategories.isNotEmpty && 
+                    selectedCategoryId != _lastRequestedCategoryId) {
+                  _lastRequestedCategoryId = selectedCategoryId;
+                  _requestPosts(context, categoryId: selectedCategoryId);
+                }
+              },
+              orElse: () {},
+            );
+          },
+        ),
+      ],
+      child: BlocBuilder<HomeBloc, HomeState>(
+        buildWhen: (previous, current) => previous != current,
+        builder: (context, homeState) {
         final data = homeState.maybeWhen(
           loaded:
               (
@@ -73,14 +223,8 @@ class HomeNewsListSection extends StatelessWidget {
                             label: Text(category.name),
                             onSelected: (_) {
                               final nextId = isSelected ? null : category.id;
-                              
                               context.read<HomeBloc>().add(
                                 HomeEvent.categorySelected(nextId),
-                              );
-
-                              _requestPosts(
-                                context,
-                                categoryId: nextId,
                               );
                             },
                             selectedColor: chipTokens.selectedBackground,
@@ -240,9 +384,9 @@ class HomeNewsListSection extends StatelessWidget {
           ],
         );
       },
+      ),
     );
   }
-
 
   void _requestPosts(
     BuildContext context, {
@@ -250,7 +394,9 @@ class HomeNewsListSection extends StatelessWidget {
     bool forceRefresh = false,
   }) {
     final bloc = context.read<WordPressBloc>();
-    final isAlreadyLoading = bloc.state.maybeWhen(
+    
+    final blocState = bloc.state;
+    final isAlreadyLoading = blocState.maybeWhen(
       loading: (activeCategoryId) => activeCategoryId == categoryId,
       loaded: (
         _,
@@ -290,6 +436,7 @@ class HomeNewsListSection extends StatelessWidget {
         post.featuredImageUrl != null && post.featuredImageUrl!.isNotEmpty;
 
     return Container(
+      key: ValueKey(post.id),
       margin: EdgeInsets.fromLTRB(
         DesignTokens.spacingL,
         DesignTokens.spacingS,
