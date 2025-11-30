@@ -11,71 +11,11 @@ import '../../domain/entities/post_entity.dart';
 
 class PostDetailPageView extends StatelessWidget {
   final PostEntity post;
-  final String? heroTag;
 
   const PostDetailPageView({
     super.key,
     required this.post,
-    this.heroTag,
   });
-
-  Widget _buildHeroImage(BuildContext context) {
-    final colors = context.appColors;
-    final theme = Theme.of(context);
-    final placeholderColor = theme.colorScheme.surfaceContainerHighest;
-    
-    final imageWidget = AspectRatio(
-      aspectRatio: 16 / 9,
-      child: AppNetworkImage(
-        imageUrl: post.featuredImageUrl!,
-        fit: BoxFit.cover,
-        memCacheWidth: 800,
-        memCacheHeight: 450,
-        fadeInDuration: Duration.zero,
-        placeholder: (context, url) => Container(
-          color: placeholderColor,
-        ),
-        errorWidget: (context, url, error) => Container(
-          color: colors.borderSubtle,
-          child: Icon(
-            Icons.image_not_supported,
-            color: colors.textSecondary,
-            size: 48,
-          ),
-        ),
-      ),
-    );
-
-    if (heroTag != null) {
-      return Hero(
-        tag: heroTag!,
-        flightShuttleBuilder: (
-          BuildContext flightContext,
-          Animation<double> animation,
-          HeroFlightDirection flightDirection,
-          BuildContext fromHeroContext,
-          BuildContext toHeroContext,
-        ) {
-          final hero = flightDirection == HeroFlightDirection.push
-              ? toHeroContext.widget
-              : fromHeroContext.widget;
-          return RepaintBoundary(
-            child: Material(
-              color: Colors.transparent,
-              child: hero,
-            ),
-          );
-        },
-        child: RepaintBoundary(
-          child: Material(
-            color: Colors.transparent,
-            child: imageWidget,
-          ),
-        ),
-      );
-    }
-    return imageWidget;
-  }
 
   String _formatNewsDate(DateTime date, BuildContext context) {
     final now = DateTime.now();
@@ -99,6 +39,37 @@ class PostDetailPageView extends StatelessWidget {
     }
   }
 
+  Widget _buildFeaturedImage(BuildContext context) {
+    final colors = context.appColors;
+    final hasImage = post.featuredImageUrl != null && post.featuredImageUrl!.isNotEmpty;
+    
+    if (!hasImage) {
+      return const SizedBox.shrink();
+    }
+
+    return AspectRatio(
+      aspectRatio: 16 / 9,
+      child: AppNetworkImage(
+        imageUrl: post.featuredImageUrl!,
+        fit: BoxFit.cover,
+        memCacheWidth: 800,
+        memCacheHeight: 450,
+        fadeInDuration: DesignTokens.animationDurationMedium,
+        placeholder: (context, url) => Container(
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        ),
+        errorWidget: (context, url, error) => Container(
+          color: colors.borderSubtle,
+          child: Icon(
+            Icons.image_not_supported,
+            color: colors.textSecondary,
+            size: 48,
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
@@ -109,63 +80,41 @@ class PostDetailPageView extends StatelessWidget {
     return Scaffold(
       backgroundColor: colors.primaryBackground,
       body: CustomScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
+        physics: const ClampingScrollPhysics(),
         slivers: [
-          SliverAppBar.large(
+          SliverAppBar(
             pinned: true,
-            stretch: true,
             leading: IconButton(
               icon: const Icon(LucideIcons.arrow_left),
               onPressed: () => Navigator.of(context).pop(),
             ),
             backgroundColor: Colors.transparent,
             surfaceTintColor: theme.colorScheme.surfaceTint,
-            flexibleSpace: LayoutBuilder(
-              builder: (context, constraints) {
-                final topPadding = MediaQuery.of(context).padding.top;
-                final collapsedHeight = kToolbarHeight + topPadding;
-                final currentHeight = constraints.maxHeight;
-                final t = ((currentHeight - collapsedHeight) / 80.0).clamp(0.0, 1.0);
-
-                const collapsedPadding = EdgeInsetsDirectional.only(
-                  start: 16,
-                  end: 16,
-                  bottom: 16,
-                );
-
-                final expandedPadding = EdgeInsetsDirectional.only(
-                  start: 16,
-                  end: 16,
-                  top: topPadding + 12,
-                  bottom: 16,
-                );
-
-                final titlePadding = EdgeInsetsDirectional.lerp(
-                  collapsedPadding,
-                  expandedPadding,
-                  t,
-                )!;
-
-                return GlassAppBarBackground(
-                  child: FlexibleSpaceBar(
-                    centerTitle: false,
-                    titlePadding: titlePadding,
-                    title: Text(
-                      post.title,
-                      style: textTheme.headlineSmall?.copyWith(
-                        color: theme.colorScheme.onSurface,
-                      ),
-                      maxLines: t > 0.5 ? 2 : 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                );
-              },
+            elevation: 0,
+            scrolledUnderElevation: 0,
+            flexibleSpace: GlassAppBarBackground(
+              child: Container(),
+            ),
+          ),
+          SliverPadding(
+            padding: EdgeInsets.fromLTRB(
+              DesignTokens.spacingL,
+              DesignTokens.spacingL,
+              DesignTokens.spacingL,
+              0,
+            ),
+            sliver: SliverToBoxAdapter(
+              child: Text(
+                post.title,
+                style: textTheme.headlineMedium?.copyWith(
+                  color: colors.textPrimary,
+                ),
+              ),
             ),
           ),
           if (hasImage)
             SliverToBoxAdapter(
-              child: _buildHeroImage(context),
+              child: _buildFeaturedImage(context),
             ),
           SliverPadding(
             padding: EdgeInsets.all(DesignTokens.spacingL),
@@ -177,13 +126,6 @@ class PostDetailPageView extends StatelessWidget {
                     post: post,
                     colors: colors,
                     formatDate: _formatNewsDate,
-                  ),
-                  SizedBox(height: DesignTokens.spacingL),
-                  Text(
-                    post.title,
-                    style: textTheme.headlineMedium?.copyWith(
-                      color: colors.textPrimary,
-                    ),
                   ),
                   SizedBox(height: DesignTokens.spacingXl),
                   _PostContentHtml(
@@ -214,7 +156,8 @@ class _PostMetadataRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isLight = Theme.of(context).brightness == Brightness.light;
+    final theme = Theme.of(context);
+    final isLight = theme.brightness == Brightness.light;
     final vibrantColor = isLight
         ? colors.gradientStart.withValues(alpha: 0.15)
         : colors.gradientStart.withValues(alpha: 0.25);
@@ -390,4 +333,3 @@ class _PostContentHtml extends StatelessWidget {
     );
   }
 }
-

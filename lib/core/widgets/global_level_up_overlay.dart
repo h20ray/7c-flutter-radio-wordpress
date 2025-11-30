@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:lottie/lottie.dart';
 
+import '../../config/game_radio_time_config.dart';
 import '../../features/gamification/data/datasources/level_celebration_local_data_source.dart';
 import '../di/injection_container.dart';
 import '../services/level_up_celebration_service.dart';
@@ -15,28 +16,73 @@ class GlobalLevelUpOverlay extends StatefulWidget {
   State<GlobalLevelUpOverlay> createState() => _GlobalLevelUpOverlayState();
 }
 
-class _GlobalLevelUpOverlayState extends State<GlobalLevelUpOverlay> {
+class _GlobalLevelUpOverlayState extends State<GlobalLevelUpOverlay>
+    with TickerProviderStateMixin {
   LevelUpCelebrationService? _service;
   LevelUpCelebrationData? _currentCelebration;
   bool _hasError = false;
 
+  late final AnimationController _levelUpController;
+  late final AnimationController _transitionController;
+  late final Animation<Offset> _slideAnimation;
+  late final Animation<double> _fadeOutAnimation;
+  late final Animation<double> _fadeInAnimation;
+
+  bool _transitionStarted = false;
+
   @override
   void initState() {
     super.initState();
+    _initializeAnimations();
     _initializeService();
+  }
+
+  void _initializeAnimations() {
+    _levelUpController = AnimationController(vsync: this);
+    _transitionController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+
+    _slideAnimation = Tween<Offset>(
+      begin: Offset.zero,
+      end: const Offset(0, -1.5),
+    ).animate(CurvedAnimation(
+      parent: _transitionController,
+      curve: Curves.easeInOut,
+    ));
+
+    _fadeOutAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.0,
+    ).animate(CurvedAnimation(
+      parent: _transitionController,
+      curve: const Interval(0.0, 0.8, curve: Curves.easeOut),
+    ));
+
+    _fadeInAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _transitionController,
+      curve: const Interval(0.2, 1.0, curve: Curves.easeIn),
+    ));
+
+    _levelUpController.addListener(_checkTransition);
+  }
+
+  void _checkTransition() {
+    // Trigger transition at 80% of the level up animation
+    if (_levelUpController.value > 0.8 && !_transitionStarted) {
+      _transitionStarted = true;
+      _transitionController.forward();
+    }
   }
 
   void _initializeService() {
     if (getIt.isRegistered<LevelCelebrationLocalDataSource>()) {
       _service = LevelUpCelebrationService.instance;
-      _service!.celebrationStream.listen((celebration) {
-        if (mounted) {
-          setState(() {
-            _currentCelebration = celebration;
-            _hasError = false;
-          });
-        }
-      });
+      _service!.celebrationStream.listen(_onCelebrationChanged);
     } else {
       Future.delayed(const Duration(milliseconds: 100), () {
         if (mounted) {
@@ -44,6 +90,39 @@ class _GlobalLevelUpOverlayState extends State<GlobalLevelUpOverlay> {
         }
       });
     }
+  }
+
+  void _onCelebrationChanged(LevelUpCelebrationData? celebration) {
+    if (mounted) {
+      setState(() {
+        _currentCelebration = celebration;
+        _hasError = false;
+        if (celebration != null) {
+          _resetAnimations();
+        } else {
+          _stopAnimations();
+        }
+      });
+    }
+  }
+
+  void _resetAnimations() {
+    _transitionStarted = false;
+    _levelUpController.reset();
+    _transitionController.reset();
+  }
+
+  void _stopAnimations() {
+    _levelUpController.stop();
+    _transitionController.stop();
+  }
+
+  @override
+  void dispose() {
+    _levelUpController.removeListener(_checkTransition);
+    _levelUpController.dispose();
+    _transitionController.dispose();
+    super.dispose();
   }
 
   Future<LottieComposition?> _dotLottieDecoder(List<int> bytes) {
@@ -77,6 +156,10 @@ class _GlobalLevelUpOverlayState extends State<GlobalLevelUpOverlay> {
     final screenSize = MediaQuery.of(context).size;
     final levelUpAnimationSize = (screenSize.width * 0.5).clamp(200.0, 280.0);
 
+    // Get current level definition to find the animation asset
+    final currentLevel =
+        GameRadioTimeConfig.getLevelById(_currentCelebration!.levelId);
+
     return Positioned.fill(
       child: GestureDetector(
         onTap: _handleDismiss,
@@ -100,24 +183,57 @@ class _GlobalLevelUpOverlayState extends State<GlobalLevelUpOverlay> {
                         height: levelUpAnimationSize,
                         child: _hasError
                             ? _buildFallback()
-                            : Lottie.asset(
-                                'assets/sprites/game_level_listening/level_up.lottie',
-                                repeat: false,
-                                fit: BoxFit.contain,
-                                decoder: _dotLottieDecoder,
-                                errorBuilder: (context, error, stackTrace) {
-                                  if (mounted) {
-                                    WidgetsBinding.instance
-                                        .addPostFrameCallback((_) {
-                                      if (mounted) {
-                                        setState(() {
-                                          _hasError = true;
-                                        });
-                                      }
-                                    });
-                                  }
-                                  return _buildFallback();
-                                },
+                            : Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  // Current Level Animation (Fades In)
+                                  if (currentLevel != null)
+                                    FadeTransition(
+                                      opacity: _fadeInAnimation,
+                                      child: Lottie.asset(
+                                        currentLevel.animationAssetPath,
+                                        fit: BoxFit.contain,
+                                        decoder: _dotLottieDecoder,
+                                        // Loop infinitely
+                                        repeat: true,
+                                      ),
+                                    ),
+                                  // Level Up Animation (Slides Up & Fades Out)
+                                  SlideTransition(
+                                    position: _slideAnimation,
+                                    child: FadeTransition(
+                                      opacity: _fadeOutAnimation,
+                                      child: Lottie.asset(
+                                        'assets/sprites/game_level_listening/level_up.lottie',
+                                        controller: _levelUpController,
+                                        repeat: false,
+                                        fit: BoxFit.contain,
+                                        decoder: _dotLottieDecoder,
+                                        onLoaded: (composition) {
+                                          _levelUpController.duration =
+                                              composition.duration;
+                                          _levelUpController.forward();
+                                        },
+                                        errorBuilder:
+                                            (context, error, stackTrace) {
+                                          // Only trigger error if we haven't started transitioning
+                                          // effectively fallback for the main animation
+                                          if (mounted && !_transitionStarted) {
+                                            WidgetsBinding.instance
+                                                .addPostFrameCallback((_) {
+                                              if (mounted) {
+                                                setState(() {
+                                                  _hasError = true;
+                                                });
+                                              }
+                                            });
+                                          }
+                                          return const SizedBox.shrink();
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                       ),
                       SizedBox(height: DesignTokens.spacingL),

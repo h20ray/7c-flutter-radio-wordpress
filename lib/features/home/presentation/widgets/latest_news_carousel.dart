@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
-import '../../../../core/routes/app_routes.dart';
 import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/themes/app_color_system.dart';
 import '../../../../core/themes/component_tokens.dart';
 import '../../../../core/themes/design_tokens.dart';
 import '../../../../core/widgets/news_card_skeleton.dart';
+import '../../../../core/routes/app_routes.dart';
 import '../../../wordpress/presentation/bloc/wordpress_bloc.dart';
 import '../../../wordpress/domain/entities/post_entity.dart';
 
@@ -305,45 +306,42 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
     final hasImage =
         post.featuredImageUrl != null && post.featuredImageUrl!.isNotEmpty;
 
-    return GestureDetector(
-      onTap: () {
-        Navigator.pushNamed(
-          context,
-          AppRoutes.postDetail,
-          arguments: {'post': post, 'heroTag': 'carousel-post-image-${post.id}'},
-        );
-      },
-      child: Container(
-        width: cardWidth,
-        margin: EdgeInsets.only(
-          left: DesignTokens.spacingL,
-          right: isLast ? DesignTokens.spacingL : DesignTokens.spacingM,
-        ),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
-          boxShadow: [
-            BoxShadow(color: tokens.shadow, blurRadius: 8, offset: Offset(0, 2)),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
-          child: AspectRatio(
-            aspectRatio: 16 / 9,
-            child: Stack(
-              children: [
-                if (hasImage)
-                  Positioned.fill(
-                    child: Hero(
-                      tag: 'carousel-post-image-${post.id}',
-                      child: RepaintBoundary(
-                        child: Material(
-                          color: Colors.transparent,
-                          child: AppNetworkImage(
+    return Container(
+      width: cardWidth,
+      margin: EdgeInsets.only(
+        left: DesignTokens.spacingL,
+        right: isLast ? DesignTokens.spacingL : DesignTokens.spacingM,
+      ),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
+        boxShadow: [
+          BoxShadow(color: tokens.shadow, blurRadius: 8, offset: Offset(0, 2)),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () {
+              HapticFeedback.lightImpact();
+              Navigator.pushNamed(
+                context,
+                AppRoutes.postDetail,
+                arguments: post,
+              );
+            },
+            child: AspectRatio(
+              aspectRatio: 16 / 9,
+              child: Stack(
+                children: [
+                  if (hasImage)
+                    Positioned.fill(
+                      child: AppNetworkImage(
                         imageUrl: post.featuredImageUrl!,
                         fit: BoxFit.cover,
                         memCacheWidth: 800,
                         memCacheHeight: 450,
-                        fadeInDuration: Duration.zero,
                         placeholder: (context, url) => Container(
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
@@ -366,104 +364,102 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                             color: Colors.white.withValues(alpha: 0.3),
                             size: 48,
                           ),
-                            ),
-                          ),
                         ),
                       ),
-                    ),
-                  )
-                else
-                  Positioned.fill(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [tokens.gradientStart, tokens.gradientEnd],
-                        ),
-                      ),
-                    ),
-                  ),
+                    )
+              else
                 Positioned.fill(
                   child: Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.transparent,
-                          Colors.black.withValues(alpha: 0.7),
-                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [tokens.gradientStart, tokens.gradientEnd],
                       ),
                     ),
                   ),
                 ),
-                Padding(
-                  padding: EdgeInsets.all(DesignTokens.spacingL),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      if (post.categoryName != null &&
-                          post.categoryName!.isNotEmpty)
-                        Container(
-                          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: tokens.badgeBackground,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            post.categoryName!,
-                            style: TextStyle(
-                              fontSize: DesignTokens.fontSizeCaption,
-                              fontWeight: FontWeight.w600,
-                              color: tokens.badgeText,
-                            ),
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withValues(alpha: 0.7),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.all(DesignTokens.spacingL),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    if (post.categoryName != null &&
+                        post.categoryName!.isNotEmpty)
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: tokens.badgeBackground,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          post.categoryName!,
+                          style: TextStyle(
+                            fontSize: DesignTokens.fontSizeCaption,
+                            fontWeight: FontWeight.w600,
+                            color: tokens.badgeText,
                           ),
                         ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
+                      ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          post.title,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                            shadows: [
+                              Shadow(
+                                offset: Offset(0, 1),
+                                blurRadius: 3,
+                                color: Colors.black.withValues(alpha: 0.5),
+                              ),
+                            ],
+                          ),
+                          maxLines: 4,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        if (post.date != null) ...[
+                          SizedBox(height: DesignTokens.spacingS),
                           Text(
-                            post.title,
+                            _formatDate(post.date!, context),
                             style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
+                              fontSize: DesignTokens.fontSizeCaption,
+                              color: Colors.white.withValues(alpha: 0.9),
                               shadows: [
                                 Shadow(
                                   offset: Offset(0, 1),
-                                  blurRadius: 3,
+                                  blurRadius: 2,
                                   color: Colors.black.withValues(alpha: 0.5),
                                 ),
                               ],
                             ),
-                            maxLines: 4,
-                            overflow: TextOverflow.ellipsis,
                           ),
-                          if (post.date != null) ...[
-                            SizedBox(height: DesignTokens.spacingS),
-                            Text(
-                              _formatDate(post.date!, context),
-                              style: TextStyle(
-                                fontSize: DesignTokens.fontSizeCaption,
-                                color: Colors.white.withValues(alpha: 0.9),
-                                shadows: [
-                                  Shadow(
-                                    offset: Offset(0, 1),
-                                    blurRadius: 2,
-                                    color: Colors.black.withValues(alpha: 0.5),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
                         ],
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
+                  ],
                 ),
-              ],
+              ),
+                ],
+              ),
             ),
           ),
         ),

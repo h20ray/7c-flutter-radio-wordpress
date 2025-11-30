@@ -11,7 +11,7 @@ import '../../features/home/presentation/pages/home_screen.dart';
 import '../../features/home/presentation/bloc/home_bloc.dart';
 import '../../features/wordpress/presentation/bloc/wordpress_bloc.dart';
 import '../../features/wordpress/presentation/pages/news_page.dart';
-import '../../features/wordpress/presentation/pages/post_detail_page.dart';
+import '../../features/wordpress/presentation/pages/post_detail_page_view.dart';
 import '../../features/wordpress/domain/entities/post_entity.dart';
 import '../../features/tamtama/presentation/bloc/tamtama_bloc.dart';
 import '../di/injection_container.dart';
@@ -59,21 +59,23 @@ class RouteGenerator {
         });
       case AppRoutes.postDetail:
         final args = settings.arguments;
-        if (args is Map<String, dynamic> && args['post'] is PostEntity) {
-          final post = args['post'] as PostEntity;
-          final heroTag = args['heroTag'] as String?;
-          return PostDetailPage.route(post, heroTag: heroTag);
-        } else if (args is PostEntity) {
-          return PostDetailPage.route(args);
+        PostEntity? post;
+        
+        if (args is PostEntity) {
+          post = args;
+        } else if (args is Map) {
+          post = args['post'] as PostEntity?;
         }
-        return _buildPageRoute(
-          settings,
-          (_) => Scaffold(
-            body: Center(
-              child: Text('Invalid post data'),
+        
+        if (post == null) {
+          return _buildPageRoute(
+            settings,
+            (_) => Scaffold(
+              body: Center(child: Text('Post not found')),
             ),
-          ),
-        );
+          );
+        }
+        return _buildPostDetailRoute(settings, post);
       default:
         return _buildPageRoute(
           settings,
@@ -90,8 +92,8 @@ class RouteGenerator {
   ) {
     return PageRouteBuilder(
       settings: settings,
-      transitionDuration: const Duration(milliseconds: 250),
-      reverseTransitionDuration: const Duration(milliseconds: 200),
+      transitionDuration: const Duration(milliseconds: 300),
+      reverseTransitionDuration: const Duration(milliseconds: 250),
       pageBuilder: (context, animation, secondaryAnimation) {
         return builder(context);
       },
@@ -102,6 +104,51 @@ class RouteGenerator {
           reverseCurve: Curves.easeInCubic,
         );
         return FadeTransition(opacity: curvedAnimation, child: child);
+      },
+    );
+  }
+
+  static PageRouteBuilder<dynamic> _buildPostDetailRoute(
+    RouteSettings settings,
+    PostEntity post,
+  ) {
+    return PageRouteBuilder(
+      settings: settings,
+      transitionDuration: const Duration(milliseconds: 300),
+      reverseTransitionDuration: const Duration(milliseconds: 250),
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return PostDetailPageView(
+          post: post,
+        );
+      },
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        const begin = Offset(1.0, 0.0);
+        const end = Offset.zero;
+        const curve = Curves.easeOutCubic;
+
+        final slideAnimation = Tween(begin: begin, end: end).animate(
+          CurvedAnimation(
+            parent: animation,
+            curve: curve,
+            reverseCurve: Curves.easeInCubic,
+          ),
+        );
+
+        final fadeAnimation = Tween(begin: 0.0, end: 1.0).animate(
+          CurvedAnimation(
+            parent: animation,
+            curve: curve,
+            reverseCurve: Curves.easeInCubic,
+          ),
+        );
+
+        return SlideTransition(
+          position: slideAnimation,
+          child: FadeTransition(
+            opacity: fadeAnimation,
+            child: child,
+          ),
+        );
       },
     );
   }

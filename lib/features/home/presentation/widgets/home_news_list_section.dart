@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../core/routes/app_routes.dart';
+import 'package:flutter/services.dart';
 import '../../../../core/widgets/app_network_image.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -9,6 +9,7 @@ import '../../../../core/themes/app_color_system.dart';
 import '../../../../core/themes/component_tokens.dart';
 import '../../../../core/themes/design_tokens.dart';
 import '../../../../core/widgets/home_news_card_skeleton.dart';
+import '../../../../core/routes/app_routes.dart';
 import '../../../wordpress/domain/entities/post_entity.dart';
 import '../../../wordpress/presentation/bloc/wordpress_bloc.dart';
 import '../../../categories/domain/entities/category_entity.dart';
@@ -252,51 +253,47 @@ class HomeNewsListSection extends StatelessWidget {
     final hasImage =
         post.featuredImageUrl != null && post.featuredImageUrl!.isNotEmpty;
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () {
-          Navigator.pushNamed(
-            context,
-            AppRoutes.postDetail,
-            arguments: {'post': post, 'heroTag': 'home-list-post-image-${post.id}'},
-          );
-        },
+    return Container(
+      margin: EdgeInsets.fromLTRB(
+        DesignTokens.spacingL,
+        DesignTokens.spacingS,
+        DesignTokens.spacingL,
+        0,
+      ),
+      decoration: BoxDecoration(
+        color: colors.cardBackground,
         borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
-        child: Container(
-          margin: EdgeInsets.fromLTRB(
-            DesignTokens.spacingL,
-            DesignTokens.spacingS,
-            DesignTokens.spacingL,
-            0,
-          ),
-          padding: EdgeInsets.all(DesignTokens.spacingM),
-          decoration: BoxDecoration(
-            color: colors.cardBackground,
-            borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 72,
-                height: 72,
-                decoration: BoxDecoration(
-                  color: colors.borderSubtle,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: hasImage
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: Hero(
-                          tag: 'home-list-post-image-${post.id}',
-                          child: RepaintBoundary(
-                            child: Material(
-                              color: Colors.transparent,
-                              child: AppNetworkImage(
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            HapticFeedback.lightImpact();
+            Navigator.pushNamed(
+              context,
+              AppRoutes.postDetail,
+              arguments: post,
+            );
+          },
+          borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
+          child: Padding(
+            padding: EdgeInsets.all(DesignTokens.spacingM),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 72,
+                  height: 72,
+                  decoration: BoxDecoration(
+                    color: colors.borderSubtle,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: hasImage
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: AppNetworkImage(
                             imageUrl: post.featuredImageUrl!,
                             fit: BoxFit.cover,
-                            fadeInDuration: Duration.zero,
                             placeholder: (context, url) => Container(
                               color: colors.borderSubtle,
                             ),
@@ -304,36 +301,34 @@ class HomeNewsListSection extends StatelessWidget {
                               Icons.image_not_supported,
                               color: colors.textSecondary,
                             ),
-                              ),
-                            ),
                           ),
-                        ),
-                      )
-                    : Icon(Icons.image, color: colors.textSecondary),
-              ),
-              SizedBox(width: DesignTokens.spacingM),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      post.title,
-                      style: TextStyle(
-                        fontSize: DesignTokens.fontSizeCaption,
-                        fontWeight: FontWeight.w500,
-                        color: colors.textPrimary,
-                        height: 1.25,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    SizedBox(height: DesignTokens.spacingS),
-                    _buildInfoPills(context, post, chipTokens),
-                  ],
+                        )
+                      : Icon(Icons.image, color: colors.textSecondary),
                 ),
-              ),
-            ],
+          SizedBox(width: DesignTokens.spacingM),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  post.title,
+                  style: TextStyle(
+                    fontSize: DesignTokens.fontSizeCaption,
+                    fontWeight: FontWeight.w500,
+                    color: colors.textPrimary,
+                    height: 1.25,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                SizedBox(height: DesignTokens.spacingS),
+                _buildInfoPills(context, post, chipTokens),
+              ],
+            ),
+          ),
+              ],
+            ),
           ),
         ),
       ),
