@@ -80,7 +80,7 @@ class _SwipeableCardContainerState extends State<SwipeableCardContainer> {
 
     if (index < _initialPage - _itemCount ||
         index > _initialPage + _itemCount * 2) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+      WidgetsBinding.instance.addPostFrameCallback((duration) {
         if (mounted && _pageController.hasClients) {
           final targetPage = _initialPage + realIndex;
           _pageController.jumpToPage(targetPage);

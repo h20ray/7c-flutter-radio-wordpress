@@ -67,7 +67,7 @@ class ShoutboxBloc extends Bloc<ShoutboxEvent, ShoutboxState> {
     final result = await deleteMessage(event.id);
     result.fold(
       (failure) => emit(ShoutboxState.error(failure)),
-      (_) {
+      (unit) {
         state.maybeWhen(
           loaded: (currentMessages) {
             final updatedMessages = currentMessages.where((m) => m.id != event.id).toList();

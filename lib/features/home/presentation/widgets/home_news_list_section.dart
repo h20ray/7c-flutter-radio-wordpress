@@ -52,7 +52,7 @@ class _HomeNewsListSectionState extends State<HomeNewsListSection> {
 
   @override
   Widget build(BuildContext context) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((duration) {
       _checkAndTriggerInitialLoad(context);
     });
     final chipTokens = NewsFilterChipTokens.of(context);
@@ -221,7 +221,7 @@ class _HomeNewsListSectionState extends State<HomeNewsListSection> {
                             selected: isSelected,
                             showCheckmark: false,
                             label: Text(category.name),
-                            onSelected: (_) {
+                            onSelected: (value) {
                               final nextId = isSelected ? null : category.id;
                               context.read<HomeBloc>().add(
                                 HomeEvent.categorySelected(nextId),

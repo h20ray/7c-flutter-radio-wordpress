@@ -149,7 +149,7 @@ class _AvifCachedImageState extends State<_AvifCachedImage> {
       errorBuilder: (context, error, stackTrace) {
         if (!_avifDecodeFailed && _fallbackIndex < _fallbackExtensions.length) {
           _avifDecodeFailed = true;
-          WidgetsBinding.instance.addPostFrameCallback((_) {
+          WidgetsBinding.instance.addPostFrameCallback((duration) {
             if (mounted) {
               setState(() {
                 _fallbackIndex++;
@@ -215,7 +215,7 @@ class _AvifCachedImageState extends State<_AvifCachedImage> {
         placeholder: widget.placeholder,
         errorWidget: (context, url, error) {
           if (_fallbackIndex < _fallbackExtensions.length) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
+            WidgetsBinding.instance.addPostFrameCallback((duration) {
               if (mounted) {
                 setState(() {
                   _fallbackIndex++;
@@ -243,7 +243,7 @@ class _AvifCachedImageState extends State<_AvifCachedImage> {
 
         if (snapshot.hasError || !snapshot.hasData) {
           if (_fallbackIndex < _fallbackExtensions.length) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
+            WidgetsBinding.instance.addPostFrameCallback((duration) {
               if (mounted) {
                 setState(() {
                   _fallbackIndex++;

@@ -46,7 +46,7 @@ class PaletteService {
       final result = await _extract(provider);
       if (cacheKey != null) _cache.put(cacheKey, result);
       return result;
-    } catch (_) {
+    } catch (error) {
       return _fallbackFrom(fallback);
     }
   }

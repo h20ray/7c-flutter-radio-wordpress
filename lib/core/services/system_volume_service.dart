@@ -19,7 +19,7 @@ class SystemVolumeService {
   void ensureInitialized() {
     if (_pollTimer != null) return;
     double? last;
-    _pollTimer = Timer.periodic(const Duration(milliseconds: 250), (_) async {
+    _pollTimer = Timer.periodic(const Duration(milliseconds: 250), (timer) async {
       try {
         final int raw = await VolumeRegulator.getVolume();
         final double normalized = (raw / 100).clamp(0.0, 1.0);

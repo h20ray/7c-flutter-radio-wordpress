@@ -98,7 +98,7 @@ class AppInitializer {
         currentAppState: appState,
       );
 
-      _performLazyInitialization(arg).then((_) {
+      _performLazyInitialization(arg).then((result) {
         _state = _state.copyWith(isLazyInitComplete: true);
       }).catchError((e, st) {
         // We don't fail the app for lazy init errors
@@ -226,8 +226,8 @@ class AppInitializer {
         );
 
         final isComplete = state.maybeWhen(
-          loaded: (_) => true,
-          error: (_) => true,
+          loaded: (radioEntity) => true,
+          error: (failure) => true,
           orElse: () => false,
         );
         

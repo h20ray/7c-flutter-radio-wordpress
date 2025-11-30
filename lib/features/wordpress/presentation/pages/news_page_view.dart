@@ -183,7 +183,7 @@ class _NewsPageViewContentState extends State<_NewsPageViewContent> {
           children: [
             BlocListener<NewsBloc, NewsState>(
               listener: (context, state) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
+                WidgetsBinding.instance.addPostFrameCallback((duration) {
                   _checkFillViewportIfNeeded(state);
                 });
               },

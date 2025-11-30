@@ -859,7 +859,7 @@ class WordPressBloc extends Bloc<WordPressEvent, WordPressState> {
         search: search,
         useNewsPageLimit: useNewsPageLimit,
       );
-      posts.fold((_) {}, (_) {});
+      posts.fold((failure) {}, (posts) {});
     } catch (e) {
       // Silently fail background cache update
     }

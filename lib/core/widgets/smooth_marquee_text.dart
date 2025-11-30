@@ -84,7 +84,7 @@ class _FadeMarqueeTextState extends State<FadeMarqueeText>
     _animation = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(parent: _controller, curve: Curves.linear),
     );
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((duration) {
       if (mounted) {
         _calculateWidths();
         _startMarquee();
@@ -117,7 +117,7 @@ class _FadeMarqueeTextState extends State<FadeMarqueeText>
   void _restartMarquee() {
     _stopMarquee();
     _controller.duration = widget.duration;
-    WidgetsBinding.instance.addPostFrameCallback((_) => _calculateWidths());
+    WidgetsBinding.instance.addPostFrameCallback((duration) => _calculateWidths());
     _startMarquee();
   }
 

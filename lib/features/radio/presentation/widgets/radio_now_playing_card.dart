@@ -225,7 +225,7 @@ class _RadioNowPlayingCardState extends State<RadioNowPlayingCard> {
               tag: 'Palette',
             );
           }
-          WidgetsBinding.instance.addPostFrameCallback((_) {
+          WidgetsBinding.instance.addPostFrameCallback((duration) {
             if (mounted) {
               if (currentArtUrl != null && currentArtUrl.isNotEmpty) {
                 _generatePalette(currentArtUrl);
@@ -237,7 +237,7 @@ class _RadioNowPlayingCardState extends State<RadioNowPlayingCard> {
         } else if (_currentAlbumArtUrl != null &&
             _cachedPalette == null &&
             !_isLoadingPalette) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
+          WidgetsBinding.instance.addPostFrameCallback((duration) {
             if (mounted) {
               if (_currentAlbumArtUrl!.isNotEmpty) {
                 _generatePalette(_currentAlbumArtUrl!);
@@ -530,7 +530,7 @@ class _PlayerControlsRow extends StatelessWidget {
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => _RequestWebViewPage()),
+              MaterialPageRoute(builder: (context) => _RequestWebViewPage()),
             );
           },
           icon: LucideIcons.list_music,

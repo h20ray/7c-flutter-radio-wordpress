@@ -226,7 +226,7 @@ class _GlobalLevelUpOverlayState extends State<GlobalLevelUpOverlay>
                                           // effectively fallback for the main animation
                                           if (mounted && !_transitionStarted) {
                                             WidgetsBinding.instance
-                                                .addPostFrameCallback((_) {
+                                                .addPostFrameCallback((duration) {
                                               if (mounted) {
                                                 setState(() {
                                                   _hasError = true;

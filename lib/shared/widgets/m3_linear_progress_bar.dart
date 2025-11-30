@@ -64,7 +64,7 @@ class _M3LinearProgressBarState extends State<M3LinearProgressBar>
 
     if (widget.animateFromZeroOnMount ||
         (widget.loopProgressAnimation && widget.animateProgress)) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+      WidgetsBinding.instance.addPostFrameCallback((duration) {
         if (!mounted) return;
         _animateTo(_targetProgress);
       });

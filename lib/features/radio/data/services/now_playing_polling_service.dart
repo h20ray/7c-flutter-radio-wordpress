@@ -47,7 +47,7 @@ class NowPlayingPollingService {
     _callback = onMetadata;
 
     _pollOnce();
-    _timer = Timer.periodic(interval, (_) => _pollOnce());
+    _timer = Timer.periodic(interval, (timer) => _pollOnce());
   }
 
   void stop() {
@@ -91,7 +91,7 @@ class NowPlayingPollingService {
           );
         }
       }
-    } catch (_) {
+    } catch (error) {
       // Swallow polling errors silently to avoid spamming logs.
     }
   }

@@ -22,11 +22,11 @@ class RouteGenerator {
     switch (settings.name) {
       case AppRoutes.initial:
       case AppRoutes.loadingApp:
-        return MaterialPageRoute(builder: (_) => const LoadingAppPage());
+        return MaterialPageRoute(builder: (context) => const LoadingAppPage());
       case AppRoutes.home:
         return _buildPageRoute(
           settings,
-          (_) => MultiBlocProvider(
+          (context) => MultiBlocProvider(
             providers: [
               BlocProvider.value(value: getIt<RadioBloc>()),
               BlocProvider.value(value: getIt<RadioPlayerBloc>()),
@@ -34,7 +34,7 @@ class RouteGenerator {
               BlocProvider.value(value: getIt<HomeBloc>()),
               BlocProvider.value(value: getIt<GamificationBloc>()),
               BlocProvider(
-                create: (_) =>
+                create: (context) =>
                     getIt<TamtamaBloc>()..add(const TamtamaEvent.load()),
               ),
             ],
@@ -42,11 +42,11 @@ class RouteGenerator {
           ),
         );
       case AppRoutes.radio:
-        return _buildPageRoute(settings, (_) => const RadioPage());
+        return _buildPageRoute(settings, (context) => const RadioPage());
       case AppRoutes.news:
-        return _buildPageRoute(settings, (_) => const NewsPage());
+        return _buildPageRoute(settings, (context) => const NewsPage());
       case AppRoutes.levelDetails:
-        return _buildPageRoute(settings, (_) {
+        return _buildPageRoute(settings, (context) {
           final bloc = getIt<GamificationBloc>();
           bloc.state.maybeWhen(
             initial: () => bloc.add(const GamificationEvent.started()),
@@ -70,7 +70,7 @@ class RouteGenerator {
         if (post == null) {
           return _buildPageRoute(
             settings,
-            (_) => Scaffold(
+            (context) => Scaffold(
               body: Center(child: Text('Post not found')),
             ),
           );
@@ -79,7 +79,7 @@ class RouteGenerator {
       default:
         return _buildPageRoute(
           settings,
-          (_) => Scaffold(
+          (context) => Scaffold(
             body: Center(child: Text('No route defined for ${settings.name}')),
           ),
         );

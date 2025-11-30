@@ -355,7 +355,7 @@ class RadioPlayerBloc extends Bloc<RadioPlayerEvent, RadioPlayerState> {
         DebugLogger.logError('Initialize failed', error: failure, tag: 'RadioPlayerBloc');
         emit(RadioPlayerState.error(failure: failure, message: failure.message));
       },
-      (_) async {
+      (unit) async {
         DebugLogger.log('[RadioPlayerBloc] Initialize succeeded', tag: 'RadioPlayerBloc');
         // Success - state will be updated via stream listener
         // If autoPlay is true, set flag and wait for ready state
@@ -401,7 +401,7 @@ class RadioPlayerBloc extends Bloc<RadioPlayerEvent, RadioPlayerState> {
     result.fold(
       (failure) => emit(
           RadioPlayerState.error(failure: failure, message: failure.message)),
-      (_) {
+      (unit) {
         // Success - state will be updated via stream listener
       },
     );
@@ -431,7 +431,7 @@ class RadioPlayerBloc extends Bloc<RadioPlayerEvent, RadioPlayerState> {
     result.fold(
       (failure) => emit(
           RadioPlayerState.error(failure: failure, message: failure.message)),
-      (_) {
+      (unit) {
         // Success - state will be updated via stream listener
       },
     );
@@ -489,7 +489,7 @@ class RadioPlayerBloc extends Bloc<RadioPlayerEvent, RadioPlayerState> {
     result.fold(
       (failure) => emit(
           RadioPlayerState.error(failure: failure, message: failure.message)),
-      (_) => emit(const RadioPlayerState.initial()),
+      (unit) => emit(const RadioPlayerState.initial()),
     );
   }
 
@@ -612,7 +612,7 @@ class RadioPlayerBloc extends Bloc<RadioPlayerEvent, RadioPlayerState> {
     result.fold(
       (failure) => emit(
           RadioPlayerState.error(failure: failure, message: failure.message)),
-      (_) {
+      (unit) {
         // Success - no state change needed
       },
     );
@@ -638,7 +638,7 @@ class RadioPlayerBloc extends Bloc<RadioPlayerEvent, RadioPlayerState> {
     result.fold(
       (failure) => emit(
           RadioPlayerState.error(failure: failure, message: failure.message)),
-      (_) {
+      (unit) {
         // Success - no state change needed
       },
     );
@@ -672,7 +672,7 @@ class RadioPlayerBloc extends Bloc<RadioPlayerEvent, RadioPlayerState> {
     _listeningFlushTimer?.cancel();
     _listeningFlushTimer = Timer.periodic(
       AppConfig.listeningFlushInterval,
-      (_) => unawaited(_flushListeningSession(keepSessionActive: true)),
+      (timer) => unawaited(_flushListeningSession(keepSessionActive: true)),
     );
   }
 

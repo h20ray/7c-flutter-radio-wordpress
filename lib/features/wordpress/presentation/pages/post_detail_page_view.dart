@@ -45,7 +45,7 @@ class _PostDetailPageViewState extends State<PostDetailPageView> {
     _trackedCategoryId = _currentPost.categoryIds.isNotEmpty
         ? _currentPost.categoryIds.first
         : null;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((duration) {
       if (mounted) {
         _requestBackgroundRefresh();
       }
@@ -60,7 +60,7 @@ class _PostDetailPageViewState extends State<PostDetailPageView> {
       _trackedCategoryId = _currentPost.categoryIds.isNotEmpty
           ? _currentPost.categoryIds.first
           : null;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+      WidgetsBinding.instance.addPostFrameCallback((duration) {
         if (mounted) {
           _requestBackgroundRefresh();
         }

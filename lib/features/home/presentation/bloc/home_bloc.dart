@@ -87,7 +87,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     Emitter<HomeState> emit,
   ) {
     state.maybeWhen(
-      loaded: (selectedTabIndex, _, nowPlaying, nowPlayingError, availableCategories, filterChipCategories, selectedCategoryId) {
+      loaded: (selectedTabIndex, selectedCategory, nowPlaying, nowPlayingError, availableCategories, filterChipCategories, selectedCategoryId) {
         emit(
           HomeState.loaded(
             selectedTabIndex: selectedTabIndex,
@@ -121,7 +121,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     // Immediately transition to loaded state if not already loaded.
     // We remove the artificial delay to improve perceived performance.
     state.maybeWhen(
-      loaded: (_, _, _, _, _, _, _) {
+      loaded: (selectedTabIndex, selectedCategory, nowPlaying, nowPlayingError, availableCategories, filterChipCategories, selectedCategoryId) {
         // Already loaded, do nothing
       },
       orElse: () {
@@ -143,7 +143,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     Emitter<HomeState> emit,
   ) {
     state.maybeWhen(
-      loaded: (selectedTabIndex, selectedCategory, _, nowPlayingError, availableCategories, filterChipCategories, selectedCategoryId) {
+      loaded: (selectedTabIndex, selectedCategory, nowPlaying, nowPlayingError, availableCategories, filterChipCategories, selectedCategoryId) {
         emit(
           HomeState.loaded(
             selectedTabIndex: selectedTabIndex,
@@ -172,7 +172,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
   void _onNowPlayingError(NowPlayingErrorEvent event, Emitter<HomeState> emit) {
     state.maybeWhen(
-      loaded: (selectedTabIndex, selectedCategory, nowPlaying, _, availableCategories, filterChipCategories, selectedCategoryId) {
+      loaded: (selectedTabIndex, selectedCategory, nowPlaying, nowPlayingError, availableCategories, filterChipCategories, selectedCategoryId) {
         emit(
           HomeState.loaded(
             selectedTabIndex: selectedTabIndex,
@@ -310,7 +310,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     Emitter<HomeState> emit,
   ) {
     state.maybeWhen(
-      loaded: (selectedTabIndex, selectedCategory, nowPlaying, nowPlayingError, availableCategories, filterChipCategories, _) {
+      loaded: (selectedTabIndex, selectedCategory, nowPlaying, nowPlayingError, availableCategories, filterChipCategories, selectedCategoryId) {
         emit(
           HomeState.loaded(
             selectedTabIndex: selectedTabIndex,

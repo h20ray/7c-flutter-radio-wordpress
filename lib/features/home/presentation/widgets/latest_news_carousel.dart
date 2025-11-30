@@ -143,7 +143,7 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                     !_arePostsEqual(_previousPosts!, carouselPosts);
                 
                 if (hasPostsChanged && _pageController.hasClients) {
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                  WidgetsBinding.instance.addPostFrameCallback((duration) {
                     if (_pageController.hasClients && _currentPage > 0) {
                       final maxPage = (carouselPosts.length - 1).clamp(0, 4);
                       final targetPage = _currentPage.clamp(0, maxPage);
@@ -207,7 +207,7 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                   
                   final safeCurrentPage = _currentPage.clamp(0, carouselPosts.length - 1);
                   if (safeCurrentPage != _currentPage && _pageController.hasClients) {
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                    WidgetsBinding.instance.addPostFrameCallback((duration) {
                       if (_pageController.hasClients) {
                         _pageController.jumpToPage(safeCurrentPage);
                       }

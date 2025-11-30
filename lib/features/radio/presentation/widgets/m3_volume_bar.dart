@@ -120,25 +120,25 @@ class _M3VolumeBarState extends State<M3VolumeBar> {
     return FocusableActionDetector(
       autofocus: false,
       actions: <Type, Action<Intent>>{
-        _IncreaseIntent: CallbackAction<_IncreaseIntent>(onInvoke: (_) {
+        _IncreaseIntent: CallbackAction<_IncreaseIntent>(onInvoke: (intent) {
           final delta = widget.steps != null ? (1.0 / (widget.steps! - 1)) : 0.05;
           final next = _snapIfNeeded((widget.value + delta).clamp(0.0, 1.0));
           widget.onChanged(next);
           if (widget.enableHaptics) HapticFeedback.selectionClick();
           return null;
         }),
-        _DecreaseIntent: CallbackAction<_DecreaseIntent>(onInvoke: (_) {
+        _DecreaseIntent: CallbackAction<_DecreaseIntent>(onInvoke: (intent) {
           final delta = widget.steps != null ? (1.0 / (widget.steps! - 1)) : 0.05;
           final next = _snapIfNeeded((widget.value - delta).clamp(0.0, 1.0));
           widget.onChanged(next);
           if (widget.enableHaptics) HapticFeedback.selectionClick();
           return null;
         }),
-        _JumpStartIntent: CallbackAction<_JumpStartIntent>(onInvoke: (_) {
+        _JumpStartIntent: CallbackAction<_JumpStartIntent>(onInvoke: (intent) {
           widget.onChanged(_snapIfNeeded(0.0));
           return null;
         }),
-        _JumpEndIntent: CallbackAction<_JumpEndIntent>(onInvoke: (_) {
+        _JumpEndIntent: CallbackAction<_JumpEndIntent>(onInvoke: (intent) {
           widget.onChanged(_snapIfNeeded(1.0));
           return null;
         }),
