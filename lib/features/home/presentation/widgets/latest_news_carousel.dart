@@ -126,6 +126,19 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                 final cardSize = _computeCardSize(context);
                 
                 if (allPosts.isEmpty) {
+                  final isLoading = isLoadingByCategory[null] ?? false;
+                  if (isLoading) {
+                    return SizedBox(
+                      height: cardSize.height,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: 5,
+                        itemBuilder: (context, index) =>
+                            NewsCardSkeleton(index: index, totalItems: 5),
+                      ),
+                    );
+                  }
+                  
                   return SizedBox(
                     height: cardSize.height,
                     child: Center(
@@ -343,6 +356,7 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                           fit: BoxFit.cover,
                           memCacheWidth: 800,
                           memCacheHeight: 450,
+                          fadeInDuration: Duration.zero,
                           placeholder: (context, url) => Container(
                             decoration: BoxDecoration(
                               gradient: LinearGradient(

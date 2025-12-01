@@ -33,6 +33,7 @@ class NewsShareCard extends StatelessWidget {
               fit: BoxFit.cover,
               width: width,
               height: height,
+              fadeInDuration: Duration.zero,
             ),
 
           // Dark Overlay Gradient

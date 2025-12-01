@@ -320,7 +320,12 @@ class _HomeNewsListSectionState extends State<HomeNewsListSection> {
                         .take(NewsConfig.homeNewsListLimit)
                         .toList();
                     
+                    final hasCategoryData = categoryId == null || postsByCategory.containsKey(categoryId);
+                    
                     if (limitedPosts.isEmpty) {
+                      if (isLoading || !hasCategoryData) {
+                        return const HomeNewsCardSkeleton(itemCount: 3);
+                      }
                       return Padding(
                         padding: EdgeInsets.symmetric(
                           horizontal: DesignTokens.spacingL,
@@ -480,6 +485,7 @@ class _HomeNewsListSectionState extends State<HomeNewsListSection> {
                               fit: BoxFit.cover,
                               memCacheWidth: 216,
                               memCacheHeight: 216,
+                              fadeInDuration: Duration.zero,
                               placeholder: (context, url) => Container(
                                 color: colors.borderSubtle,
                               ),

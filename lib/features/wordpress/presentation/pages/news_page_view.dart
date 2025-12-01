@@ -13,6 +13,7 @@ import '../../../../core/widgets/news_list_skeleton.dart';
 import '../../../../core/widgets/shimmer_skeleton.dart';
 import '../bloc/news_bloc.dart';
 import '../widgets/news_card.dart';
+import '../../domain/entities/post_entity.dart';
 
 class NewsPageView extends StatelessWidget {
   const NewsPageView({super.key});
@@ -266,7 +267,51 @@ class _NewsPageViewContentState extends State<_NewsPageViewContent> {
                       },
                     ),
                   ),
-                  BlocBuilder<NewsBloc, NewsState>(
+                    BlocBuilder<NewsBloc, NewsState>(
+                    buildWhen: (previous, current) {
+                      // Helper to extract relevant data for comparison
+                      (List<PostEntity>, bool, bool, String?) extractData(NewsState state) {
+                        return state.maybeWhen(
+                          loaded: (posts, postsByCategory, selectedCategoryId, hasMoreByCategory, isLoadingByCategory, errorsByCategory, currentPageByCategory, searchResults, searchQuery, searchPage, hasMoreSearchResults, isLoadingSearch, searchError) {
+                            final isShowingSearchResults = searchQuery != null && searchQuery.isNotEmpty;
+                            final displayPosts = isShowingSearchResults
+                                ? (searchResults ?? [])
+                                : (selectedCategoryId != null
+                                    ? postsByCategory[selectedCategoryId] ?? posts
+                                    : posts);
+                            final isLoadingMore = isShowingSearchResults
+                                ? isLoadingSearch
+                                : (isLoadingByCategory[selectedCategoryId] ?? false);
+                            final hasError = isShowingSearchResults
+                                ? searchError != null
+                                : errorsByCategory[selectedCategoryId] != null;
+                            return (displayPosts, isLoadingMore, hasError, searchQuery);
+                          },
+                          orElse: () => (<PostEntity>[], false, false, null),
+                        );
+                      }
+
+                      final prevData = extractData(previous);
+                      final currData = extractData(current);
+
+                      // If search query changed, rebuild
+                      if (prevData.$4 != currData.$4) return true;
+
+                      // If loading or error state changed, rebuild
+                      if (prevData.$2 != currData.$2 || prevData.$3 != currData.$3) return true;
+
+                      // Check if posts are equal
+                      final prevPosts = prevData.$1;
+                      final currPosts = currData.$1;
+                      
+                      if (prevPosts.length != currPosts.length) return true;
+                      
+                      for (int i = 0; i < prevPosts.length; i++) {
+                        if (prevPosts[i].id != currPosts[i].id) return true;
+                      }
+                      
+                      return false;
+                    },
                     builder: (context, state) {
                       return state.maybeWhen(
                         loaded: (
@@ -370,8 +415,10 @@ class _NewsPageViewContentState extends State<_NewsPageViewContent> {
                                   final postIndex = index - 1;
                                   
                                   if (postIndex < displayPosts.length) {
+                                    final post = displayPosts[postIndex];
                                     return NewsCard(
-                                      post: displayPosts[postIndex],
+                                      key: ValueKey(post.id),
+                                      post: post,
                                       compact: isShowingSearchResults,
                                     );
                                   }

@@ -302,7 +302,7 @@ class _PostDetailPageViewState extends State<PostDetailPageView> {
         fit: BoxFit.cover,
         memCacheWidth: 800,
         memCacheHeight: 450,
-        fadeInDuration: DesignTokens.animationDurationMedium,
+        fadeInDuration: Duration.zero,
         placeholder: (context, url) => Container(
           color: Theme.of(context).colorScheme.surfaceContainerHighest,
         ),
