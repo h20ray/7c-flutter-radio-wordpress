@@ -29,6 +29,24 @@ import '../../features/radio/domain/usecases/reset_radio_player.dart';
 import '../../features/radio/domain/usecases/get_album_art_url.dart';
 import '../../features/radio/presentation/bloc/radio_bloc.dart';
 import '../../features/radio/presentation/bloc/radio_player_bloc.dart';
+import '../../features/radio/data/datasources/song_history_local_data_source.dart';
+import '../../features/radio/data/datasources/song_history_remote_data_source.dart';
+import '../../features/radio/data/datasources/song_history_azuracast_data_source.dart';
+import '../../features/radio/data/repositories/song_history_repository_impl.dart';
+import '../../features/radio/data/repositories/song_history_azuracast_repository_impl.dart';
+import '../../features/radio/domain/repositories/song_history_repository.dart';
+import '../../features/radio/presentation/bloc/song_history_bloc.dart';
+import '../../config/radio_config.dart';
+import '../../features/radio/data/datasources/lyrics_local_data_source.dart';
+import '../../features/radio/data/datasources/lyrics_remote_data_source.dart';
+import '../../features/radio/data/repositories/lyrics_repository_impl.dart';
+import '../../features/radio/domain/repositories/lyrics_repository.dart';
+import '../../features/radio/presentation/bloc/lyrics_bloc.dart';
+import '../../features/radio/data/datasources/request_remote_data_source.dart';
+import '../../features/radio/data/datasources/request_azuracast_data_source.dart';
+import '../../features/radio/data/repositories/request_repository_impl.dart';
+import '../../features/radio/domain/repositories/request_repository.dart';
+import '../../features/radio/presentation/bloc/request_bloc.dart';
 
 // Shoutbox feature imports
 import '../../features/shoutbox/data/datasources/shoutbox_remote_datasource.dart';
@@ -194,7 +212,84 @@ void _initRadio() {
       repository: getIt(),
       radioConfigBloc: getIt<RadioBloc>(),
       recordListeningSession: getIt(),
+      songHistoryRepository: getIt<SongHistoryRepository>(),
     ),
+  );
+
+  // Song History
+  // Local data source is used by both modes (for caching in Azuracast mode)
+  getIt.registerLazySingleton<SongHistoryLocalDataSource>(
+    () => SongHistoryLocalDataSourceImpl(),
+  );
+
+  if (RadioConfig.songHistoryMode == 'azuracast') {
+    getIt.registerLazySingleton<SongHistoryAzuracastDataSource>(
+      () => SongHistoryAzuracastDataSourceImpl(dio: getIt()),
+    );
+    getIt.registerLazySingleton<SongHistoryRepository>(
+      () => SongHistoryAzuracastRepositoryImpl(
+        azuracastDataSource: getIt(),
+        localDataSource: getIt(),
+        networkInfo: getIt(),
+      ),
+    );
+  } else {
+    getIt.registerLazySingleton<SongHistoryRemoteDataSource>(
+      () => SongHistoryRemoteDataSourceImpl(apiClient: getIt()),
+    );
+    getIt.registerLazySingleton<SongHistoryRepository>(
+      () => SongHistoryRepositoryImpl(
+        localDataSource: getIt(),
+        remoteDataSource: getIt(),
+      ),
+    );
+  }
+  getIt.registerFactory(
+    () => SongHistoryBloc(repository: getIt()),
+  );
+
+  // Lyrics
+  getIt.registerLazySingleton<LyricsLocalDataSource>(
+    () => LyricsLocalDataSourceImpl(),
+  );
+  getIt.registerLazySingleton<LyricsRemoteDataSource>(
+    () => LyricsRemoteDataSourceImpl(
+      apiClient: getIt(),
+      dio: getIt(),
+    ),
+  );
+  getIt.registerLazySingleton<LyricsRepository>(
+    () => LyricsRepositoryImpl(
+      localDataSource: getIt(),
+      remoteDataSource: getIt(),
+    ),
+  );
+  getIt.registerFactory(
+    () => LyricsBloc(repository: getIt()),
+  );
+
+  // Request
+  getIt.registerLazySingleton<RequestRemoteDataSource>(
+    () => RequestRemoteDataSourceImpl(apiClient: getIt()),
+  );
+  
+  // Register AzuraCast request data source if mode is not webview
+  if (RadioConfig.requestMode != 'webview') {
+    getIt.registerLazySingleton<RequestAzuracastDataSource>(
+      () => RequestAzuracastDataSourceImpl(dio: getIt()),
+    );
+  }
+  
+  getIt.registerLazySingleton<RequestRepository>(
+    () => RequestRepositoryImpl(
+      remoteDataSource: getIt(),
+      azuracastDataSource: RadioConfig.requestMode != 'webview'
+          ? getIt<RequestAzuracastDataSource>()
+          : null,
+    ),
+  );
+  getIt.registerFactory(
+    () => RequestBloc(repository: getIt()),
   );
 }
 

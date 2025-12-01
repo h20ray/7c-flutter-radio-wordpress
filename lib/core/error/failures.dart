@@ -41,3 +41,11 @@ class OfflineFailure extends Failure {
   const OfflineFailure([super.message = 'Operation failed - device is offline']);
 }
 
+class UnsupportedFailure extends Failure {
+  const UnsupportedFailure([super.message = 'Operation is not supported']);
+}
+
+class UnknownFailure extends Failure {
+  const UnknownFailure([super.message = 'An unknown error occurred']);
+}
+

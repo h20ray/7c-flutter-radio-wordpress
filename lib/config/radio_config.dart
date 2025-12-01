@@ -122,9 +122,9 @@ class RadioConfig {
 
   /// Request/Feedback WebView configuration
   static const String requestWebViewTitle = 'Request Lagu';
-  static const String requestWebViewUrl = 'https://www.upradio.id/request/';
 
   /// AzuraCast configuration
+  /// Note: Azuracast's public API endpoints (now playing, history) don't require authentication
   static const String? azuracastBaseUrl = null;
   static const String? azuracastStationId = null;
 
@@ -134,6 +134,60 @@ class RadioConfig {
   /// Debug settings
   static const bool enableDebugLogging = false;
   static const bool enableShoutboxDebugLogging = false;
+
+  /// Menu chips visibility
+  static const bool showSongHistory = true;
+  static const bool showLyrics = true;
+  static const bool showRequest = true;
+
+  /// Song history configuration
+  static const int songHistoryMaxEntries = 100;
+  static const bool songHistorySyncToWordPress = true;
+  
+  /// Song history mode: 'local' for local storage, 'azuracast' for Azuracast API
+  static const String songHistoryMode = 'azuracast'; // 'local' or 'azuracast'
+  
+  /// Minimum time in seconds between adding the same song to prevent duplicates
+  static const int songHistoryDuplicatePreventionSeconds = 30;
+
+  /// Lyrics API configuration
+  /// Provider options: 'proxy' (uses proxy API like WordPress), 'musixmatch' (direct), 'wordpress' (WordPress endpoint)
+  static const String lyricsApiProvider = 'proxy'; // 'proxy', 'musixmatch', 'wordpress'
+  
+  /// Lyrics proxy API base URL (used when lyricsApiProvider is 'proxy')
+  static const String lyricsProxyApiBaseUrl = 'https://lyrics.lewdhutao.my.eu.org/v2';
+  
+  /// Lyrics provider fallback chain (used when lyricsApiProvider is 'proxy')
+  /// Order: first provider is tried first, then fallback to next
+  static const List<String> lyricsProviderFallbackChain = ['youtube', 'musixmatch']; // 'youtube', 'musixmatch'
+  
+  /// Lyrics cache TTL in days (1-180)
+  static const int lyricsCacheTtlDays = 30;
+  
+  /// Musixmatch API key (only used when lyricsApiProvider is 'musixmatch' and using direct API)
+  static const String? lyricsApiKey = null;
+
+  /// Request configuration
+  /// Mode options: 'azuracast' (native AzuraCast API), 'webview' (WebView fallback)
+  /// If 'auto', will try AzuraCast first, fallback to WebView if unavailable
+  static const String requestMode = 'auto'; // 'azuracast', 'webview', 'auto'
+  
+  /// WebView URL for request page (used when requestMode is 'webview' or as fallback)
+  static const String? requestWebViewUrl = null; // e.g., 'https://radio.example.com/request'
+  
+  /// Request rate limit in minutes (prevents spam)
+  static const int requestRateLimitMinutes = 5;
+  
+  /// Request list cache duration in minutes
+  static const int requestListCacheMinutes = 5;
+  
+  /// Request list items per page (initial load)
+  static const int requestListItemsPerPage = 15;
+  
+  /// WordPress request endpoint path (legacy, used if requestMode is not 'azuracast' or 'webview')
+  /// Auto-configured: ApiClient automatically prepends 'https://${AppConfig.url}' to this path
+  /// Same pattern as lyrics endpoint - just provide the path, ApiClient handles the baseUrl
+  static const String requestApiEndpoint = '/wp-json/tujuhcahaya/radio/request';
 }
 
 @Deprecated(

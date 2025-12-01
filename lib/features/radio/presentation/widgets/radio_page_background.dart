@@ -20,33 +20,98 @@ class _RadioPageBackgroundState extends State<RadioPageBackground>
   String? _cachedArtUrl;
   PaletteColors? _currentPalette;
   final PaletteService _paletteService = PaletteService();
+  bool _isUsingFallback = false;
 
   late final AnimationController _blobController;
   late final Animation<double> _blobAnimation;
+  late final AnimationController _blurController;
+  late final Animation<double> _blurAnimation;
 
   @override
   void initState() {
     super.initState();
+    
     _blobController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 10),
+      duration: const Duration(seconds: 12),
     )..repeat(reverse: true);
     
     _blobAnimation = CurvedAnimation(
       parent: _blobController,
       curve: Curves.easeInOutSine,
     );
+
+    _blurController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 8),
+    )..repeat(reverse: true);
+
+    _blurAnimation = Tween<double>(
+      begin: 40.0,
+      end: 60.0,
+    ).animate(CurvedAnimation(
+      parent: _blurController,
+      curve: Curves.easeInOut,
+    ));
+
+    _initializeFallbackPalette();
   }
 
   @override
   void dispose() {
     _blobController.dispose();
+    _blurController.dispose();
     super.dispose();
+  }
+
+  Future<void> _initializeFallbackPalette() async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final fallbackColor = isDark
+        ? const Color(0xFF15232B)
+        : const Color(0xFF2C3E50);
+    
+    try {
+      final fallbackProvider = AssetImage(RadioConfig.fallbackArtworkPath);
+      final palette = await _paletteService.fetchForImage(
+        fallbackProvider,
+        cacheKey: 'fallback_artwork',
+      );
+      if (mounted && _currentPalette == null) {
+        setState(() {
+          _currentPalette = palette;
+          _isUsingFallback = true;
+        });
+      }
+    } catch (e) {
+      if (mounted && _currentPalette == null) {
+        setState(() {
+          _currentPalette = _paletteService.getCached('fallback_artwork') ??
+              _createFallbackPalette(fallbackColor);
+          _isUsingFallback = true;
+        });
+      }
+    }
+  }
+
+  PaletteColors _createFallbackPalette(Color base) {
+    final hsl = HSLColor.fromColor(base);
+    final dominant = base;
+    final vibrant = hsl.withSaturation((hsl.saturation * 1.2).clamp(0.0, 1.0)).toColor();
+    final darkVibrant = hsl.withLightness((hsl.lightness * 0.5).clamp(0.0, 1.0)).toColor();
+    final muted = hsl.withSaturation((hsl.saturation * 0.5).clamp(0.0, 1.0)).toColor();
+    return PaletteColors(
+      dominant: dominant,
+      vibrant: vibrant,
+      darkVibrant: darkVibrant,
+      muted: muted,
+    );
   }
 
   Future<void> _updatePalette(String? artUrl) async {
     if (artUrl == null || artUrl.isEmpty) {
-      if (mounted) setState(() => _currentPalette = null);
+      if (!_isUsingFallback) {
+        await _initializeFallbackPalette();
+      }
       return;
     }
 
@@ -55,10 +120,13 @@ class _RadioPageBackgroundState extends State<RadioPageBackground>
       if (mounted) {
         setState(() {
           _currentPalette = palette;
+          _isUsingFallback = false;
         });
       }
     } catch (e) {
-      // Fallback or ignore
+      if (!_isUsingFallback) {
+        await _initializeFallbackPalette();
+      }
     }
   }
 
@@ -92,14 +160,8 @@ class _RadioPageBackgroundState extends State<RadioPageBackground>
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // Base background (blurred image) - kept for depth
             _buildBaseBackground(),
-            
-            // Animated Mesh Gradient Overlay
-            if (_currentPalette != null)
-              _buildMeshGradient(_currentPalette!),
-
-            // Theme Overlay to ensure text readability
+            if (_currentPalette != null) _buildMeshGradient(_currentPalette!),
             Container(
               color: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.7),
             ),
@@ -111,8 +173,17 @@ class _RadioPageBackgroundState extends State<RadioPageBackground>
 
   Widget _buildBaseBackground() {
     return RepaintBoundary(
-      child: ImageFiltered(
-        imageFilter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
+      child: AnimatedBuilder(
+        animation: _blurAnimation,
+        builder: (context, child) {
+          return ImageFiltered(
+            imageFilter: ImageFilter.blur(
+              sigmaX: _blurAnimation.value,
+              sigmaY: _blurAnimation.value,
+            ),
+            child: child,
+          );
+        },
         child: _cachedArtUrl != null && _cachedArtUrl!.isNotEmpty
             ? AppNetworkImage(
                 imageUrl: _cachedArtUrl!,
@@ -145,39 +216,48 @@ class _RadioPageBackgroundState extends State<RadioPageBackground>
   }
 
   Widget _buildMeshGradient(PaletteColors palette) {
-    return AnimatedBuilder(
-      animation: _blobAnimation,
-      builder: (context, child) {
-        return Stack(
-          children: [
-            _buildBlob(
-              color: palette.dominant,
-              alignment: Alignment(-0.8 + (_blobAnimation.value * 0.2), -0.8),
-              size: 1.5,
-            ),
-            _buildBlob(
-              color: palette.vibrant,
-              alignment: Alignment(0.8 - (_blobAnimation.value * 0.2), -0.4),
-              size: 1.2,
-            ),
-            _buildBlob(
-              color: palette.darkVibrant,
-              alignment: Alignment(-0.5, 0.5 + (_blobAnimation.value * 0.3)),
-              size: 1.4,
-            ),
-            _buildBlob(
-              color: palette.muted,
-              alignment: Alignment(0.6, 0.8 - (_blobAnimation.value * 0.2)),
-              size: 1.3,
-            ),
-            // Glass effect on top of blobs
-            BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 60, sigmaY: 60),
-              child: Container(color: Colors.transparent),
-            ),
-          ],
-        );
-      },
+    return RepaintBoundary(
+      child: AnimatedBuilder(
+        animation: _blobAnimation,
+        builder: (context, child) {
+          return Stack(
+            children: [
+              _buildBlob(
+                color: palette.dominant,
+                alignment: Alignment(
+                  -0.8 + (_blobAnimation.value * 0.15),
+                  -0.8 + (_blobAnimation.value * 0.1),
+                ),
+                size: 1.4,
+              ),
+              _buildBlob(
+                color: palette.vibrant,
+                alignment: Alignment(
+                  0.8 - (_blobAnimation.value * 0.15),
+                  -0.4 + (_blobAnimation.value * 0.1),
+                ),
+                size: 1.1,
+              ),
+              _buildBlob(
+                color: palette.darkVibrant,
+                alignment: Alignment(
+                  -0.5 + (_blobAnimation.value * 0.1),
+                  0.5 + (_blobAnimation.value * 0.2),
+                ),
+                size: 1.3,
+              ),
+              _buildBlob(
+                color: palette.muted,
+                alignment: Alignment(
+                  0.6 - (_blobAnimation.value * 0.1),
+                  0.8 - (_blobAnimation.value * 0.15),
+                ),
+                size: 1.2,
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 
@@ -189,15 +269,19 @@ class _RadioPageBackgroundState extends State<RadioPageBackground>
     return Align(
       alignment: alignment,
       child: Container(
-        width: 300 * size,
-        height: 300 * size,
+        width: 280 * size,
+        height: 280 * size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           gradient: RadialGradient(
+            center: Alignment.center,
+            radius: 0.8,
             colors: [
-              color.withValues(alpha: 0.6),
+              color.withValues(alpha: 0.5),
+              color.withValues(alpha: 0.2),
               color.withValues(alpha: 0.0),
             ],
+            stops: const [0.0, 0.5, 1.0],
           ),
         ),
       ),

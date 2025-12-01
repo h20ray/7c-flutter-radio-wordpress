@@ -12,6 +12,7 @@ import '../../domain/usecases/play_radio.dart';
 import '../../domain/usecases/pause_radio.dart';
 import '../../domain/usecases/reset_radio_player.dart';
 import '../../../gamification/domain/usecases/record_listening_session.dart';
+import '../../domain/repositories/song_history_repository.dart';
 import '../bloc/radio_bloc.dart';
 import 'radio_player_event.dart';
 import '../../../../core/utils/debug_logger.dart';
@@ -27,6 +28,7 @@ class RadioPlayerBloc extends Bloc<RadioPlayerEvent, RadioPlayerState> {
   final RadioPlayerRepository repository;
   final RadioBloc radioConfigBloc;
   final RecordListeningSession recordListeningSession;
+  final SongHistoryRepository? songHistoryRepository;
 
   StreamSubscription<RadioPlayerEntity>? _playerStateSubscription;
   StreamSubscription<RadioState>? _radioConfigSubscription;
@@ -67,6 +69,7 @@ class RadioPlayerBloc extends Bloc<RadioPlayerEvent, RadioPlayerState> {
     required this.repository,
     required this.radioConfigBloc,
     required this.recordListeningSession,
+    this.songHistoryRepository,
   }) : super(const RadioPlayerState.initial()) {
     // 1) Register event handlers FIRST
     on<RadioPlayerEvent>(_onRadioPlayerEvent);
@@ -547,10 +550,48 @@ class RadioPlayerBloc extends Bloc<RadioPlayerEvent, RadioPlayerState> {
             isDucking: isDucking,
             canAutoResume: canAutoResume,
           ));
+
+          // Track song in history if we have valid metadata
+          // Skip tracking in Azuracast mode - history comes from API
+          if (artist != null &&
+              title != null &&
+              artist.isNotEmpty &&
+              title.isNotEmpty &&
+              songHistoryRepository != null &&
+              RadioConfig.songHistoryMode != 'azuracast') {
+            _trackSong(artist, title, currentAlbumArtUrl);
+          }
         }
       },
       orElse: () {},
     );
+  }
+
+  /// Track song in history
+  void _trackSong(String artist, String title, String? albumArtUrl) {
+    if (songHistoryRepository == null) return;
+
+    songHistoryRepository!.addSong(
+      artist: artist,
+      title: title,
+      albumArtUrl: albumArtUrl,
+    ).then((result) {
+      result.fold(
+        (failure) {
+          DebugLogger.logError(
+            'Failed to track song in history',
+            error: failure,
+            tag: 'RadioPlayerBloc',
+          );
+        },
+        (_) {
+          DebugLogger.log(
+            'Tracked song in history: $artist - $title',
+            tag: 'RadioPlayerBloc',
+          );
+        },
+      );
+    });
   }
 
   /// Handle album art fetched event
@@ -559,7 +600,7 @@ class RadioPlayerBloc extends Bloc<RadioPlayerEvent, RadioPlayerState> {
     currentState.maybeWhen(
       ready: (isPlaying, currentUrl, currentArtist, currentTitle,
           currentAlbumArtUrl, isDucking, canAutoResume) {
-        // Only emit if album art URL actually changed
+        // Update album art in state
         if (currentAlbumArtUrl != albumArtUrl) {
           emit(RadioPlayerState.ready(
             isPlaying: isPlaying,
@@ -570,10 +611,48 @@ class RadioPlayerBloc extends Bloc<RadioPlayerEvent, RadioPlayerState> {
             isDucking: isDucking,
             canAutoResume: canAutoResume,
           ));
+
+          // Update album art in history if we have current song
+          // Skip in Azuracast mode - history comes from API
+          if (currentArtist != null &&
+              currentTitle != null &&
+              currentArtist.isNotEmpty &&
+              currentTitle.isNotEmpty &&
+              songHistoryRepository != null &&
+              RadioConfig.songHistoryMode != 'azuracast') {
+            _updateAlbumArtInHistory(currentArtist, currentTitle, albumArtUrl);
+          }
         }
       },
       orElse: () {},
     );
+  }
+
+  /// Update album art for existing song in history
+  void _updateAlbumArtInHistory(String artist, String title, String albumArtUrl) {
+    if (songHistoryRepository == null) return;
+
+    songHistoryRepository!.updateAlbumArt(
+      artist: artist,
+      title: title,
+      albumArtUrl: albumArtUrl,
+    ).then((result) {
+      result.fold(
+        (failure) {
+          DebugLogger.logError(
+            'Failed to update album art in history',
+            error: failure,
+            tag: 'RadioPlayerBloc',
+          );
+        },
+        (_) {
+          DebugLogger.log(
+            'Updated album art in history: $artist - $title',
+            tag: 'RadioPlayerBloc',
+          );
+        },
+      );
+    });
   }
 
   /// Handle error occurred event

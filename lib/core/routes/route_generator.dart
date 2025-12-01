@@ -5,6 +5,9 @@ import '../pages/loading_app_page.dart';
 import '../../features/radio/presentation/pages/radio_page.dart';
 import '../../features/radio/presentation/bloc/radio_bloc.dart';
 import '../../features/radio/presentation/bloc/radio_player_bloc.dart';
+import '../../features/radio/presentation/pages/song_history_page.dart';
+import '../../features/radio/presentation/pages/lyrics_page.dart';
+import '../../features/radio/presentation/pages/request_page.dart';
 import '../../features/gamification/presentation/bloc/gamification_bloc.dart';
 import '../../features/gamification/presentation/pages/level_details_page.dart';
 import '../../features/home/presentation/pages/home_screen.dart';
@@ -76,6 +79,36 @@ class RouteGenerator {
           );
         }
         return _buildPostDetailRoute(settings, post);
+      case AppRoutes.songHistory:
+        return _buildPageRoute(
+          settings,
+          (context) => MultiBlocProvider(
+            providers: [
+              BlocProvider.value(value: getIt<RadioPlayerBloc>()),
+            ],
+            child: const SongHistoryPage(),
+          ),
+        );
+      case AppRoutes.lyrics:
+        return _buildPageRoute(
+          settings,
+          (context) => MultiBlocProvider(
+            providers: [
+              BlocProvider.value(value: getIt<RadioPlayerBloc>()),
+            ],
+            child: const LyricsPage(),
+          ),
+        );
+      case AppRoutes.request:
+        return _buildPageRoute(
+          settings,
+          (context) => MultiBlocProvider(
+            providers: [
+              BlocProvider.value(value: getIt<RadioPlayerBloc>()),
+            ],
+            child: const RequestPage(),
+          ),
+        );
       default:
         return _buildPageRoute(
           settings,

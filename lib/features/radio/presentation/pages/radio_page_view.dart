@@ -15,7 +15,7 @@ import '../widgets/radio_metadata_section.dart';
 import '../widgets/radio_page_background.dart';
 import '../widgets/radio_big_album_art.dart';
 import '../widgets/radio_placeholder_content.dart';
-import '../widgets/radio_status_chips_section.dart';
+import '../widgets/radio_menu_chips_section.dart';
 
 class RadioPageView extends StatelessWidget {
   const RadioPageView({super.key});
@@ -138,11 +138,23 @@ class _RadioPageViewContentState extends State<_RadioPageViewContent> {
                       padding: EdgeInsets.symmetric(horizontal: 16.0),
                       child: RadioMetadataSection(),
                     ),
-                    const SizedBox(height: 20),
-                    // Status Chips Section
+                    const SizedBox(height: 32),
+                    // Subtle divider
+                    Builder(
+                      builder: (context) => Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Divider(
+                          height: 1,
+                          thickness: 0.5,
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    // Menu Chips Section
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 16.0),
-                      child: RadioStatusChipsSection(),
+                      child: RadioMenuChipsSection(),
                     ),
                     const SizedBox(height: 24),
                     const AspectRatio(
