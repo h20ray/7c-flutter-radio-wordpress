@@ -31,6 +31,7 @@ class _RadioPageBackgroundState extends State<RadioPageBackground>
   late final Animation<double> _blurAnimation;
   late final AnimationController _fadeController;
   late final Animation<double> _fadeAnimation;
+  bool _hasInitializedPalette = false;
 
   @override
   void initState() {
@@ -68,8 +69,15 @@ class _RadioPageBackgroundState extends State<RadioPageBackground>
       parent: _fadeController,
       curve: Curves.easeInOut,
     );
+  }
 
-    _initializeFallbackPalette();
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_hasInitializedPalette) {
+      _hasInitializedPalette = true;
+      _initializeFallbackPalette();
+    }
   }
 
   void _updateAnimationState(bool isPlaying) {
