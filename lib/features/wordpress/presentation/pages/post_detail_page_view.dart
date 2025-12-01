@@ -446,47 +446,80 @@ class _PostMetadataRow extends StatelessWidget {
         ? colors.gradientStart
         : colors.gradientStart.withValues(alpha: 0.9);
 
-    return Wrap(
-      spacing: DesignTokens.spacingS,
-      runSpacing: DesignTokens.spacingS,
+    final authorBackground = isLight
+        ? colors.navBackground.withValues(alpha: 0.9)
+        : colors.navBackground.withValues(alpha: 0.8);
+    final authorTextColor = colors.textPrimary;
+
+    return Row(
       children: [
-        if (post.categoryName != null && post.categoryName!.isNotEmpty)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(
-              color: vibrantColor,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: vibrantTextColor.withValues(alpha: 0.3),
-                width: 1,
-              ),
-            ),
-            child: Text(
-              post.categoryName!,
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w500,
-                color: vibrantTextColor,
-              ),
-            ),
+        Expanded(
+          child: Wrap(
+            spacing: DesignTokens.spacingS,
+            runSpacing: DesignTokens.spacingS,
+            children: [
+              if (post.categoryName != null && post.categoryName!.isNotEmpty)
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: vibrantColor,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: vibrantTextColor.withValues(alpha: 0.3),
+                      width: 1,
+                    ),
+                  ),
+                  child: Text(
+                    post.categoryName!,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
+                      color: vibrantTextColor,
+                    ),
+                  ),
+                ),
+              if (post.date != null)
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: vibrantColor,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: vibrantTextColor.withValues(alpha: 0.3),
+                      width: 1,
+                    ),
+                  ),
+                  child: Text(
+                    formatDate(post.date!, context),
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
+                      color: vibrantTextColor,
+                    ),
+                  ),
+                ),
+            ],
           ),
-        if (post.date != null)
+        ),
+        if (post.authorName != null && post.authorName!.isNotEmpty)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(
-              color: vibrantColor,
+              color: authorBackground,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: vibrantTextColor.withValues(alpha: 0.3),
+                color: colors.borderSubtle,
                 width: 1,
               ),
             ),
             child: Text(
-              formatDate(post.date!, context),
+              post.authorName!,
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w500,
-                color: vibrantTextColor,
+                color: authorTextColor,
               ),
             ),
           ),

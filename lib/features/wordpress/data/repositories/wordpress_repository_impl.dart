@@ -6,10 +6,15 @@ import '../../domain/entities/post_entity.dart';
 import '../../domain/repositories/wordpress_repository.dart';
 import '../datasources/wordpress_remote_datasource.dart';
 import '../datasources/wordpress_local_data_source.dart';
+import '../models/post_model.dart';
 
 class WordPressRepositoryImpl implements WordPressRepository {
   final WordPressRemoteDataSource remoteDataSource;
   final WordPressLocalDataSource localDataSource;
+
+  final Map<int, String> _mediaUrlCache = {};
+  final Map<int, String> _categoryNameCache = {};
+  final Map<int, String> _authorNameCache = {};
 
   WordPressRepositoryImpl({
     required this.remoteDataSource,
@@ -83,17 +88,19 @@ class WordPressRepositoryImpl implements WordPressRepository {
         perPage: perPage,
         search: search,
       );
+
+      final enrichedPosts = await _enrichPosts(posts);
       
       if (page == 1 || search != null) {
         await localDataSource.cachePosts(
-          posts,
+          enrichedPosts,
           categoryId: categoryId,
           page: page,
           search: search,
         );
       }
       
-      return Right(posts);
+      return Right(enrichedPosts.cast<PostEntity>());
     } on ServerException catch (e) {
       if (cachedPosts != null && cachedPosts.isNotEmpty) {
         return Right(cachedPosts);
@@ -136,10 +143,12 @@ class WordPressRepositoryImpl implements WordPressRepository {
         perPage: perPage,
         search: search,
       );
+
+      final enrichedPosts = await _enrichPosts(posts);
       
       if (page == 1 || search != null) {
         await localDataSource.cachePosts(
-          posts,
+          enrichedPosts,
           categoryId: categoryId,
           page: page,
           search: search,
@@ -148,5 +157,75 @@ class WordPressRepositoryImpl implements WordPressRepository {
     } catch (e) {
       // Silently fail background cache update - cached data already returned
     }
+  }
+
+  Future<List<PostModel>> _enrichPosts(List<PostModel> posts) async {
+    if (!NewsConfig.useMinimalNewsPayload) {
+      return posts;
+    }
+
+    final mediaIds = <int>[];
+    final categoryIds = <int>[];
+    final authorIds = <int>[];
+
+    for (final post in posts) {
+      if (post.featuredMediaId != null &&
+          post.featuredMediaId! > 0 &&
+          !_mediaUrlCache.containsKey(post.featuredMediaId)) {
+        mediaIds.add(post.featuredMediaId!);
+      }
+      for (final id in post.categoryIds) {
+        if (id > 0 && !_categoryNameCache.containsKey(id)) {
+          categoryIds.add(id);
+        }
+      }
+      if (post.authorId != null &&
+          post.authorId! > 0 &&
+          !_authorNameCache.containsKey(post.authorId)) {
+        authorIds.add(post.authorId!);
+      }
+    }
+
+    if (mediaIds.isNotEmpty) {
+      final resolvedMedia = await remoteDataSource.getMediaByIds(mediaIds);
+      _mediaUrlCache.addAll(resolvedMedia);
+    }
+
+    if (categoryIds.isNotEmpty) {
+      final resolvedCategories =
+          await remoteDataSource.getCategoriesByIds(categoryIds);
+      _categoryNameCache.addAll(resolvedCategories);
+    }
+
+    if (authorIds.isNotEmpty) {
+      final resolvedUsers = await remoteDataSource.getUsersByIds(authorIds);
+      _authorNameCache.addAll(resolvedUsers);
+    }
+
+    return posts
+        .map(
+          (post) => PostModel(
+            id: post.id,
+            title: post.title,
+            content: post.content,
+            excerpt: post.excerpt,
+            link: post.link,
+            featuredImageUrl: post.featuredMediaId != null
+                ? _mediaUrlCache[post.featuredMediaId] ?? post.featuredImageUrl
+                : post.featuredImageUrl,
+            date: post.date,
+            categoryName: post.categoryIds.isNotEmpty
+                ? _categoryNameCache[post.categoryIds.first] ??
+                    post.categoryName
+                : post.categoryName,
+            categoryIds: post.categoryIds,
+            featuredMediaId: post.featuredMediaId,
+            authorId: post.authorId,
+            authorName: post.authorId != null
+                ? _authorNameCache[post.authorId] ?? post.authorName
+                : post.authorName,
+          ),
+        )
+        .toList();
   }
 }

@@ -1,6 +1,10 @@
+import '../../../../config/news_config.dart';
 import '../../domain/entities/post_entity.dart';
 
 class PostModel extends PostEntity {
+  final int? featuredMediaId;
+  final int? authorId;
+
   static String _decodeHtmlEntities(String text) {
     String result = text
         .replaceAll('&#038;', '&')
@@ -29,6 +33,7 @@ class PostModel extends PostEntity {
         .replaceAll(RegExp(r'\s+'), ' ')
         .trim();
   }
+
   const PostModel({
     required super.id,
     required super.title,
@@ -39,18 +44,28 @@ class PostModel extends PostEntity {
     super.date,
     super.categoryName,
     super.categoryIds,
+    super.authorName,
+    this.featuredMediaId,
+    this.authorId,
   });
 
   factory PostModel.fromJson(Map<String, dynamic> json) {
     String? featuredImageUrl;
-    
+    int? featuredMediaId;
+
     if (json['featuredImageUrl'] != null) {
       featuredImageUrl = json['featuredImageUrl'] as String?;
-    } else if (json['_embedded'] != null && 
+    } else if (!NewsConfig.useMinimalNewsPayload &&
+        json['_embedded'] != null &&
         json['_embedded']['wp:featuredmedia'] != null &&
         json['_embedded']['wp:featuredmedia'].isNotEmpty) {
       final media = json['_embedded']['wp:featuredmedia'][0];
       featuredImageUrl = media['source_url'] as String?;
+      if (media['id'] is int) {
+        featuredMediaId = media['id'] as int;
+      }
+    } else if (json['featured_media'] is int) {
+      featuredMediaId = json['featured_media'] as int;
     }
 
     DateTime? date;
@@ -109,7 +124,8 @@ class PostModel extends PostEntity {
     String? categoryName;
     if (json['categoryName'] != null) {
       categoryName = json['categoryName'] as String?;
-    } else if (json['_embedded'] != null && 
+    } else if (!NewsConfig.useMinimalNewsPayload &&
+        json['_embedded'] != null &&
         json['_embedded']['wp:term'] != null) {
       final terms = json['_embedded']['wp:term'] as List<dynamic>?;
       if (terms != null) {
@@ -118,7 +134,7 @@ class PostModel extends PostEntity {
             for (final term in termGroup) {
               if (term is Map && term['taxonomy'] == 'category') {
                 categoryName = term['name'] as String?;
-                if (categoryName != null && categoryName.isNotEmpty) {
+            if (categoryName != null && categoryName.isNotEmpty) {
                   break;
                 }
               }
@@ -131,6 +147,18 @@ class PostModel extends PostEntity {
       }
     }
 
+    int? authorId;
+    if (json['authorId'] is int) {
+      authorId = json['authorId'] as int;
+    } else if (json['author'] is int) {
+      authorId = json['author'] as int;
+    }
+
+    String? authorName;
+    if (json['authorName'] is String) {
+      authorName = json['authorName'] as String;
+    }
+
     return PostModel(
       id: json['id'] ?? 0,
       title: title,
@@ -141,6 +169,9 @@ class PostModel extends PostEntity {
       date: date,
       categoryName: categoryName,
       categoryIds: categoryIds,
+      featuredMediaId: featuredMediaId,
+      authorId: authorId,
+      authorName: authorName,
     );
   }
 
@@ -155,6 +186,9 @@ class PostModel extends PostEntity {
       'date': date?.toIso8601String(),
       'categoryName': categoryName,
       'categories': categoryIds,
+      'featured_media': featuredMediaId,
+      'authorId': authorId,
+      'authorName': authorName,
     };
   }
 }
