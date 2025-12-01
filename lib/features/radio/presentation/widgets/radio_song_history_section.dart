@@ -77,6 +77,15 @@ class _RadioSongHistorySectionState extends State<RadioSongHistorySection> {
             ),
             BlocBuilder<SongHistoryBloc, SongHistoryState>(
               buildWhen: (previous, current) {
+                // Don't rebuild when switching to loading state if we already have data
+                // This prevents the list from disappearing and causing scroll jumps
+                if (current.maybeWhen(loading: () => true, orElse: () => false)) {
+                  return previous.maybeWhen(
+                    loaded: (_) => false,
+                    orElse: () => true,
+                  );
+                }
+
                 return previous.maybeWhen(
                   loaded: (prevSongs) {
                     return current.maybeWhen(
@@ -134,9 +143,12 @@ class _RadioSongHistorySectionState extends State<RadioSongHistorySection> {
                   final limitedSongs = songs.take(15).toList();
 
                   return Column(
-                    key: ValueKey('history_${limitedSongs.length}_${limitedSongs.first.id}'),
                     children: limitedSongs.map((song) {
-                      return SongHistoryItem(song: song, showBorder: false);
+                      return SongHistoryItem(
+                        key: ValueKey(song.id),
+                        song: song, 
+                        showBorder: false,
+                      );
                     }).toList(),
                   );
                 },

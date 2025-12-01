@@ -93,19 +93,21 @@ class _SwipeableCardContainerState extends State<SwipeableCardContainer> {
   Widget build(BuildContext context) {
     return SizedBox(
       height: _fixedCardHeight,
-      child: PageView.builder(
-        controller: _pageController,
-        onPageChanged: _onPageChanged,
-        physics: const BouncingScrollPhysics(),
-        itemBuilder: (context, index) {
-          final realIndex = _getRealIndex(index);
-          return _CardWrapper(
-            height: _fixedCardHeight,
-            child: realIndex == 0
-                ? const RadioNowPlayingCard(skipWrapper: true)
-                : const StatusGameProgressCard(skipWrapper: true),
-          );
-        },
+      child: RepaintBoundary(
+        child: PageView.builder(
+          controller: _pageController,
+          onPageChanged: _onPageChanged,
+          physics: const BouncingScrollPhysics(),
+          itemBuilder: (context, index) {
+            final realIndex = _getRealIndex(index);
+            return _CardWrapper(
+              height: _fixedCardHeight,
+              child: realIndex == 0
+                  ? const RadioNowPlayingCard(skipWrapper: true)
+                  : const StatusGameProgressCard(skipWrapper: true),
+            );
+          },
+        ),
       ),
     );
   }

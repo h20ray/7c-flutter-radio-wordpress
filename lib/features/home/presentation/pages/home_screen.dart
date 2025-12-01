@@ -109,45 +109,47 @@ class _HomeScreenState extends State<HomeScreen> {
                   controller: _scrollController,
                   slivers: [
                     SliverToBoxAdapter(
+                      child: SizedBox(
+                        height: headerStackHeight,
+                        child: Stack(
+                          children: [
+                            Positioned(
+                              left: 0,
+                              right: 0,
+                              top: 0,
+                              height: headerHeight,
+                              child: HeaderSection(
+                                selectedGameTab: _selectedRadioGameTab,
+                                onGameTabChanged: (index) {
+                                  if (_selectedRadioGameTab == index) {
+                                    return;
+                                  }
+                                  setState(() {
+                                    _selectedRadioGameTab = index;
+                                  });
+                                },
+                              ),
+                            ),
+                            Positioned(
+                              left: 0,
+                              right: 0,
+                              top: headerHeight - cardOverlap,
+                              child: SwipeableCardContainer(
+                                selectedIndex: _selectedRadioGameTab,
+                                onIndexChanged: (index) {
+                                  setState(() {
+                                    _selectedRadioGameTab = index;
+                                  });
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    SliverToBoxAdapter(
                       child: Column(
                         children: [
-                          SizedBox(
-                            height: headerStackHeight,
-                            child: Stack(
-                              children: [
-                                Positioned(
-                                  left: 0,
-                                  right: 0,
-                                  top: 0,
-                                  height: headerHeight,
-                                  child: HeaderSection(
-                                    selectedGameTab: _selectedRadioGameTab,
-                                    onGameTabChanged: (index) {
-                                      if (_selectedRadioGameTab == index) {
-                                        return;
-                                      }
-                                      setState(() {
-                                        _selectedRadioGameTab = index;
-                                      });
-                                    },
-                                  ),
-                                ),
-                                Positioned(
-                                  left: 0,
-                                  right: 0,
-                                  top: headerHeight - cardOverlap,
-                                  child: SwipeableCardContainer(
-                                    selectedIndex: _selectedRadioGameTab,
-                                    onIndexChanged: (index) {
-                                      setState(() {
-                                        _selectedRadioGameTab = index;
-                                      });
-                                    },
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
                           SizedBox(height: DesignTokens.spacingM),
                           ModeTabs(
                             selectedIndex: _selectedTabIndex,
@@ -156,18 +158,35 @@ class _HomeScreenState extends State<HomeScreen> {
                                 _selectedTabIndex = index;
                               });
                               context.read<HomeBloc>().add(
-                                TabChangedEvent(index),
-                              );
+                                    TabChangedEvent(index),
+                                  );
                             },
                           ),
                           SizedBox(height: DesignTokens.spacingM),
-                          if (_selectedTabIndex == 0) ...[
+                        ],
+                      ),
+                    ),
+                    if (_selectedTabIndex == 0)
+                      SliverToBoxAdapter(
+                        child: Column(
+                          children: [
                             const TamtamaSection(),
                             SizedBox(height: DesignTokens.spacingXl),
                           ],
-                          const LatestNewsCarousel(),
-                          SizedBox(height: DesignTokens.spacingXl),
-                          const HomeNewsListSection(),
+                        ),
+                      ),
+                    const SliverToBoxAdapter(
+                      child: LatestNewsCarousel(),
+                    ),
+                    SliverToBoxAdapter(
+                      child: SizedBox(height: DesignTokens.spacingXl),
+                    ),
+                    const SliverToBoxAdapter(
+                      child: HomeNewsListSection(),
+                    ),
+                    SliverToBoxAdapter(
+                      child: Column(
+                        children: [
                           SizedBox(height: DesignTokens.spacingXl),
                           SizedBox(height: 120),
                         ],
@@ -185,7 +204,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     offset: _showStickyPlayer
                         ? Offset.zero
                         : const Offset(0, -1),
-                    child: const HomeStickyPlayer(),
+                    child: TickerMode(
+                      enabled: _showStickyPlayer,
+                      child: const RepaintBoundary(
+                        child: HomeStickyPlayer(),
+                      ),
+                    ),
                   ),
                 ),
                 Positioned(

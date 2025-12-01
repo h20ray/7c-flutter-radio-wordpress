@@ -47,23 +47,26 @@ class TamtamaBloc extends Bloc<TamtamaEvent, TamtamaState> {
     FeedPetEvent event,
     Emitter<TamtamaState> emit,
   ) async {
-    state.maybeWhen(
-      loaded: (tamtama) async {
-        final updatedHunger = (tamtama.hunger + 20).clamp(0, 100);
-        final updatedHappiness = (tamtama.happiness + 5).clamp(0, 100);
-        final updatedTamtama = tamtama.copyWith(
-          hunger: updatedHunger,
-          happiness: updatedHappiness,
-          lastFedAt: DateTime.now(),
-        );
+    final currentTamtama = state.maybeWhen<TamtamaEntity?>(
+      loaded: (tamtama) => tamtama,
+      orElse: () => null,
+    );
 
-        final result = await repository.save(updatedTamtama);
-        result.fold(
-          (failure) => emit(TamtamaState.error(failure.message)),
-          (saved) => emit(TamtamaState.loaded(saved)),
-        );
-      },
-      orElse: () {},
+    if (currentTamtama == null || emit.isDone) return;
+
+    final updatedHunger = (currentTamtama.hunger + 20).clamp(0, 100);
+    final updatedHappiness = (currentTamtama.happiness + 5).clamp(0, 100);
+    final updatedTamtama = currentTamtama.copyWith(
+      hunger: updatedHunger,
+      happiness: updatedHappiness,
+      lastFedAt: DateTime.now(),
+    );
+
+    final result = await repository.save(updatedTamtama);
+    if (emit.isDone) return;
+    result.fold(
+      (failure) => emit(TamtamaState.error(failure.message)),
+      (saved) => emit(TamtamaState.loaded(saved)),
     );
   }
 
@@ -71,25 +74,27 @@ class TamtamaBloc extends Bloc<TamtamaEvent, TamtamaState> {
     PlayWithPetEvent event,
     Emitter<TamtamaState> emit,
   ) async {
-    state.maybeWhen(
-      loaded: (tamtama) async {
-        final updatedHappiness = (tamtama.happiness + 15).clamp(0, 100);
-        final updatedLevel = tamtama.happiness >= 90
-            ? tamtama.level + 1
-            : tamtama.level;
-        final updatedTamtama = tamtama.copyWith(
-          happiness: updatedHappiness,
-          level: updatedLevel,
-          lastPlayedAt: DateTime.now(),
-        );
+    final currentTamtama = state.maybeWhen<TamtamaEntity?>(
+      loaded: (tamtama) => tamtama,
+      orElse: () => null,
+    );
 
-        final result = await repository.save(updatedTamtama);
-        result.fold(
-          (failure) => emit(TamtamaState.error(failure.message)),
-          (saved) => emit(TamtamaState.loaded(saved)),
-        );
-      },
-      orElse: () {},
+    if (currentTamtama == null || emit.isDone) return;
+
+    final updatedHappiness = (currentTamtama.happiness + 15).clamp(0, 100);
+    final updatedLevel =
+        currentTamtama.happiness >= 90 ? currentTamtama.level + 1 : currentTamtama.level;
+    final updatedTamtama = currentTamtama.copyWith(
+      happiness: updatedHappiness,
+      level: updatedLevel,
+      lastPlayedAt: DateTime.now(),
+    );
+
+    final result = await repository.save(updatedTamtama);
+    if (emit.isDone) return;
+    result.fold(
+      (failure) => emit(TamtamaState.error(failure.message)),
+      (saved) => emit(TamtamaState.loaded(saved)),
     );
   }
 

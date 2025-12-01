@@ -435,82 +435,86 @@ class _HomeNewsListSectionState extends State<HomeNewsListSection> {
     final hasImage =
         post.featuredImageUrl != null && post.featuredImageUrl!.isNotEmpty;
 
-    return Container(
-      key: ValueKey(post.id),
-      margin: EdgeInsets.fromLTRB(
-        DesignTokens.spacingL,
-        DesignTokens.spacingS,
-        DesignTokens.spacingL,
-        0,
-      ),
-      decoration: BoxDecoration(
-        color: colors.cardBackground,
-        borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
-            HapticFeedback.lightImpact();
-            Navigator.pushNamed(
-              context,
-              AppRoutes.postDetail,
-              arguments: post,
-            );
-          },
+    return RepaintBoundary(
+      child: Container(
+        key: ValueKey(post.id),
+        margin: EdgeInsets.fromLTRB(
+          DesignTokens.spacingL,
+          DesignTokens.spacingS,
+          DesignTokens.spacingL,
+          0,
+        ),
+        decoration: BoxDecoration(
+          color: colors.cardBackground,
           borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
-          child: Padding(
-            padding: EdgeInsets.all(DesignTokens.spacingM),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 72,
-                  height: 72,
-                  decoration: BoxDecoration(
-                    color: colors.borderSubtle,
-                    borderRadius: BorderRadius.circular(16),
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () {
+              HapticFeedback.lightImpact();
+              Navigator.pushNamed(
+                context,
+                AppRoutes.postDetail,
+                arguments: post,
+              );
+            },
+            borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
+            child: Padding(
+              padding: EdgeInsets.all(DesignTokens.spacingM),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 72,
+                    height: 72,
+                    decoration: BoxDecoration(
+                      color: colors.borderSubtle,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: hasImage
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: AppNetworkImage(
+                              imageUrl: post.featuredImageUrl!,
+                              fit: BoxFit.cover,
+                              memCacheWidth: 216,
+                              memCacheHeight: 216,
+                              placeholder: (context, url) => Container(
+                                color: colors.borderSubtle,
+                              ),
+                              errorWidget: (context, url, error) => Icon(
+                                Icons.image_not_supported,
+                                color: colors.textSecondary,
+                              ),
+                            ),
+                          )
+                        : Icon(Icons.image, color: colors.textSecondary),
                   ),
-                  child: hasImage
-                      ? ClipRRect(
-                          borderRadius: BorderRadius.circular(16),
-                          child: AppNetworkImage(
-                            imageUrl: post.featuredImageUrl!,
-                            fit: BoxFit.cover,
-                            placeholder: (context, url) => Container(
-                              color: colors.borderSubtle,
-                            ),
-                            errorWidget: (context, url, error) => Icon(
-                              Icons.image_not_supported,
-                              color: colors.textSecondary,
-                            ),
+                  SizedBox(width: DesignTokens.spacingM),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          post.title,
+                          style: TextStyle(
+                            fontSize: DesignTokens.fontSizeCaption,
+                            fontWeight: FontWeight.w500,
+                            color: colors.textPrimary,
+                            height: 1.25,
                           ),
-                        )
-                      : Icon(Icons.image, color: colors.textSecondary),
-                ),
-          SizedBox(width: DesignTokens.spacingM),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  post.title,
-                  style: TextStyle(
-                    fontSize: DesignTokens.fontSizeCaption,
-                    fontWeight: FontWeight.w500,
-                    color: colors.textPrimary,
-                    height: 1.25,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        SizedBox(height: DesignTokens.spacingS),
+                        _buildInfoPills(context, post, chipTokens),
+                      ],
+                    ),
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                SizedBox(height: DesignTokens.spacingS),
-                _buildInfoPills(context, post, chipTokens),
-              ],
-            ),
-          ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
