@@ -7,8 +7,13 @@ import '../../domain/entities/song_history_entity.dart';
 
 class SongHistoryItem extends StatelessWidget {
   final SongHistoryEntity song;
+  final bool showBorder;
 
-  const SongHistoryItem({super.key, required this.song});
+  const SongHistoryItem({
+    super.key,
+    required this.song,
+    this.showBorder = true,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -21,10 +26,12 @@ class SongHistoryItem extends StatelessWidget {
       decoration: BoxDecoration(
         color: colors.cardBackground,
         borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
-        border: Border.all(
-          color: colors.borderSubtle,
-          width: 1,
-        ),
+        border: showBorder
+            ? Border.all(
+                color: colors.borderSubtle,
+                width: 1,
+              )
+            : null,
       ),
       child: Row(
         children: [

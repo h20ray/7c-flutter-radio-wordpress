@@ -139,6 +139,7 @@ class RadioConfig {
   static const bool showSongHistory = true;
   static const bool showLyrics = true;
   static const bool showRequest = true;
+  static const bool showAbout = true;
 
   /// Song history configuration
   static const int songHistoryMaxEntries = 100;

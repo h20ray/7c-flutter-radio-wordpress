@@ -69,15 +69,15 @@ class FloatingBottomNavBar extends StatelessWidget {
                 ),
                 _buildNavItem(
                   context,
-                  icon: LucideIcons.radio,
-                  item: NavItem.radio,
-                  label: 'home_nav_radio'.tr(),
-                ),
-                _buildNavItem(
-                  context,
                   icon: LucideIcons.newspaper,
                   item: NavItem.news,
                   label: 'home_nav_news'.tr(),
+                ),
+                _buildNavItem(
+                  context,
+                  icon: LucideIcons.radio,
+                  item: NavItem.radio,
+                  label: 'home_nav_radio'.tr(),
                 ),
                 _buildNavItem(
                   context,

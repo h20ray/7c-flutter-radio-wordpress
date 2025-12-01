@@ -10,5 +10,6 @@ class AppRoutes {
   static const String songHistory = '/song_history';
   static const String lyrics = '/lyrics';
   static const String request = '/request';
+  static const String radioAbout = '/radio_about';
 }
 

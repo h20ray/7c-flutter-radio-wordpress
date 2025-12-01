@@ -8,6 +8,7 @@ import '../../features/radio/presentation/bloc/radio_player_bloc.dart';
 import '../../features/radio/presentation/pages/song_history_page.dart';
 import '../../features/radio/presentation/pages/lyrics_page.dart';
 import '../../features/radio/presentation/pages/request_page.dart';
+import '../../features/radio/presentation/pages/radio_about_page.dart';
 import '../../features/gamification/presentation/bloc/gamification_bloc.dart';
 import '../../features/gamification/presentation/pages/level_details_page.dart';
 import '../../features/home/presentation/pages/home_screen.dart';
@@ -108,6 +109,11 @@ class RouteGenerator {
             ],
             child: const RequestPage(),
           ),
+        );
+      case AppRoutes.radioAbout:
+        return _buildPageRoute(
+          settings,
+          (context) => const RadioAboutPage(),
         );
       default:
         return _buildPageRoute(

@@ -4,7 +4,6 @@ import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../../core/widgets/glass_app_bar_background.dart';
 import '../widgets/volume_dialog.dart';
-import '../widgets/radio_info_dialog.dart';
 
 class RadioAppBar extends StatelessWidget {
   final VoidCallback onScrollToTop;
@@ -60,11 +59,6 @@ class RadioAppBar extends StatelessWidget {
             },
           ),
           tooltip: 'Switch Theme',
-        ),
-        IconButton(
-          onPressed: () => RadioInfoDialog.show(context),
-          icon: const Icon(LucideIcons.info, size: 20),
-          tooltip: 'Info',
         ),
         const SizedBox(width: 8),
       ],

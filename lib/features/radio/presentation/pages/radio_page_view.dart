@@ -14,7 +14,7 @@ import '../widgets/radio_loading_state.dart';
 import '../widgets/radio_metadata_section.dart';
 import '../widgets/radio_page_background.dart';
 import '../widgets/radio_big_album_art.dart';
-import '../widgets/radio_placeholder_content.dart';
+import '../widgets/radio_song_history_section.dart';
 import '../widgets/radio_menu_chips_section.dart';
 
 class RadioPageView extends StatelessWidget {
@@ -162,7 +162,10 @@ class _RadioPageViewContentState extends State<_RadioPageViewContent> {
                       child: RadioBannerSection(),
                     ),
                     const SizedBox(height: 24),
-                    const RadioPlaceholderContent(),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16.0),
+                      child: RadioSongHistorySection(),
+                    ),
                     const SizedBox(height: 200), // Increased bottom padding for controls + navbar
                   ],
                 ),

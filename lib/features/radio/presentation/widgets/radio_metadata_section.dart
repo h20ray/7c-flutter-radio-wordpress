@@ -39,7 +39,7 @@ class RadioMetadataSection extends StatelessWidget {
             : RadioConfig.fallbackArtist;
 
         return Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Expanded(
               child: Column(

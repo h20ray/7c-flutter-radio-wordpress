@@ -21,11 +21,16 @@ class _RadioPageBackgroundState extends State<RadioPageBackground>
   PaletteColors? _currentPalette;
   final PaletteService _paletteService = PaletteService();
   bool _isUsingFallback = false;
+  bool _isPlaying = false;
+  String? _targetArtUrl; // Target art URL for smooth transitions
+  PaletteColors? _targetPalette; // Target palette for smooth transitions
 
   late final AnimationController _blobController;
   late final Animation<double> _blobAnimation;
   late final AnimationController _blurController;
   late final Animation<double> _blurAnimation;
+  late final AnimationController _fadeController;
+  late final Animation<double> _fadeAnimation;
 
   @override
   void initState() {
@@ -34,7 +39,7 @@ class _RadioPageBackgroundState extends State<RadioPageBackground>
     _blobController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 12),
-    )..repeat(reverse: true);
+    );
     
     _blobAnimation = CurvedAnimation(
       parent: _blobController,
@@ -44,7 +49,7 @@ class _RadioPageBackgroundState extends State<RadioPageBackground>
     _blurController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 8),
-    )..repeat(reverse: true);
+    );
 
     _blurAnimation = Tween<double>(
       begin: 40.0,
@@ -54,13 +59,61 @@ class _RadioPageBackgroundState extends State<RadioPageBackground>
       curve: Curves.easeInOut,
     ));
 
+    _fadeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    );
+
+    _fadeAnimation = CurvedAnimation(
+      parent: _fadeController,
+      curve: Curves.easeInOut,
+    );
+
     _initializeFallbackPalette();
+  }
+
+  void _updateAnimationState(bool isPlaying) {
+    if (_isPlaying == isPlaying) return;
+    _isPlaying = isPlaying;
+
+    if (isPlaying) {
+      if (!_blobController.isAnimating) {
+        _blobController.repeat(reverse: true);
+      }
+      if (!_blurController.isAnimating) {
+        _blurController.repeat(reverse: true);
+      }
+      // Fade to album art when playing
+      _fadeToTarget();
+    } else {
+      _blobController.stop();
+      _blurController.stop();
+      // Fade to fallback when paused
+      _fadeToFallback();
+    }
+  }
+
+  void _fadeToTarget() {
+    if (_targetArtUrl != _cachedArtUrl || _targetPalette != _currentPalette) {
+      _targetArtUrl = _cachedArtUrl;
+      _targetPalette = _currentPalette;
+      _fadeController.forward();
+    }
+  }
+
+  void _fadeToFallback() {
+    if (_targetArtUrl != null || _targetPalette != null) {
+      _targetArtUrl = null;
+      _targetPalette = null;
+      _fadeController.reverse();
+    }
   }
 
   @override
   void dispose() {
     _blobController.dispose();
     _blurController.dispose();
+    _fadeController.dispose();
     super.dispose();
   }
 
@@ -80,6 +133,10 @@ class _RadioPageBackgroundState extends State<RadioPageBackground>
         setState(() {
           _currentPalette = palette;
           _isUsingFallback = true;
+          if (!_isPlaying) {
+            _targetPalette = null; // No target when paused
+            _fadeController.value = 0.0; // Start with fallback visible when paused
+          }
         });
       }
     } catch (e) {
@@ -121,6 +178,11 @@ class _RadioPageBackgroundState extends State<RadioPageBackground>
         setState(() {
           _currentPalette = palette;
           _isUsingFallback = false;
+          if (_isPlaying) {
+            _targetPalette = palette;
+            _targetArtUrl = artUrl;
+            _fadeController.forward();
+          }
         });
       }
     } catch (e) {
@@ -132,71 +194,94 @@ class _RadioPageBackgroundState extends State<RadioPageBackground>
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Theme.of(context).brightness == Brightness.dark
-          ? Colors.black
-          : Colors.grey[900],
-      child: BlocListener<RadioPlayerBloc, RadioPlayerState>(
-        listenWhen: (previous, current) {
-          String? newArtUrl;
-          current.maybeWhen(
-            ready: (playing, p2, p3, p4, currentAlbumArtUrl, p6, p7) {
-              newArtUrl = currentAlbumArtUrl;
-            },
-            orElse: () {},
-          );
-          return newArtUrl != _cachedArtUrl;
-        },
-        listener: (context, state) {
-          String? artUrl;
-          state.maybeWhen(
-            ready: (playing, p2, p3, p4, currentAlbumArtUrl, p6, p7) =>
-                artUrl = currentAlbumArtUrl,
-            orElse: () {},
-          );
+    return BlocBuilder<RadioPlayerBloc, RadioPlayerState>(
+      builder: (context, state) {
+        bool isPlaying = false;
+        String? artUrl;
+        state.maybeWhen(
+          ready: (playing, p2, p3, p4, currentAlbumArtUrl, p6, p7) {
+            isPlaying = playing;
+            artUrl = currentAlbumArtUrl;
+          },
+          orElse: () {},
+        );
+        
+        _updateAnimationState(isPlaying);
+        
+        if (artUrl != _cachedArtUrl) {
           _cachedArtUrl = artUrl;
           _updatePalette(artUrl);
+          if (isPlaying) {
+            _targetArtUrl = artUrl;
+            _targetPalette = _currentPalette;
+          }
+        }
+        
+        return Container(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Colors.black
+              : Colors.grey[900],
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              _buildBaseBackgroundWithFade(),
+              _buildMeshGradientWithFade(),
+              Container(
+                color: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.7),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildBaseBackgroundWithFade() {
+    return RepaintBoundary(
+      child: AnimatedBuilder(
+        animation: Listenable.merge([_blurAnimation, _fadeAnimation]),
+        builder: (context, child) {
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              // Fallback background (always visible, opacity controlled by fade)
+              Opacity(
+                opacity: 1.0 - _fadeAnimation.value,
+                child: ImageFiltered(
+                  imageFilter: ImageFilter.blur(
+                    sigmaX: _blurAnimation.value,
+                    sigmaY: _blurAnimation.value,
+                  ),
+                  child: _buildFallbackImage(),
+                ),
+              ),
+              // Album art background (fades in when playing)
+              Opacity(
+                opacity: _fadeAnimation.value,
+                child: ImageFiltered(
+                  imageFilter: ImageFilter.blur(
+                    sigmaX: _blurAnimation.value,
+                    sigmaY: _blurAnimation.value,
+                  ),
+                  child: _targetArtUrl != null && _targetArtUrl!.isNotEmpty
+                      ? AppNetworkImage(
+                          imageUrl: _targetArtUrl!,
+                          width: double.infinity,
+                          height: double.infinity,
+                          fit: BoxFit.cover,
+                          filterQuality: FilterQuality.low,
+                          errorWidget: (context, url, error) => _buildFallbackImage(),
+                        )
+                      : _buildFallbackImage(),
+                ),
+              ),
+            ],
+          );
         },
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            _buildBaseBackground(),
-            if (_currentPalette != null) _buildMeshGradient(_currentPalette!),
-            Container(
-              color: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.7),
-            ),
-          ],
-        ),
       ),
     );
   }
 
-  Widget _buildBaseBackground() {
-    return RepaintBoundary(
-      child: AnimatedBuilder(
-        animation: _blurAnimation,
-        builder: (context, child) {
-          return ImageFiltered(
-            imageFilter: ImageFilter.blur(
-              sigmaX: _blurAnimation.value,
-              sigmaY: _blurAnimation.value,
-            ),
-            child: child,
-          );
-        },
-        child: _cachedArtUrl != null && _cachedArtUrl!.isNotEmpty
-            ? AppNetworkImage(
-                imageUrl: _cachedArtUrl!,
-                width: double.infinity,
-                height: double.infinity,
-                fit: BoxFit.cover,
-                filterQuality: FilterQuality.low,
-                errorWidget: (context, url, error) => _buildFallbackImage(),
-              )
-            : _buildFallbackImage(),
-      ),
-    );
-  }
 
   Widget _buildFallbackImage() {
     return Image.asset(
@@ -215,51 +300,63 @@ class _RadioPageBackgroundState extends State<RadioPageBackground>
     );
   }
 
-  Widget _buildMeshGradient(PaletteColors palette) {
+  Widget _buildMeshGradientWithFade() {
     return RepaintBoundary(
       child: AnimatedBuilder(
-        animation: _blobAnimation,
+        animation: Listenable.merge([_blobAnimation, _fadeAnimation]),
         builder: (context, child) {
-          return Stack(
-            children: [
-              _buildBlob(
-                color: palette.dominant,
-                alignment: Alignment(
-                  -0.8 + (_blobAnimation.value * 0.15),
-                  -0.8 + (_blobAnimation.value * 0.1),
-                ),
-                size: 1.4,
+          return Opacity(
+            opacity: _fadeAnimation.value,
+            child: ImageFiltered(
+              imageFilter: ImageFilter.blur(
+                sigmaX: 20.0,
+                sigmaY: 20.0,
               ),
-              _buildBlob(
-                color: palette.vibrant,
-                alignment: Alignment(
-                  0.8 - (_blobAnimation.value * 0.15),
-                  -0.4 + (_blobAnimation.value * 0.1),
-                ),
-                size: 1.1,
-              ),
-              _buildBlob(
-                color: palette.darkVibrant,
-                alignment: Alignment(
-                  -0.5 + (_blobAnimation.value * 0.1),
-                  0.5 + (_blobAnimation.value * 0.2),
-                ),
-                size: 1.3,
-              ),
-              _buildBlob(
-                color: palette.muted,
-                alignment: Alignment(
-                  0.6 - (_blobAnimation.value * 0.1),
-                  0.8 - (_blobAnimation.value * 0.15),
-                ),
-                size: 1.2,
-              ),
-            ],
+              child: _targetPalette != null
+                  ? Stack(
+                      children: [
+                        _buildBlob(
+                          color: _targetPalette!.dominant,
+                          alignment: Alignment(
+                            -0.8 + (_blobAnimation.value * 0.15),
+                            -0.8 + (_blobAnimation.value * 0.1),
+                          ),
+                          size: 1.4,
+                        ),
+                        _buildBlob(
+                          color: _targetPalette!.vibrant,
+                          alignment: Alignment(
+                            0.8 - (_blobAnimation.value * 0.15),
+                            -0.4 + (_blobAnimation.value * 0.1),
+                          ),
+                          size: 1.1,
+                        ),
+                        _buildBlob(
+                          color: _targetPalette!.darkVibrant,
+                          alignment: Alignment(
+                            -0.5 + (_blobAnimation.value * 0.1),
+                            0.5 + (_blobAnimation.value * 0.2),
+                          ),
+                          size: 1.3,
+                        ),
+                        _buildBlob(
+                          color: _targetPalette!.muted,
+                          alignment: Alignment(
+                            0.6 - (_blobAnimation.value * 0.1),
+                            0.8 - (_blobAnimation.value * 0.15),
+                          ),
+                          size: 1.2,
+                        ),
+                      ],
+                    )
+                  : const SizedBox.shrink(),
+            ),
           );
         },
       ),
     );
   }
+
 
   Widget _buildBlob({
     required Color color,

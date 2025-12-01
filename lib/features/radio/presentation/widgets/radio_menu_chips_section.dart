@@ -49,6 +49,18 @@ class RadioMenuChipsSection extends StatelessWidget {
       );
     }
 
+    if (RadioConfig.showAbout) {
+      menuChips.add(
+        _MenuChip(
+          icon: LucideIcons.info,
+          label: 'radio_menu_about',
+          onTap: () {
+            Navigator.pushNamed(context, AppRoutes.radioAbout);
+          },
+        ),
+      );
+    }
+
     return Row(
       children: [
         const _GreetingChip(),
