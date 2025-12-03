@@ -136,9 +136,9 @@ class LevelCardItem extends StatelessWidget {
                 ),
               )
             : BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
                 child: Container(
-                  color: Colors.black.withValues(alpha: 0.1),
+                  color: Colors.black.withValues(alpha: 0.15),
                   padding: EdgeInsets.all(DesignTokens.spacingL),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -163,16 +163,21 @@ class LevelCardItem extends StatelessWidget {
                                   LucideIcons.lock,
                                   size: 20,
                                   color: colorScheme.onSurfaceVariant
-                                      .withValues(alpha: 0.5),
+                                      .withValues(alpha: 0.6),
                                 ),
                                 SizedBox(width: DesignTokens.spacingS),
                                 Expanded(
-                                  child: Text(
-                                    level.displayName,
-                                    style: textTheme.titleMedium?.copyWith(
-                                      fontWeight: FontWeight.w700,
-                                      color: colorScheme.onSurfaceVariant
-                                          .withValues(alpha: 0.5),
+                                  child: ClipRect(
+                                    child: BackdropFilter(
+                                      filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                                      child: Text(
+                                        level.displayName,
+                                        style: textTheme.titleMedium?.copyWith(
+                                          fontWeight: FontWeight.w700,
+                                          color: colorScheme.onSurfaceVariant
+                                              .withValues(alpha: 0.4),
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ),

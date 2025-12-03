@@ -144,6 +144,12 @@ class _NewsPageViewContentState extends State<_NewsPageViewContent> {
       appBarState.unfocusSearch();
     }
     
+    // Also unfocus any focused text field using FocusScope
+    final currentFocus = FocusScope.of(context);
+    if (currentFocus.hasFocus) {
+      currentFocus.unfocus();
+    }
+    
     final maxScroll = _scrollController.position.maxScrollExtent;
     final currentScroll = _scrollController.position.pixels;
     
@@ -256,11 +262,17 @@ class _NewsPageViewContentState extends State<_NewsPageViewContent> {
       onPopInvokedWithResult: (bool didPop, dynamic result) async {
         if (didPop) return;
         
-        // Unfocus search box when back button is pressed
+        // Always unfocus search box and any focused field when back button is pressed
         final appBarState = NewsAppBar.of(context);
         if (appBarState != null && appBarState.isSearchFocused) {
           appBarState.unfocusSearch();
-          return; // Don't navigate if search was focused, just unfocus
+        }
+        
+        // Also unfocus any focused text field using FocusScope
+        final currentFocus = FocusScope.of(context);
+        if (currentFocus.hasFocus) {
+          currentFocus.unfocus();
+          return; // Don't navigate if something was focused, just unfocus
         }
         
         Navigator.pushReplacementNamed(context, AppRoutes.home);
