@@ -160,7 +160,7 @@ class FloatingBottomNavBar extends StatelessWidget {
         Navigator.pushNamed(context, AppRoutes.shoutbox);
         break;
       case NavItem.profile:
-        // TODO: Add profile route
+        Navigator.pushReplacementNamed(context, AppRoutes.profile);
         break;
     }
   }

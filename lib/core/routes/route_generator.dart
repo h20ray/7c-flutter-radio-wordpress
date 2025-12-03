@@ -17,6 +17,7 @@ import '../../features/wordpress/presentation/bloc/wordpress_bloc.dart';
 import '../../features/wordpress/presentation/pages/news_page.dart';
 import '../../features/wordpress/presentation/pages/post_detail_page_view.dart';
 import '../../features/wordpress/domain/entities/post_entity.dart';
+import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/tamtama/presentation/bloc/tamtama_bloc.dart';
 import '../di/injection_container.dart';
 import 'app_routes.dart';
@@ -49,6 +50,8 @@ class RouteGenerator {
         return _buildPageRoute(settings, (context) => const RadioPage());
       case AppRoutes.news:
         return _buildPageRoute(settings, (context) => const NewsPage());
+      case AppRoutes.profile:
+        return _buildPageRoute(settings, (context) => const ProfilePage());
       case AppRoutes.levelDetails:
         return _buildPageRoute(settings, (context) {
           final bloc = getIt<GamificationBloc>();

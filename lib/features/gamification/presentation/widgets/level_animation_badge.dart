@@ -50,15 +50,15 @@ class _LevelAnimationBadgeState extends State<LevelAnimationBadge>
 
   Color? _resolveBackgroundColor() {
     final colorValue = widget.backgroundColor;
-    if (colorValue == null) {
-      return null;
-    }
+    if (colorValue == null) return null;
+    
     final baseColor = Color(colorValue);
+    if (widget.isLocked) {
+      return baseColor.withValues(alpha: 0.6);
+    }
+    
     final hsl = HSLColor.fromColor(baseColor);
-    final darker =
-        hsl.withLightness((hsl.lightness * 0.5).clamp(0.0, 1.0)).toColor();
-    final target = widget.isLocked ? baseColor.withValues(alpha: 0.6) : darker;
-    return target;
+    return hsl.withLightness((hsl.lightness * 0.5).clamp(0.0, 1.0)).toColor();
   }
 
   @override
@@ -202,7 +202,13 @@ class _LevelAnimationBadgeState extends State<LevelAnimationBadge>
       controller: _controller,
       repeat: false,
       fit: BoxFit.cover,
-      decoder: _dotLottieDecoder,
+      decoder: (bytes) => LottieComposition.decodeZip(
+        bytes,
+        filePicker: (files) => files.firstWhere(
+          (f) => f.name.startsWith('animations/') && f.name.endsWith('.json'),
+          orElse: () => files.first,
+        ),
+      ),
       onLoaded: (composition) {
         if (!mounted) {
           return;
@@ -221,21 +227,6 @@ class _LevelAnimationBadgeState extends State<LevelAnimationBadge>
           color: widget.isLocked ? Colors.black.withValues(alpha: 0.2) : null,
           colorBlendMode: widget.isLocked ? BlendMode.srcATop : null,
         );
-      },
-    );
-  }
-
-  Future<LottieComposition?> _dotLottieDecoder(List<int> bytes) {
-    return LottieComposition.decodeZip(
-      bytes,
-      filePicker: (files) {
-        for (final file in files) {
-          if (file.name.startsWith('animations/') &&
-              file.name.endsWith('.json')) {
-            return file;
-          }
-        }
-        return files.isNotEmpty ? files.first : null;
       },
     );
   }

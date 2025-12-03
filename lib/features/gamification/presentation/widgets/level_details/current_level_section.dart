@@ -132,14 +132,23 @@ class _ProgressToNextLevel extends StatelessWidget {
     required this.currentHours,
   });
 
+  String _formatTimeRemaining(double hours) {
+    if (hours < 1.0) {
+      final minutes = (hours * 60).round();
+      return minutes.toString();
+    }
+    return hours >= 100
+        ? hours.toStringAsFixed(0)
+        : hours.toStringAsFixed(1);
+  }
+
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
     final hoursNeeded = (nextLevelTargetHours - currentHours).clamp(0.0, double.maxFinite);
-    final formattedHoursNeeded = hoursNeeded >= 100
-        ? hoursNeeded.toStringAsFixed(0)
-        : hoursNeeded.toStringAsFixed(1);
+    final timeValue = _formatTimeRemaining(hoursNeeded);
+    final isMinutes = hoursNeeded < 1.0;
     final progressColor = Color(
       GameRadioTimeConfig.resolveByHours(currentHours).badgeBackgroundColor,
     );
@@ -177,12 +186,19 @@ class _ProgressToNextLevel extends StatelessWidget {
         ),
         SizedBox(height: DesignTokens.spacingS),
         Text(
-          'level_details_hours_needed_for'.tr(
-            namedArgs: {
-              'hours': formattedHoursNeeded,
-              'level': nextLevelName,
-            },
-          ),
+          isMinutes
+              ? 'level_details_minutes_needed_for'.tr(
+                  namedArgs: {
+                    'minutes': timeValue,
+                    'level': nextLevelName,
+                  },
+                )
+              : 'level_details_hours_needed_for'.tr(
+                  namedArgs: {
+                    'hours': timeValue,
+                    'level': nextLevelName,
+                  },
+                ),
           style: textTheme.bodySmall?.copyWith(
             color: colorScheme.onSurfaceVariant,
           ),

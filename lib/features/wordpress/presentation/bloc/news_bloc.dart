@@ -686,12 +686,7 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
         final cachedResults = await getPosts.getCachedPosts(search: sanitizedQuery, page: 1);
         
         if (cachedResults != null && cachedResults.isNotEmpty) {
-          final prioritizedCachedResults = SearchQueryHelper.prioritizeTitleMatches(
-            items: cachedResults,
-            query: sanitizedQuery,
-            getTitle: (post) => post.title,
-          );
-          final updatedHasMore = prioritizedCachedResults.length >= NewsConfig.newsPageListLimit;
+          final updatedHasMore = cachedResults.length >= NewsConfig.newsPageListLimit;
           emit(_updateSearchResults(
             posts: posts,
             postsByCategory: postsByCategory,
@@ -700,7 +695,7 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
             isLoadingByCategory: isLoadingByCategory,
             errorsByCategory: errorsByCategory,
             currentPageByCategory: currentPageByCategory,
-            searchResults: prioritizedCachedResults,
+            searchResults: cachedResults,
             searchQuery: sanitizedQuery,
             searchPage: 1,
             hasMoreSearchResults: updatedHasMore,
@@ -729,12 +724,7 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
             ));
           },
           (results) {
-            final prioritizedResults = SearchQueryHelper.prioritizeTitleMatches(
-              items: results,
-              query: sanitizedQuery,
-              getTitle: (post) => post.title,
-            );
-            final updatedHasMore = prioritizedResults.length >= NewsConfig.newsPageListLimit;
+            final updatedHasMore = results.length >= NewsConfig.newsPageListLimit;
             emit(_updateSearchResults(
               posts: posts,
               postsByCategory: postsByCategory,
@@ -743,7 +733,7 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
               isLoadingByCategory: isLoadingByCategory,
               errorsByCategory: errorsByCategory,
               currentPageByCategory: currentPageByCategory,
-              searchResults: prioritizedResults,
+              searchResults: results,
               searchQuery: sanitizedQuery,
               searchPage: 1,
               hasMoreSearchResults: updatedHasMore,
@@ -763,12 +753,7 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
             emit(NewsState.error(failure: failure, categoryId: null));
           },
           (results) {
-            final prioritizedResults = SearchQueryHelper.prioritizeTitleMatches(
-              items: results,
-              query: sanitizedQuery,
-              getTitle: (post) => post.title,
-            );
-            final updatedHasMore = prioritizedResults.length >= NewsConfig.newsPageListLimit;
+            final updatedHasMore = results.length >= NewsConfig.newsPageListLimit;
             emit(_buildLoadedState(
               posts: const [],
               postsByCategory: const {},
@@ -777,7 +762,7 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
               isLoadingByCategory: const {},
               errorsByCategory: const {},
               currentPageByCategory: const {},
-              searchResults: prioritizedResults,
+              searchResults: results,
               searchQuery: sanitizedQuery,
               searchPage: 1,
               hasMoreSearchResults: updatedHasMore,
@@ -834,18 +819,8 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
         final cachedNextPage = await getPosts.getCachedPosts(search: searchQuery, page: nextPage);
         
         if (cachedNextPage != null && cachedNextPage.isNotEmpty) {
-          final prioritizedCachedNextPage = SearchQueryHelper.prioritizeTitleMatches(
-            items: cachedNextPage,
-            query: searchQuery,
-            getTitle: (post) => post.title,
-          );
-          final mergedResults = [...existingResults, ...prioritizedCachedNextPage];
-          final prioritizedMergedResults = SearchQueryHelper.prioritizeTitleMatches(
-            items: mergedResults,
-            query: searchQuery,
-            getTitle: (post) => post.title,
-          );
-          final updatedHasMore = prioritizedCachedNextPage.length >= NewsConfig.newsPageListLimit;
+          final mergedResults = [...existingResults, ...cachedNextPage];
+          final updatedHasMore = cachedNextPage.length >= NewsConfig.newsPageListLimit;
           
           emit(_updateSearchResults(
             posts: posts,
@@ -855,7 +830,7 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
             isLoadingByCategory: isLoadingByCategory,
             errorsByCategory: errorsByCategory,
             currentPageByCategory: currentPageByCategory,
-            searchResults: prioritizedMergedResults,
+            searchResults: mergedResults,
             searchQuery: searchQuery,
             searchPage: nextPage,
             hasMoreSearchResults: updatedHasMore,
@@ -885,18 +860,8 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
             ));
           },
           (newResults) {
-            final prioritizedNewResults = SearchQueryHelper.prioritizeTitleMatches(
-              items: newResults,
-              query: searchQuery,
-              getTitle: (post) => post.title,
-            );
-            final mergedResults = [...existingResults, ...prioritizedNewResults];
-            final prioritizedMergedResults = SearchQueryHelper.prioritizeTitleMatches(
-              items: mergedResults,
-              query: searchQuery,
-              getTitle: (post) => post.title,
-            );
-            final updatedHasMore = prioritizedNewResults.length >= NewsConfig.newsPageListLimit;
+            final mergedResults = [...existingResults, ...newResults];
+            final updatedHasMore = newResults.length >= NewsConfig.newsPageListLimit;
             
             emit(_updateSearchResults(
               posts: posts,
@@ -906,7 +871,7 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
               isLoadingByCategory: isLoadingByCategory,
               errorsByCategory: errorsByCategory,
               currentPageByCategory: currentPageByCategory,
-              searchResults: prioritizedMergedResults,
+              searchResults: mergedResults,
               searchQuery: searchQuery,
               searchPage: nextPage,
               hasMoreSearchResults: updatedHasMore,

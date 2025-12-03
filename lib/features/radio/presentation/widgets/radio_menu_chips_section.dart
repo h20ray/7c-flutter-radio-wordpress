@@ -15,18 +15,6 @@ class RadioMenuChipsSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final menuChips = <Widget>[];
 
-    if (RadioConfig.showSongHistory) {
-      menuChips.add(
-        _MenuChip(
-          icon: LucideIcons.history,
-          label: 'radio_menu_song_history',
-          onTap: () {
-            Navigator.pushNamed(context, AppRoutes.songHistory);
-          },
-        ),
-      );
-    }
-
     if (RadioConfig.showLyrics) {
       menuChips.add(
         _MenuChip(
@@ -58,6 +46,18 @@ class RadioMenuChipsSection extends StatelessWidget {
           label: 'radio_menu_about',
           onTap: () {
             Navigator.pushNamed(context, AppRoutes.radioAbout);
+          },
+        ),
+      );
+    }
+
+    if (RadioConfig.showSongHistory) {
+      menuChips.add(
+        _MenuChip(
+          icon: LucideIcons.history,
+          label: 'radio_menu_song_history',
+          onTap: () {
+            Navigator.pushNamed(context, AppRoutes.songHistory);
           },
         ),
       );

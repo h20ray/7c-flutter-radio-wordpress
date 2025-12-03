@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/themes/design_tokens.dart';
 import '../../../../core/themes/app_color_system.dart';
 import '../../../../core/widgets/shimmer_skeleton.dart';
+import '../../../../core/widgets/app_network_image.dart';
+import '../../../../config/radio_config.dart';
 import '../../../../core/di/injection_container.dart';
 import '../bloc/lyrics_bloc.dart';
 import '../bloc/radio_player_bloc.dart';
@@ -20,11 +22,13 @@ class LyricsPage extends StatelessWidget {
     String? artist;
     String? title;
 
+    String? albumArtUrl;
     radioState.maybeWhen(
       ready: (playing, currentUrl, currentArtist, currentTitle,
           currentAlbumArtUrl, isDucking, canAutoResume) {
         artist = currentArtist;
         title = currentTitle;
+        albumArtUrl = currentAlbumArtUrl;
       },
       orElse: () {},
     );
@@ -74,7 +78,12 @@ class LyricsPage extends StatelessWidget {
               initial: () => const SizedBox.shrink(),
               loading: () => const _LyricsLoadingState(),
               loaded: (lyrics) {
-                return _LyricsContent(lyrics: lyrics, artist: artist!, title: title!);
+                return _LyricsContent(
+                  lyrics: lyrics,
+                  artist: artist!,
+                  title: title!,
+                  albumArtUrl: albumArtUrl,
+                );
               },
               error: (failure) => _LyricsErrorState(
                 failure: failure,
@@ -93,11 +102,13 @@ class _LyricsContent extends StatelessWidget {
   final dynamic lyrics;
   final String artist;
   final String title;
+  final String? albumArtUrl;
 
   const _LyricsContent({
     required this.lyrics,
     required this.artist,
     required this.title,
+    this.albumArtUrl,
   });
 
   @override
@@ -117,35 +128,65 @@ class _LyricsContent extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  lyrics.title,
-                  style: textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: colors.textPrimary,
-                    letterSpacing: -0.5,
-                  ),
-                ),
-                SizedBox(height: DesignTokens.spacingS),
-                Text(
-                  lyrics.artist,
-                  style: textTheme.titleMedium?.copyWith(
-                    color: colors.textSecondary,
-                    fontWeight: FontWeight.w500,
-                  ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
+                      child: albumArtUrl != null && albumArtUrl!.isNotEmpty
+                          ? AppNetworkImage(
+                              imageUrl: albumArtUrl!,
+                              width: 80,
+                              height: 80,
+                              fit: BoxFit.cover,
+                              errorWidget: (context, url, error) => _buildAlbumArtFallback(colors),
+                              placeholder: (context, url) => _buildAlbumArtFallback(colors),
+                            )
+                          : _buildAlbumArtFallback(colors),
+                    ),
+                    SizedBox(width: DesignTokens.spacingL),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            lyrics.title,
+                            style: textTheme.headlineSmall?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: colors.textPrimary,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                          SizedBox(height: DesignTokens.spacingXs),
+                          Text(
+                            lyrics.artist,
+                            style: textTheme.titleMedium?.copyWith(
+                              color: colors.textSecondary,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
                 SizedBox(height: DesignTokens.spacingXl),
-                Container(
-                  padding: EdgeInsets.all(DesignTokens.spacingL),
-                  decoration: BoxDecoration(
-                    color: colors.surfaces.surfaceContainerHighest.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
-                  ),
-                  child: SelectableText(
-                    lyrics.lyrics,
-                    style: textTheme.bodyLarge?.copyWith(
-                      height: 1.8,
-                      color: colors.textPrimary,
-                      fontSize: DesignTokens.fontSizeBody + 1,
+                SizedBox(
+                  width: double.infinity,
+                  child: Container(
+                    padding: EdgeInsets.all(DesignTokens.spacingL),
+                    decoration: BoxDecoration(
+                      color: colors.surfaces.surfaceContainerHighest.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
+                    ),
+                    child: SelectableText(
+                      lyrics.lyrics,
+                      style: textTheme.bodyLarge?.copyWith(
+                        height: 1.8,
+                        color: colors.textPrimary,
+                        fontSize: DesignTokens.fontSizeBody + 1,
+                      ),
                     ),
                   ),
                 ),
@@ -186,6 +227,26 @@ class _LyricsContent extends StatelessWidget {
       ],
     );
   }
+
+  Widget _buildAlbumArtFallback(dynamic colors) {
+    return Container(
+      width: 80,
+      height: 80,
+      decoration: BoxDecoration(
+        color: colors.surfaces.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
+      ),
+      child: Image.asset(
+        RadioConfig.fallbackArtworkPath,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => Icon(
+          Icons.music_note,
+          size: 32,
+          color: colors.textSecondary,
+        ),
+      ),
+    );
+  }
 }
 
 class _LyricsLoadingState extends StatelessWidget {
@@ -207,20 +268,41 @@ class _LyricsLoadingState extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ShimmerContainer(
-                  width: 200,
-                  height: 28,
-                  borderRadius: 8,
-                  baseColor: skeletonColor.withValues(alpha: 0.3),
-                  highlightColor: skeletonColor.withValues(alpha: 0.5),
-                ),
-                SizedBox(height: DesignTokens.spacingS),
-                ShimmerContainer(
-                  width: 150,
-                  height: 20,
-                  borderRadius: 6,
-                  baseColor: skeletonColor.withValues(alpha: 0.3),
-                  highlightColor: skeletonColor.withValues(alpha: 0.5),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    ShimmerContainer(
+                      width: 80,
+                      height: 80,
+                      borderRadius: DesignTokens.cornerRadiusCard,
+                      baseColor: skeletonColor.withValues(alpha: 0.3),
+                      highlightColor: skeletonColor.withValues(alpha: 0.5),
+                    ),
+                    SizedBox(width: DesignTokens.spacingL),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ShimmerContainer(
+                            width: 200,
+                            height: 28,
+                            borderRadius: 8,
+                            baseColor: skeletonColor.withValues(alpha: 0.3),
+                            highlightColor: skeletonColor.withValues(alpha: 0.5),
+                          ),
+                          SizedBox(height: DesignTokens.spacingXs),
+                          ShimmerContainer(
+                            width: 150,
+                            height: 20,
+                            borderRadius: 6,
+                            baseColor: skeletonColor.withValues(alpha: 0.3),
+                            highlightColor: skeletonColor.withValues(alpha: 0.5),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
                 SizedBox(height: DesignTokens.spacingXl),
                 Container(

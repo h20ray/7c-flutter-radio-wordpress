@@ -66,7 +66,8 @@ class AppNetworkImage extends StatelessWidget {
       placeholder: placeholder,
       errorWidget: errorWidget,
       imageBuilder: imageBuilder,
-      fadeInDuration: fadeInDuration ?? const Duration(milliseconds: 500),
+      fadeInDuration: fadeInDuration ?? const Duration(milliseconds: 300),
+      fadeOutDuration: Duration.zero,
     );
   }
 
@@ -229,7 +230,8 @@ class _AvifCachedImageState extends State<_AvifCachedImage> {
           return _buildErrorWidget(error);
         },
         imageBuilder: widget.imageBuilder,
-        fadeInDuration: const Duration(milliseconds: 500),
+        fadeInDuration: const Duration(milliseconds: 300),
+        fadeOutDuration: Duration.zero,
       );
     }
 

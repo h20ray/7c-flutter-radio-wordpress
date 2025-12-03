@@ -56,9 +56,11 @@ class NewsCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (hasImage)
-                  NewsPostImage(
-                    imageUrl: post.featuredImageUrl!,
-                    semanticLabel: post.title,
+                  RepaintBoundary(
+                    child: NewsPostImage(
+                      imageUrl: post.featuredImageUrl!,
+                      semanticLabel: post.title,
+                    ),
                   ),
             Padding(
               padding: EdgeInsets.all(DesignTokens.spacingM),

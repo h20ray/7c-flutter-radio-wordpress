@@ -40,7 +40,6 @@ class LevelListSection extends StatelessWidget {
             final level = allLevels[index];
             final isCurrent = level.id == currentLevelId;
             final isUnlocked = currentHours >= level.minHours;
-            final isMaxLevel = level.isMaxLevel && isCurrent;
 
             return Padding(
               padding: EdgeInsets.only(
@@ -52,7 +51,6 @@ class LevelListSection extends StatelessWidget {
                 level: level,
                 isCurrent: isCurrent,
                 isUnlocked: isUnlocked,
-                isMaxLevel: isMaxLevel,
                 currentHours: currentHours,
               ),
             );

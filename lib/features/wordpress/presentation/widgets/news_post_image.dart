@@ -29,21 +29,23 @@ class NewsPostImage extends StatelessWidget {
             topLeft: Radius.circular(DesignTokens.cornerRadiusCard),
             topRight: Radius.circular(DesignTokens.cornerRadiusCard),
           ),
-          child: AppNetworkImage(
-            imageUrl: imageUrl,
-            fit: BoxFit.cover,
-            memCacheWidth: 800,
-            memCacheHeight: 450,
-            fadeInDuration: Duration.zero,
-            placeholder: (context, url) => Container(
-              color: skeletonColor,
-            ),
-            errorWidget: (context, url, error) => Container(
-              color: colors.borderSubtle,
-              child: Icon(
-                Icons.image_not_supported,
-                color: colors.textSecondary,
-                size: 48,
+          child: RepaintBoundary(
+            child: AppNetworkImage(
+              imageUrl: imageUrl,
+              fit: BoxFit.cover,
+              memCacheWidth: 800,
+              memCacheHeight: 450,
+              fadeInDuration: const Duration(milliseconds: 300),
+              placeholder: (context, url) => Container(
+                color: skeletonColor,
+              ),
+              errorWidget: (context, url, error) => Container(
+                color: colors.borderSubtle,
+                child: Icon(
+                  Icons.image_not_supported,
+                  color: colors.textSecondary,
+                  size: 48,
+                ),
               ),
             ),
           ),
