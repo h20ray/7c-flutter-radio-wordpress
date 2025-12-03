@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import '../../../../core/utils/debug_logger.dart';
 import '../../../../core/models/album_art_state.dart';
 import '../../../../core/services/network_status_service.dart';
+import '../../../../config/radio_config.dart';
 import '../../domain/entities/radio_entity.dart';
 import '../repositories/album_art_repository_impl.dart';
 import 'album_art_cache_service.dart';
@@ -33,6 +34,11 @@ class AlbumArtService {
   
   // Request queue for offline scenarios
   final List<Map<String, dynamic>> _requestQueue = [];
+  
+  // Track fallback display timing for smooth transitions
+  DateTime? _fallbackDisplayStartTime;
+  Timer? _fallbackDisplayTimer;
+  AlbumArtState? _pendingSuccessState;
 
   AlbumArtService._internal() 
       : _dio = Dio(),
@@ -63,13 +69,25 @@ class AlbumArtService {
   /// Current album art state
   AlbumArtState get currentState => _currentState;
 
+  /// Clear stale state - useful when app resumes or playback starts
+  void clearStaleState() {
+    _currentFetchKey = null;
+    _currentCancelToken?.cancel();
+    _currentCancelToken = null;
+    _fallbackDisplayTimer?.cancel();
+    _fallbackDisplayStartTime = null;
+    _pendingSuccessState = null;
+    DebugLogger.log('[AlbumArtService] Cleared stale state', tag: 'AlbumArtService');
+  }
+
   /// Fetch album art and broadcast the result to all listeners
   /// Enhanced with cancellation, offline mode, and queue management
   Future<void> fetchAndBroadcast(
     String artist, 
     String title, 
-    RadioEntity radioConfig
-  ) async {
+    RadioEntity radioConfig, {
+    bool forceRefresh = false,
+  }) async {
     // Skip if no metadata
     if (artist.isEmpty && title.isEmpty) {
       DebugLogger.log('[AlbumArtService] Artist and title are empty, skipping', tag: 'AlbumArtService');
@@ -78,7 +96,19 @@ class AlbumArtService {
 
     // Create fetch key to prevent duplicate requests
     final fetchKey = '${artist}_${title}_${radioConfig.albumArtSource}';
-    if (_currentFetchKey == fetchKey) {
+    
+    // Check if this is a different track than current state
+    final isDifferentTrack = !_currentState.isSameTrack(
+      AlbumArtState.loading(artist: artist, title: title),
+    );
+    
+    // If force refresh or different track, clear fetch key to allow fetching
+    if (forceRefresh || isDifferentTrack) {
+      _currentFetchKey = null;
+    }
+    
+    // Skip only if same fetch key AND not forcing refresh AND same track
+    if (_currentFetchKey == fetchKey && !forceRefresh && !isDifferentTrack) {
       DebugLogger.log('[AlbumArtService] Already fetching this combination, skipping', tag: 'AlbumArtService');
       return;
     }
@@ -88,26 +118,16 @@ class AlbumArtService {
     _currentCancelToken = CancelToken();
     _currentFetchKey = fetchKey;
 
-    // Check if this is the same track as current state
-    final newState = AlbumArtState.loading(
-      artist: artist, 
-      title: title,
-      isOffline: !_networkService.isOnline,
-    );
-    if (!_currentState.isSameTrack(newState)) {
-      // Different track, emit loading state
-      _emitState(newState);
+    if (isDifferentTrack) {
+      // Different track - always show fallback first for smooth transition
+      _startFallbackDisplay(artist, title, !_networkService.isOnline);
     }
 
     try {
       // Check if we should use fallback only
       if (radioConfig.albumArtSource == 4) {
         DebugLogger.log('[AlbumArtService] Using fallback only', tag: 'AlbumArtService');
-        _emitState(AlbumArtState.fallback(
-          artist: artist, 
-          title: title,
-          isOffline: !_networkService.isOnline,
-        ));
+        _startFallbackDisplay(artist, title, !_networkService.isOnline);
         return;
       }
 
@@ -116,13 +136,16 @@ class AlbumArtService {
       final cachedResult = cacheService.getCachedAlbumArtWithSource(artist, title);
       if (cachedResult != null && cachedResult['url'] != null) {
         DebugLogger.log('[AlbumArtService] Using cached album art', tag: 'AlbumArtService');
-        _emitState(AlbumArtState.success(
-          url: cachedResult['url']!,
-          artist: artist,
-          title: title,
-          isOffline: !_networkService.isOnline,
-          cacheSource: cachedResult['source'],
-        ));
+        // Show fallback first, then transition to cached album art after minimum duration
+        _scheduleSuccessState(
+          AlbumArtState.success(
+            url: cachedResult['url']!,
+            artist: artist,
+            title: title,
+            isOffline: !_networkService.isOnline,
+            cacheSource: cachedResult['source'],
+          ),
+        );
         return;
       }
 
@@ -130,11 +153,7 @@ class AlbumArtService {
       if (!_networkService.isOnline) {
         DebugLogger.log('[AlbumArtService] Device is offline, queuing request', tag: 'AlbumArtService');
         _queueRequest(artist, title, radioConfig);
-        _emitState(AlbumArtState.fallback(
-          artist: artist, 
-          title: title,
-          isOffline: true,
-        ));
+        _startFallbackDisplay(artist, title, true);
         return;
       }
 
@@ -162,22 +181,20 @@ class AlbumArtService {
         // Cache the result with source information
         cacheService.cacheAlbumArt(artist, title, albumArtUrl, source: 'network');
         
-        // Emit success state
-        _emitState(AlbumArtState.success(
-          url: albumArtUrl,
-          artist: artist,
-          title: title,
-          isOffline: false,
-          cacheSource: 'network',
-        ));
+        // Show fallback first, then transition to album art after minimum duration
+        _scheduleSuccessState(
+          AlbumArtState.success(
+            url: albumArtUrl,
+            artist: artist,
+            title: title,
+            isOffline: false,
+            cacheSource: 'network',
+          ),
+        );
       } else {
         // No album art found, use fallback
         DebugLogger.log('[AlbumArtService] No album art found, using fallback', tag: 'AlbumArtService');
-        _emitState(AlbumArtState.fallback(
-          artist: artist, 
-          title: title,
-          isOffline: false,
-        ));
+        _startFallbackDisplay(artist, title, false);
       }
     } catch (e) {
       // Check if request was cancelled
@@ -188,16 +205,68 @@ class AlbumArtService {
 
       DebugLogger.logError('Error fetching album art', error: e, tag: 'AlbumArtService');
       // Error occurred, use fallback
-      _emitState(AlbumArtState.error(
-        error: e.toString(),
-        artist: artist,
-        title: title,
-        isOffline: !_networkService.isOnline,
-        retryCount: _currentState.retryCount + 1,
-      ));
+      _startFallbackDisplay(artist, title, !_networkService.isOnline);
     } finally {
       _currentFetchKey = null;
       _currentCancelToken = null;
+    }
+  }
+  
+  /// Start showing fallback image
+  void _startFallbackDisplay(String artist, String title, bool isOffline) {
+    _fallbackDisplayTimer?.cancel();
+    _pendingSuccessState = null;
+    _fallbackDisplayStartTime = DateTime.now();
+    _emitState(AlbumArtState.fallback(
+      artist: artist,
+      title: title,
+      isOffline: isOffline,
+    ));
+  }
+  
+  /// Schedule success state to be shown after minimum fallback display duration
+  void _scheduleSuccessState(AlbumArtState successState) {
+    _pendingSuccessState = successState;
+    
+    // If fallback is already showing, calculate remaining time
+    if (_fallbackDisplayStartTime != null) {
+      final elapsed = DateTime.now().difference(_fallbackDisplayStartTime!);
+      final minDuration = Duration(milliseconds: RadioConfig.minFallbackDisplayDuration);
+      final remaining = minDuration - elapsed;
+      
+      if (remaining.isNegative || remaining.inMilliseconds <= 0) {
+        // Minimum duration already passed, show immediately
+        _emitSuccessState();
+      } else {
+        // Wait for remaining time
+        _fallbackDisplayTimer?.cancel();
+        _fallbackDisplayTimer = Timer(remaining, _emitSuccessState);
+        DebugLogger.log('[AlbumArtService] Scheduling album art transition in ${remaining.inMilliseconds}ms', tag: 'AlbumArtService');
+      }
+    } else {
+      // Fallback not showing yet, show it first then schedule transition
+      _startFallbackDisplay(
+        successState.artist ?? '',
+        successState.title ?? '',
+        successState.isOffline,
+      );
+      _fallbackDisplayTimer?.cancel();
+      _fallbackDisplayTimer = Timer(
+        Duration(milliseconds: RadioConfig.minFallbackDisplayDuration),
+        _emitSuccessState,
+      );
+      DebugLogger.log('[AlbumArtService] Showing fallback first, will transition in ${RadioConfig.minFallbackDisplayDuration}ms', tag: 'AlbumArtService');
+    }
+  }
+  
+  /// Emit the pending success state
+  void _emitSuccessState() {
+    if (_pendingSuccessState != null) {
+      _fallbackDisplayStartTime = null;
+      final state = _pendingSuccessState!;
+      _pendingSuccessState = null;
+      _emitState(state);
+      DebugLogger.log('[AlbumArtService] Transitioning to album art', tag: 'AlbumArtService');
     }
   }
 
@@ -283,10 +352,13 @@ class AlbumArtService {
   void dispose() {
     _currentCancelToken?.cancel();
     _networkSubscription?.cancel();
+    _fallbackDisplayTimer?.cancel();
     _albumArtController.close();
     _requestQueue.clear();
     _currentFetchKey = null;
     _currentCancelToken = null;
+    _fallbackDisplayStartTime = null;
+    _pendingSuccessState = null;
   }
 }
 

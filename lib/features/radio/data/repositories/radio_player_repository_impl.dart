@@ -125,7 +125,16 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
             (newArtist.isNotEmpty || newTitle.isNotEmpty) &&
             _currentConfig != null &&
             (!RadioConfig.delayMetadataUntilAudioStarts || _isAudioActuallyPlaying)) {
-          await albumArtService.fetchAndBroadcast(newArtist, newTitle, _currentConfig!);
+          // Check if metadata actually changed compared to album art service state
+          final albumArtState = albumArtService.currentState;
+          final metadataChanged = albumArtState.artist != newArtist || 
+                                  albumArtState.title != newTitle;
+          await albumArtService.fetchAndBroadcast(
+            newArtist, 
+            newTitle, 
+            _currentConfig!,
+            forceRefresh: metadataChanged,
+          );
         }
 
         _stopMetadataPolling();
@@ -457,6 +466,9 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
     if (_currentConfig == null) {
       throw Exception('No radio configuration available');
     }
+
+    // Clear stale album art state when playback starts to force refresh
+    albumArtService.clearStaleState();
 
     // For live radio streams, always reset before playing
     DebugLogger.log('[RadioPlayerRepository] Resetting before play', tag: 'RadioPlayerRepository');
@@ -822,6 +834,8 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
       if (RadioConfig.enableVerboseLogging) {
         DebugLogger.log('[RadioPlayerRepository] App resumed, checking if polling needed', tag: 'RadioPlayerRepository');
       }
+      // Clear stale album art state when app resumes to force refresh on next metadata update
+      albumArtService.clearStaleState();
       // Resume polling if we are initialized, have config, and NOT playing audio
       if (_currentState.isInitialized && 
           _currentConfig != null && 
@@ -885,7 +899,13 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
     if ((_currentConfig?.showAlbumCover ?? false) &&
         (newArtist.isNotEmpty || newTitle.isNotEmpty) &&
         _currentConfig != null) {
-      albumArtService.fetchAndBroadcast(newArtist, newTitle, _currentConfig!);
+      // Metadata changed, force refresh album art
+      albumArtService.fetchAndBroadcast(
+        newArtist, 
+        newTitle, 
+        _currentConfig!,
+        forceRefresh: true,
+      );
     }
   }
 

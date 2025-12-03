@@ -34,7 +34,7 @@ class AlbumArtWidget extends StatefulWidget {
     this.fit = BoxFit.cover,
     this.showLoadingIndicator = false,
     this.loadingColor,
-    this.transitionDuration = const Duration(milliseconds: 500),
+    this.transitionDuration = const Duration(milliseconds: 1000),
   });
 
   /// Create a circular album art widget (for FAB)
@@ -45,7 +45,7 @@ class AlbumArtWidget extends StatefulWidget {
     this.fit = BoxFit.cover,
     this.showLoadingIndicator = false,
     this.loadingColor,
-    this.transitionDuration = const Duration(milliseconds: 500),
+    this.transitionDuration = const Duration(milliseconds: 1000),
   }) : width = size,
        height = size,
        shape = AlbumArtShape.circle,
@@ -61,7 +61,7 @@ class AlbumArtWidget extends StatefulWidget {
     this.fit = BoxFit.cover,
     this.showLoadingIndicator = false,
     this.loadingColor,
-    this.transitionDuration = const Duration(milliseconds: 500),
+    this.transitionDuration = const Duration(milliseconds: 1000),
   }) : shape = AlbumArtShape.roundedRect;
 
   /// Create a rectangle album art widget (for hero backgrounds)
@@ -73,7 +73,7 @@ class AlbumArtWidget extends StatefulWidget {
     this.fit = BoxFit.cover,
     this.showLoadingIndicator = false,
     this.loadingColor,
-    this.transitionDuration = const Duration(milliseconds: 500),
+    this.transitionDuration = const Duration(milliseconds: 1000),
   }) : shape = AlbumArtShape.rectangle,
        borderRadius = null;
 

@@ -189,6 +189,16 @@ class RadioConfig {
   /// Auto-configured: ApiClient automatically prepends 'https://${AppConfig.url}' to this path
   /// Same pattern as lyrics endpoint - just provide the path, ApiClient handles the baseUrl
   static const String requestApiEndpoint = '/wp-json/tujuhcahaya/radio/request';
+  
+  /// Blob animation speed: 'fast' or 'slow'
+  /// Fast: Quick, energetic movement
+  /// Slow: Smooth, gentle movement
+  static const String blobAnimationSpeed = 'fast'; // 'fast' or 'slow'
+  
+  /// Minimum duration to show fallback album art before transitioning to actual album art
+  /// This ensures smooth transitions without flash-bang effect
+  /// Value in milliseconds (1000 = 1 second, 2000 = 2 seconds)
+  static const int minFallbackDisplayDuration = 1500; // 1.5 seconds
 }
 
 @Deprecated(

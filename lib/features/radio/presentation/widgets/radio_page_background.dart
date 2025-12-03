@@ -33,13 +33,33 @@ class _RadioPageBackgroundState extends State<RadioPageBackground>
   late final Animation<double> _fadeAnimation;
   bool _hasInitializedPalette = false;
 
+  Duration get _blobAnimationDuration {
+    switch (RadioConfig.blobAnimationSpeed.toLowerCase()) {
+      case 'fast':
+        return const Duration(seconds: 6);
+      case 'slow':
+      default:
+        return const Duration(seconds: 12);
+    }
+  }
+
+  Duration get _blurAnimationDuration {
+    switch (RadioConfig.blobAnimationSpeed.toLowerCase()) {
+      case 'fast':
+        return const Duration(seconds: 4);
+      case 'slow':
+      default:
+        return const Duration(seconds: 8);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     
     _blobController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 12),
+      duration: _blobAnimationDuration,
     );
     
     _blobAnimation = CurvedAnimation(
@@ -49,7 +69,7 @@ class _RadioPageBackgroundState extends State<RadioPageBackground>
 
     _blurController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 8),
+      duration: _blurAnimationDuration,
     );
 
     _blurAnimation = Tween<double>(
