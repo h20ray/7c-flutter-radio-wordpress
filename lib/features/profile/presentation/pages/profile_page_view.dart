@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/themes/app_color_system.dart';
 import '../../../../core/themes/design_tokens.dart';
 import '../../../../core/widgets/floating_bottom_nav_bar.dart';
 import '../../../../core/widgets/floating_play_fab.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/pages/login_dialog.dart';
 import '../widgets/profile_app_bar.dart';
 
 class ProfilePageView extends StatefulWidget {
@@ -68,7 +71,14 @@ class _ProfilePageViewState extends State<ProfilePageView> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       const SizedBox(height: 32),
-                      _buildPlaceholderSection(),
+                      BlocBuilder<AuthBloc, AuthState>(
+                        builder: (context, authState) {
+                          return authState.maybeWhen(
+                            authenticated: (user) => _buildUserProfileSection(user),
+                            orElse: () => _buildPlaceholderSection(),
+                          );
+                        },
+                      ),
                       SizedBox(height: totalBottomSpacing),
                     ],
                   ),
@@ -141,8 +151,73 @@ class _ProfilePageViewState extends State<ProfilePageView> {
                 ),
             textAlign: TextAlign.center,
           ),
+          const SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: () => LoginDialog.show(context),
+            child: Text('auth_login_button'.tr()),
+          ),
         ],
       ),
+    );
+  }
+
+  Widget _buildUserProfileSection(user) {
+    final colors = context.appColors;
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Center(
+          child: Column(
+            children: [
+              CircleAvatar(
+                radius: 50,
+                backgroundImage: user.avatarUrl != null
+                    ? NetworkImage(user.avatarUrl!)
+                    : null,
+                child: user.avatarUrl == null
+                    ? Icon(LucideIcons.user, size: 50)
+                    : null,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                user.name,
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              if (user.email.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Text(
+                  user.email,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colors.textSecondary,
+                  ),
+                ),
+              ],
+              if (user.listenerId != null) ...[
+                const SizedBox(height: 4),
+                Text(
+                  user.listenerId!,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colors.textSecondary,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+        const SizedBox(height: 32),
+        if (user.currentLevel != null)
+          Card(
+            child: ListTile(
+              leading: Icon(LucideIcons.trophy),
+              title: Text('Level'),
+              subtitle: Text(user.currentLevel!),
+            ),
+          ),
+      ],
     );
   }
 }

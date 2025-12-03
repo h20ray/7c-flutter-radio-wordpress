@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/themes/component_tokens.dart';
 import '../../../../core/themes/design_tokens.dart';
 import '../../data/models/mock_user_profile.dart';
@@ -10,6 +11,8 @@ import '../../../../core/themes/m3x_menu_style.dart';
 import '../../../../core/widgets/haptic_widgets.dart';
 import '../../../../core/utils/haptic_feedback_helper.dart';
 import '../../data/social_media_service.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/pages/login_dialog.dart';
 import 'radio_game_tabs.dart';
 
 class HeaderSection extends StatelessWidget {
@@ -26,9 +29,33 @@ class HeaderSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final profile = userProfile ?? MockUserProfile.defaultProfile;
     final tokens = HomeHeaderTokens.of(context);
     final statusBarHeight = MediaQuery.of(context).padding.top;
+
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (context, authState) {
+        final profile = authState.maybeWhen(
+          authenticated: (user) => MockUserProfile(
+            name: user.name,
+            listenerId: user.listenerId ?? user.email,
+            avatarUrl: user.avatarUrl,
+            favoriteStation: 'Tujuh Cahaya Radio',
+          ),
+          orElse: () => userProfile ?? MockUserProfile.defaultProfile,
+        );
+
+        return _buildHeader(context, profile, tokens, statusBarHeight, authState);
+      },
+    );
+  }
+
+  Widget _buildHeader(
+    BuildContext context,
+    MockUserProfile profile,
+    HomeHeaderTokens tokens,
+    double statusBarHeight,
+    AuthState authState,
+  ) {
 
     return Container(
       height: 190 + statusBarHeight,
@@ -93,15 +120,51 @@ class HeaderSection extends StatelessWidget {
                         );
                       },
                       menuChildren: [
-                        MenuItemButton(
-                          style: M3XMenuStyle.itemStyle,
-                          leadingIcon: Icon(LucideIcons.log_in, size: 20),
-                          child: Text('Login'),
-                          onPressed: () {
-                            HapticFeedbackHelper.lightImpact();
-                            // TODO: Implement Login
-                          },
-                        ),
+                        if (authState.maybeWhen(
+                          authenticated: (_) => false,
+                          orElse: () => true,
+                        ))
+                          MenuItemButton(
+                            style: M3XMenuStyle.itemStyle,
+                            leadingIcon: Icon(LucideIcons.log_in, size: 20),
+                            child: Text('auth_login_button'.tr()),
+                            onPressed: () {
+                              HapticFeedbackHelper.lightImpact();
+                              LoginDialog.show(context);
+                            },
+                          ),
+                        if (authState.maybeWhen(
+                          authenticated: (_) => true,
+                          orElse: () => false,
+                        )) ...[
+                          MenuItemButton(
+                            style: M3XMenuStyle.itemStyle,
+                            leadingIcon: Icon(LucideIcons.user, size: 20),
+                            child: Text('home_nav_profile'.tr()),
+                            onPressed: () {
+                              HapticFeedbackHelper.lightImpact();
+                              Navigator.pushNamed(context, '/profile');
+                            },
+                          ),
+                          MenuItemButton(
+                            style: M3XMenuStyle.itemStyle,
+                            leadingIcon: Icon(LucideIcons.settings, size: 20),
+                            child: Text('auth_account_settings'.tr()),
+                            onPressed: () {
+                              HapticFeedbackHelper.lightImpact();
+                              // TODO: Navigate to account settings
+                            },
+                          ),
+                          MenuItemButton(
+                            style: M3XMenuStyle.itemStyle,
+                            leadingIcon: Icon(LucideIcons.log_out, size: 20),
+                            child: Text('auth_logout'.tr()),
+                            onPressed: () {
+                              HapticFeedbackHelper.lightImpact();
+                              context.read<AuthBloc>().add(const AuthEvent.logout());
+                            },
+                          ),
+                        ],
                         Builder(
                           builder: (context) {
                             final isDark =
@@ -123,15 +186,6 @@ class HeaderSection extends StatelessWidget {
                                 }
                               },
                             );
-                          },
-                        ),
-                        MenuItemButton(
-                          style: M3XMenuStyle.itemStyle,
-                          leadingIcon: Icon(LucideIcons.settings, size: 20),
-                          child: Text('Settings'),
-                          onPressed: () {
-                            HapticFeedbackHelper.lightImpact();
-                            // TODO: Implement Settings
                           },
                         ),
                         const SizedBox(height: M3XMenuStyle.gapSize),
@@ -271,7 +325,10 @@ class HeaderSection extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            'home_header_listener_id'.tr(),
+                            authState.maybeWhen(
+                              authenticated: (user) => user.name,
+                              orElse: () => 'home_header_listener_id'.tr(),
+                            ),
                             style: TextStyle(
                               fontSize: DesignTokens.fontSizeH2,
                               fontWeight: DesignTokens.fontWeightH2,

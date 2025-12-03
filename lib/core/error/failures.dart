@@ -49,3 +49,15 @@ class UnknownFailure extends Failure {
   const UnknownFailure([super.message = 'An unknown error occurred']);
 }
 
+class InvalidCredentialsFailure extends Failure {
+  const InvalidCredentialsFailure([super.message = 'Invalid email or password']);
+}
+
+class AccountLockedFailure extends Failure {
+  const AccountLockedFailure([super.message = 'Account is locked or suspended']);
+}
+
+class TokenExpiredFailure extends Failure {
+  const TokenExpiredFailure([super.message = 'Authentication token has expired']);
+}
+

@@ -19,6 +19,7 @@ import '../../features/wordpress/presentation/pages/post_detail_page_view.dart';
 import '../../features/wordpress/domain/entities/post_entity.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/tamtama/presentation/bloc/tamtama_bloc.dart';
+import '../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../di/injection_container.dart';
 import 'app_routes.dart';
 
@@ -38,6 +39,7 @@ class RouteGenerator {
               BlocProvider.value(value: getIt<WordPressBloc>()),
               BlocProvider.value(value: getIt<HomeBloc>()),
               BlocProvider.value(value: getIt<GamificationBloc>()),
+              BlocProvider.value(value: getIt<AuthBloc>()),
               BlocProvider(
                 create: (context) =>
                     getIt<TamtamaBloc>()..add(const TamtamaEvent.load()),
@@ -119,6 +121,9 @@ class RouteGenerator {
           (context) => const RadioAboutPage(),
         );
       default:
+        if (settings.name?.startsWith('/auth/') ?? false) {
+          return _handleAuthDeepLink(settings);
+        }
         return _buildPageRoute(
           settings,
           (context) => Scaffold(
@@ -126,6 +131,48 @@ class RouteGenerator {
           ),
         );
     }
+  }
+
+  static Route<dynamic> _handleAuthDeepLink(RouteSettings settings) {
+    final uri = Uri.parse(settings.name ?? '');
+    final path = uri.path;
+    
+    if (path.contains('/auth/callback')) {
+      final authBloc = getIt<AuthBloc>();
+      final code = uri.queryParameters['code'];
+      final error = uri.queryParameters['error'];
+      
+      if (error != null) {
+        authBloc.add(const AuthEvent.tokenExpired());
+      } else if (code != null) {
+        // Handle OAuth callback - would need to exchange code for token
+        // For now, just check auth status
+        authBloc.add(const AuthEvent.checkAuthStatus());
+      }
+      
+      return _buildPageRoute(
+        settings,
+        (context) => Scaffold(
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text('Completing authentication...'),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+    
+    return _buildPageRoute(
+      settings,
+      (context) => Scaffold(
+        body: Center(child: Text('Unknown auth route: ${settings.name}')),
+      ),
+    );
   }
 
   static PageRouteBuilder<dynamic> _buildPageRoute(

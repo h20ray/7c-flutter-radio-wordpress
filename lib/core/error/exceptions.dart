@@ -23,3 +23,15 @@ class TimeoutException extends AppException {
   const TimeoutException([super.message = 'Connection timeout']);
 }
 
+class InvalidCredentialsException extends AppException {
+  const InvalidCredentialsException([super.message = 'Invalid email or password']);
+}
+
+class AccountLockedException extends AppException {
+  const AccountLockedException([super.message = 'Account is locked or suspended']);
+}
+
+class TokenExpiredException extends AppException {
+  const TokenExpiredException([super.message = 'Authentication token has expired']);
+}
+

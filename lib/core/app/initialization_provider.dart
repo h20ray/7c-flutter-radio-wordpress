@@ -9,6 +9,8 @@ import '../error/exceptions.dart';
 import '../error/failures.dart';
 import '../utils/debug_logger.dart';
 import '../../features/radio/presentation/bloc/radio_bloc.dart';
+import '../../features/auth/presentation/bloc/auth_bloc.dart';
+import '../../features/auth/domain/usecases/check_auth_status.dart';
 import 'loading_state_provider.dart';
 
 enum AppState {
@@ -113,18 +115,27 @@ class AppInitializer {
 
   Future<void> _performQuickInitialization(InitializationArgument arg) async {
     DebugLogger.log('Performing quick initialization (already initialized before)', tag: 'AppInitializer');
-    
+
     try {
       await initDependencies();
       await Hive.openBox('settingsBox');
-      
+
+      // Initialize auth to restore login state
+      try {
+        final authBloc = getIt<AuthBloc>();
+        await _initializeAuth(authBloc);
+        DebugLogger.log('Auth initialized during quick initialization', tag: 'AppInitializer');
+      } catch (e) {
+        DebugLogger.logError('Auth initialization failed during quick init (non-critical)', error: e, tag: 'AppInitializer');
+      }
+
       try {
         await _prefetchRadioConfig();
         DebugLogger.log('Radio config prefetched during quick initialization', tag: 'AppInitializer');
       } catch (e) {
         DebugLogger.logError('Radio config prefetch failed during quick init (non-critical)', error: e, tag: 'AppInitializer');
       }
-      
+
       DebugLogger.log('Quick initialization complete', tag: 'AppInitializer');
     } catch (e, st) {
       DebugLogger.logError('Quick initialization failed, will perform full initialization', error: e, stackTrace: st, tag: 'AppInitializer');
@@ -183,7 +194,12 @@ class AppInitializer {
     DebugLogger.log('Additional dependencies initialized', tag: 'AppInitializer');
 
     updateProgress(0.6, LoadingStatus.initializingAuth);
-    await Future.delayed(const Duration(milliseconds: 50));
+    try {
+      final authBloc = getIt<AuthBloc>();
+      await _initializeAuth(authBloc);
+    } catch (e) {
+      DebugLogger.logError('Auth initialization failed (non-critical)', error: e, tag: 'AppInitializer');
+    }
     DebugLogger.log('Auth initialized', tag: 'AppInitializer');
 
     updateProgress(0.7, LoadingStatus.initializingRadio);
@@ -194,6 +210,62 @@ class AppInitializer {
     updateProgress(0.9, LoadingStatus.preparingApp);
     await Future.delayed(const Duration(milliseconds: 50));
     DebugLogger.log('Critical initialization complete', tag: 'AppInitializer');
+  }
+
+  Future<void> _initializeAuth(AuthBloc authBloc) async {
+    StreamSubscription? subscription;
+    try {
+      DebugLogger.log('Starting auth initialization', tag: 'AppInitializer');
+      
+      authBloc.add(const AuthEvent.checkAuthStatus());
+
+      final completer = Completer<void>();
+      bool isComplete = false;
+      
+      subscription = authBloc.stream.listen((state) {
+        final shouldComplete = state.maybeWhen(
+          authenticated: (user) {
+            DebugLogger.log('Auth initialized - User authenticated: ${user.email}', tag: 'AppInitializer');
+            return true;
+          },
+          unauthenticated: () {
+            DebugLogger.log('Auth initialized - User not authenticated', tag: 'AppInitializer');
+            return true;
+          },
+          error: (failure) {
+            DebugLogger.logError('Auth initialization error: ${failure.message}', tag: 'AppInitializer');
+            return true;
+          },
+          orElse: () {
+            DebugLogger.log('Auth state: ${state.runtimeType} (waiting...)', tag: 'AppInitializer');
+            return false;
+          },
+        );
+        
+        if (shouldComplete && !isComplete) {
+          isComplete = true;
+          subscription?.cancel();
+          if (!completer.isCompleted) {
+            completer.complete();
+          }
+        }
+      });
+
+      await completer.future.timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          DebugLogger.log('Auth initialization timeout', tag: 'AppInitializer');
+          subscription?.cancel();
+          if (!completer.isCompleted) {
+            completer.complete();
+          }
+        },
+      );
+    } catch (e) {
+      DebugLogger.logError('Auth initialization failed', error: e, tag: 'AppInitializer');
+    } finally {
+      subscription?.cancel();
+    }
   }
 
   Future<void> _prefetchRadioConfig() async {
@@ -288,7 +360,22 @@ class AppInitializer {
   }
 
   Future<AppState> _determineAppState() async {
-    return AppState.loggedOut;
+    try {
+      // Use checkAuthStatus to properly determine auth state
+      // This ensures we check stored tokens/credentials, not just the current bloc state
+      final checkAuthStatus = getIt<CheckAuthStatus>();
+      final result = await checkAuthStatus();
+      return result.fold(
+        (failure) {
+          DebugLogger.logError('Failed to check auth status: ${failure.message}', tag: 'AppInitializer');
+          return AppState.loggedOut;
+        },
+        (isAuthenticated) => isAuthenticated ? AppState.loggedIn : AppState.loggedOut,
+      );
+    } catch (e) {
+      DebugLogger.logError('Failed to determine app state', error: e, tag: 'AppInitializer');
+      return AppState.loggedOut;
+    }
   }
 }
 

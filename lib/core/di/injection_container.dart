@@ -73,6 +73,10 @@ import '../../features/gamification/data/repositories/listening_stats_repository
 import '../../features/gamification/domain/repositories/listening_stats_repository.dart';
 import '../../features/gamification/domain/usecases/record_listening_session.dart';
 import '../../features/gamification/domain/usecases/watch_listening_stats.dart';
+import '../../features/gamification/domain/usecases/switch_listening_stats_user.dart';
+import '../../features/gamification/domain/usecases/merge_guest_stats_to_user.dart';
+import '../../features/gamification/domain/usecases/flush_listening_stats_to_guest.dart';
+import '../../features/gamification/domain/usecases/sync_listening_stats_with_server.dart';
 import '../../features/gamification/presentation/bloc/gamification_bloc.dart';
 import '../../features/home/data/datasources/home_radio_metadata_datasource.dart';
 import '../../features/home/data/repositories/home_radio_repository_impl.dart';
@@ -98,6 +102,20 @@ import '../../features/tamtama/data/datasources/tamtama_local_data_source.dart';
 import '../../features/tamtama/data/repositories/tamtama_repository_impl.dart';
 import '../../features/tamtama/domain/repositories/tamtama_repository.dart';
 import '../../features/tamtama/presentation/bloc/tamtama_bloc.dart';
+
+// Auth feature imports
+import '../../features/auth/data/datasources/auth_local_datasource.dart';
+import '../../features/auth/data/datasources/auth_remote_datasource.dart';
+import '../../features/auth/data/repositories/auth_repository_impl.dart';
+import '../../features/auth/domain/repositories/auth_repository.dart';
+import '../../features/auth/domain/usecases/check_auth_status.dart';
+import '../../features/auth/domain/usecases/get_current_user.dart';
+import '../../features/auth/domain/usecases/login_with_email.dart';
+import '../../features/auth/domain/usecases/login_with_google.dart';
+import '../../features/auth/domain/usecases/logout.dart';
+import '../../features/auth/domain/usecases/refresh_token.dart';
+import '../../features/auth/domain/usecases/auto_login.dart';
+import '../../features/auth/presentation/bloc/auth_bloc.dart';
 
 final getIt = GetIt.instance;
 
@@ -148,9 +166,28 @@ Future<void> initDependencies() async {
   _initPromos();
   _initHome();
   _initTamtama();
+  _initAuth();
 
   // Initialize network status service
   await getIt<NetworkStatusService>().initialize();
+
+  // Setup auth token interceptor after all dependencies are registered
+  final apiClient = getIt<ApiClient>();
+  apiClient.setAuthTokenGetter(() async {
+    try {
+      final localDataSource = getIt<AuthLocalDataSource>();
+      final token = await localDataSource.getToken();
+      if (token != null && !token.isExpired) {
+        return token.accessToken;
+      }
+    } catch (e) {
+      // Ignore errors
+    }
+    return null;
+  });
+  apiClient.setOnTokenExpired(() {
+    getIt<AuthBloc>().add(const AuthEvent.tokenExpired());
+  });
 
   DebugLogger.log('[DI] Dependencies initialized successfully', tag: 'DI');
 }
@@ -412,6 +449,10 @@ void _initGamification() {
   );
   getIt.registerLazySingleton(() => WatchListeningStats(getIt()));
   getIt.registerLazySingleton(() => RecordListeningSession(getIt()));
+  getIt.registerLazySingleton(() => SwitchListeningStatsUser(getIt()));
+  getIt.registerLazySingleton(() => MergeGuestStatsToUser(getIt()));
+  getIt.registerLazySingleton(() => FlushListeningStatsToGuest(getIt()));
+  getIt.registerLazySingleton(() => SyncListeningStatsWithServer(getIt()));
   getIt.registerLazySingleton(
     () => GamificationBloc(
       watchListeningStats: getIt(),
@@ -433,6 +474,42 @@ void _initTamtama() {
   getIt.registerFactory(
     () => TamtamaBloc(
       repository: getIt(),
+    ),
+  );
+}
+
+void _initAuth() {
+  getIt.registerLazySingleton<AuthRemoteDataSource>(
+    () => AuthRemoteDataSourceImpl(apiClient: getIt()),
+  );
+  getIt.registerLazySingleton<AuthLocalDataSource>(
+    () => AuthLocalDataSourceImpl(),
+  );
+  getIt.registerLazySingleton<AuthRepository>(
+    () => AuthRepositoryImpl(
+      remoteDataSource: getIt(),
+      localDataSource: getIt(),
+      networkInfo: getIt(),
+    ),
+  );
+  getIt.registerLazySingleton(() => LoginWithEmail(getIt()));
+  getIt.registerLazySingleton(() => LoginWithGoogle(getIt()));
+  getIt.registerLazySingleton(() => Logout(getIt()));
+  getIt.registerLazySingleton(() => RefreshToken(getIt()));
+  getIt.registerLazySingleton(() => GetCurrentUser(getIt()));
+  getIt.registerLazySingleton(() => CheckAuthStatus(getIt()));
+  getIt.registerLazySingleton(() => AutoLogin(getIt()));
+  getIt.registerLazySingleton(
+    () => AuthBloc(
+      loginWithEmail: getIt(),
+      loginWithGoogle: getIt(),
+      logout: getIt(),
+      refreshToken: getIt(),
+      getCurrentUser: getIt(),
+      checkAuthStatus: getIt(),
+      mergeGuestStatsToUser: getIt(),
+      flushListeningStatsToGuest: getIt(),
+      syncListeningStatsWithServer: getIt(),
     ),
   );
 }

@@ -34,6 +34,10 @@ dependencies:
   firebase_core: ^4.2.1
   onesignal_flutter: ^5.2.1
 
+  google_sign_in: ^6.2.1
+  crypto: ^3.0.5
+  flutter_secure_storage: ^9.0.0
+
   radio_player: ^2.2.1
   volume_regulator: ^2.4.2
 

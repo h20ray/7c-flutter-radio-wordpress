@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class AppConfig {
   static const String appName = 'Tujuh Cahaya Radio';
 
-  static const String url = 'tujuhcahaya.com';
+  static const String url = 'www.tujuhcahaya.com';
 
   static const String oneSignalId = '';
 
