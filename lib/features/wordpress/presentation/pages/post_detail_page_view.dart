@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'dart:io';
@@ -269,7 +270,10 @@ class _PostDetailPageViewState extends State<PostDetailPageView> {
       final file = File('${directory.path}/$fileName');
       await file.writeAsBytes(pngBytes);
 
-      // 4. Share
+      // 4. Copy link to clipboard for easy pasting in Instagram Story
+      await Clipboard.setData(ClipboardData(text: _currentPost.link));
+      
+      // 5. Share
       await SharePlus.instance.share(
         ShareParams(
           files: [XFile(file.path)],
@@ -277,6 +281,17 @@ class _PostDetailPageViewState extends State<PostDetailPageView> {
           subject: _currentPost.title,
         ),
       );
+      
+      // 6. Show confirmation that link is copied
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Link copied to clipboard! Paste it in Instagram Story link sticker.'),
+            duration: const Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     } catch (e) {
       debugPrint('Error capturing share card: $e');
       if (mounted) {

@@ -159,9 +159,16 @@ class LevelCardItem extends StatelessWidget {
                           children: [
                             Row(
                               children: [
+                                Icon(
+                                  LucideIcons.lock,
+                                  size: 20,
+                                  color: colorScheme.onSurfaceVariant
+                                      .withValues(alpha: 0.5),
+                                ),
+                                SizedBox(width: DesignTokens.spacingS),
                                 Expanded(
                                   child: Text(
-                                    '???',
+                                    level.displayName,
                                     style: textTheme.titleMedium?.copyWith(
                                       fontWeight: FontWeight.w700,
                                       color: colorScheme.onSurfaceVariant
@@ -178,16 +185,6 @@ class LevelCardItem extends StatelessWidget {
                                 color: colorScheme.onSurfaceVariant
                                     .withValues(alpha: 0.5),
                               ),
-                            ),
-                            SizedBox(height: DesignTokens.spacingM),
-                            _LevelRequirements(
-                              level: level,
-                              isUnlocked: false,
-                              isCurrent: false,
-                              isMaxLevel: false,
-                              currentHours: currentHours,
-                              textColor: colorScheme.onSurfaceVariant
-                                  .withValues(alpha: 0.6),
                             ),
                           ],
                         ),

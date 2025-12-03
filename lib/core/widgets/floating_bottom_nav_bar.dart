@@ -15,6 +15,9 @@ class FloatingBottomNavBar extends StatelessWidget {
   final NavItem selectedItem;
   final ValueChanged<NavItem> onItemSelected;
 
+  static const double height = 64.0;
+  static double get totalHeight => height + (DesignTokens.spacingS * 2);
+
   const FloatingBottomNavBar({
     super.key,
     required this.selectedItem,
@@ -34,7 +37,7 @@ class FloatingBottomNavBar extends StatelessWidget {
 
     return Container(
       margin: EdgeInsets.symmetric(vertical: DesignTokens.spacingS),
-      height: 64,
+      height: height,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(24),
         child: BackdropFilter(

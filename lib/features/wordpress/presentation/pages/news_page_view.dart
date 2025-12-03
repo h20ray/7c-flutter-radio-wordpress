@@ -171,6 +171,10 @@ class _NewsPageViewContentState extends State<_NewsPageViewContent> {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
+    final safeAreaBottom = MediaQuery.of(context).padding.bottom;
+    final bottomSpacing = DesignTokens.spacingS;
+    final extraSpacing = DesignTokens.spacingXl;
+    final totalBottomSpacing = FloatingBottomNavBar.totalHeight + bottomSpacing + safeAreaBottom + extraSpacing;
 
     return PopScope(
       canPop: false,
@@ -474,8 +478,8 @@ class _NewsPageViewContentState extends State<_NewsPageViewContent> {
                       );
                     },
                   ),
-                  const SliverToBoxAdapter(
-                    child: SizedBox(height: 120),
+                  SliverToBoxAdapter(
+                    child: SizedBox(height: totalBottomSpacing),
                   ),
                 ],
               ),
@@ -537,7 +541,7 @@ class _NewsLoadMoreFooter extends StatelessWidget {
 
         return Column(
           children: List.generate(
-            3,
+            1,
             (index) => Container(
               margin: EdgeInsets.only(bottom: DesignTokens.spacingL),
               decoration: BoxDecoration(

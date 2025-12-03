@@ -60,6 +60,12 @@ class RadioPlayerBloc extends Bloc<RadioPlayerEvent, RadioPlayerState> {
   DateTime? _sessionStart;
   Timer? _listeningFlushTimer;
   bool _isFlushingListeningSession = false;
+  
+  // Metadata change tracking for optimized flush
+  String? _lastMetadataArtist;
+  String? _lastMetadataTitle;
+  Timer? _metadataFlushDebounceTimer;
+  static const Duration _metadataFlushDebounceDelay = Duration(seconds: 2);
 
   RadioPlayerBloc({
     required this.initializeRadioPlayer,
@@ -561,10 +567,39 @@ class RadioPlayerBloc extends Bloc<RadioPlayerEvent, RadioPlayerState> {
               RadioConfig.songHistoryMode != 'azuracast') {
             _trackSong(artist, title, currentAlbumArtUrl);
           }
+          
+          // Flush listening session on metadata change (optimized with debounce)
+          _handleMetadataChangeFlush(artist, title, isPlaying);
         }
       },
       orElse: () {},
     );
+  }
+  
+  /// Handle flush on metadata change with debouncing to optimize battery usage
+  void _handleMetadataChangeFlush(String? artist, String? title, bool isPlaying) {
+    // Only flush if actually playing and we have an active session
+    if (!isPlaying || _sessionStart == null) {
+      return;
+    }
+    
+    // Check if metadata actually changed (not just a duplicate update)
+    if (_lastMetadataArtist == artist && _lastMetadataTitle == title) {
+      return;
+    }
+    
+    // Update last known metadata
+    _lastMetadataArtist = artist;
+    _lastMetadataTitle = title;
+    
+    // Cancel existing debounce timer
+    _metadataFlushDebounceTimer?.cancel();
+    
+    // Debounce the flush to avoid rapid metadata changes causing excessive flushes
+    // This is especially important for radio streams that might send metadata updates frequently
+    _metadataFlushDebounceTimer = Timer(_metadataFlushDebounceDelay, () {
+      unawaited(_flushListeningSession(keepSessionActive: true));
+    });
   }
 
   /// Track song in history
@@ -726,6 +761,7 @@ class RadioPlayerBloc extends Bloc<RadioPlayerEvent, RadioPlayerState> {
   @override
   Future<void> close() async {
     _stopListeningFlushTimer();
+    _metadataFlushDebounceTimer?.cancel();
     await _flushListeningSession();
     _playerStateSubscription?.cancel();
     _radioConfigSubscription?.cancel();
@@ -743,6 +779,9 @@ class RadioPlayerBloc extends Bloc<RadioPlayerEvent, RadioPlayerState> {
       }
     } else {
       _stopListeningFlushTimer();
+      _metadataFlushDebounceTimer?.cancel();
+      _lastMetadataArtist = null;
+      _lastMetadataTitle = null;
       unawaited(_flushListeningSession());
     }
   }

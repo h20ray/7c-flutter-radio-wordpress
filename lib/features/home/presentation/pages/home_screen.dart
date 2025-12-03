@@ -74,6 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
       cancelTextKey: 'dialog_cancel',
       icon: LucideIcons.log_out,
       iconColor: Theme.of(context).colorScheme.error,
+      barrierColor: Colors.black.withValues(alpha: 0.5),
     );
 
     if (result == true) {
@@ -90,6 +91,11 @@ class _HomeScreenState extends State<HomeScreen> {
     final double headerHeight = 180 + statusBarHeight;
     final double headerStackHeight =
         headerHeight + (DesignTokens.cardHeightStandard - cardOverlap);
+    
+    final safeAreaBottom = MediaQuery.of(context).padding.bottom;
+    final bottomSpacing = DesignTokens.spacingS;
+    final extraSpacing = DesignTokens.spacingXl;
+    final totalBottomSpacing = FloatingBottomNavBar.totalHeight + bottomSpacing + safeAreaBottom + extraSpacing;
 
     return PopScope(
       canPop: false,
@@ -188,7 +194,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Column(
                         children: [
                           SizedBox(height: DesignTokens.spacingXl),
-                          SizedBox(height: 120),
+                          SizedBox(height: totalBottomSpacing),
                         ],
                       ),
                     ),

@@ -67,16 +67,24 @@ class _EggSpriteState extends State<EggSprite> with SingleTickerProviderStateMix
     _startAnimation(EggSprite._initialLoops);
   }
 
-  void _startAnimation(int loopCount) {
-    _targetLoops = loopCount;
-    _completedLoops = 0;
-    if (_controller.duration != null) {
+  void _startAnimation(int loopCount, {bool restart = false}) {
+    if (_controller.duration == null) {
+      return;
+    }
+    
+    final isCurrentlyAnimating = _controller.isAnimating;
+    
+    if (isCurrentlyAnimating && !restart) {
+      _targetLoops += loopCount;
+    } else {
+      _targetLoops = loopCount;
+      _completedLoops = 0;
       _controller.forward(from: 0);
     }
   }
 
   void _handleTap() {
-    _startAnimation(EggSprite._tapLoops);
+    _startAnimation(EggSprite._tapLoops, restart: false);
   }
 
   @override

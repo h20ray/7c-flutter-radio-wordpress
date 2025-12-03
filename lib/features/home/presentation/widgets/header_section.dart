@@ -169,6 +169,15 @@ class HeaderSection extends StatelessWidget {
                                       case 'youtubeUrl':
                                         icon = LucideIcons.youtube;
                                         break;
+                                      case 'tiktokUrl':
+                                        icon = LucideIcons.video;
+                                        break;
+                                      case 'telegramUrl':
+                                        icon = LucideIcons.send;
+                                        break;
+                                      case 'whatsappUrl':
+                                        icon = LucideIcons.message_circle;
+                                        break;
                                       default:
                                         icon = LucideIcons.link;
                                     }
@@ -178,9 +187,65 @@ class HeaderSection extends StatelessWidget {
                                           .replaceAll('Url', '')
                                           .toUpperCase()),
                                       onPressed: () async {
-                                        final uri = Uri.parse(entry.value);
-                                        if (await canLaunchUrl(uri)) {
-                                          await launchUrl(uri);
+                                        try {
+                                          String url = entry.value.trim();
+                                          
+                                          if (url.isEmpty) {
+                                            if (context.mounted) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                const SnackBar(
+                                                  content: Text('URL is empty'),
+                                                  duration: Duration(seconds: 2),
+                                                ),
+                                              );
+                                            }
+                                            return;
+                                          }
+                                          
+                                          if (!url.startsWith('http://') && 
+                                              !url.startsWith('https://') &&
+                                              !url.startsWith('mailto:') &&
+                                              !url.startsWith('tel:') &&
+                                              !url.startsWith('sms:')) {
+                                            url = 'https://$url';
+                                          }
+                                          
+                                          final uri = Uri.parse(url);
+                                          
+                                          if (!uri.hasScheme) {
+                                            if (context.mounted) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                const SnackBar(
+                                                  content: Text('Invalid URL format'),
+                                                  duration: Duration(seconds: 2),
+                                                ),
+                                              );
+                                            }
+                                            return;
+                                          }
+                                          
+                                          final launched = await launchUrl(
+                                            uri,
+                                            mode: LaunchMode.platformDefault,
+                                          );
+                                          
+                                          if (!launched && context.mounted) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(
+                                                content: Text('Unable to open ${entry.key.replaceAll('Url', '')}'),
+                                                duration: const Duration(seconds: 2),
+                                              ),
+                                            );
+                                          }
+                                        } catch (e) {
+                                          if (context.mounted) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(
+                                                content: Text('Error: ${e.toString()}'),
+                                                duration: const Duration(seconds: 3),
+                                              ),
+                                            );
+                                          }
                                         }
                                       },
                                     );

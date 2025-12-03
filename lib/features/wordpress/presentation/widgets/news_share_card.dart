@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../../config/share_config.dart';
 import '../../../../core/widgets/app_network_image.dart';
 import '../../domain/entities/post_entity.dart';
@@ -186,6 +187,32 @@ class NewsShareCard extends StatelessWidget {
                       ),
                   ],
                 ),
+                
+                // Link icon placeholder - for Instagram Story link sticker
+                if (post.link.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.3),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Center(
+                        child: Icon(
+                          LucideIcons.link,
+                          size: 20,
+                          color: Colors.white.withValues(alpha: 0.9),
+                        ),
+                      ),
+                    ),
+                  ),
+                
                 const SizedBox(height: 16),
               ],
             ),

@@ -129,8 +129,13 @@ class _LevelAnimationBadgeState extends State<LevelAnimationBadge>
     if (!_hasAnimation || !_animationReady || loops <= 0) {
       return;
     }
-    _loopsRemaining = loops;
-    if (restart || !_controller.isAnimating) {
+    
+    final isCurrentlyAnimating = _controller.isAnimating;
+    
+    if (isCurrentlyAnimating && !restart) {
+      _loopsRemaining += loops;
+    } else {
+      _loopsRemaining = loops;
       _controller.forward(from: 0);
     }
   }
@@ -144,7 +149,7 @@ class _LevelAnimationBadgeState extends State<LevelAnimationBadge>
         final loops = minLoops == maxLoops
             ? minLoops
             : _random.nextInt(maxLoops - minLoops + 1) + minLoops;
-        _startLoops(loops, restart: true);
+        _startLoops(loops, restart: false);
       }
       _lastTap = now;
     }

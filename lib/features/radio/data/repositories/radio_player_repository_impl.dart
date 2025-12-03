@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/widgets.dart';
 import 'package:dartz/dartz.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../config/radio_config.dart';
@@ -15,7 +16,7 @@ import 'package:radio_player/radio_player.dart';
 import '../../../../core/utils/debug_logger.dart';
 
 /// Implementation of RadioPlayerRepository
-class RadioPlayerRepositoryImpl implements RadioPlayerRepository {
+class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlayerRepository {
   final RadioPlayerRemoteDataSource remoteDataSource;
   final AlbumArtService albumArtService;
   final NowPlayingPollingService nowPlayingPollingService;
@@ -64,6 +65,7 @@ class RadioPlayerRepositoryImpl implements RadioPlayerRepository {
     required this.albumArtService,
     required this.nowPlayingPollingService,
   }) {
+    WidgetsBinding.instance.addObserver(this);
     _setupStreamListeners();
     _setupAlbumArtListener();
   }
@@ -805,6 +807,28 @@ class RadioPlayerRepositoryImpl implements RadioPlayerRepository {
     _albumArtSubscription?.cancel();
     _stopMetadataPolling();
     _playerStateController.close();
+    WidgetsBinding.instance.removeObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
+      if (RadioConfig.enableVerboseLogging) {
+        DebugLogger.log('[RadioPlayerRepository] App paused/detached, stopping metadata polling', tag: 'RadioPlayerRepository');
+      }
+      _stopMetadataPolling();
+    } else if (state == AppLifecycleState.resumed) {
+      if (RadioConfig.enableVerboseLogging) {
+        DebugLogger.log('[RadioPlayerRepository] App resumed, checking if polling needed', tag: 'RadioPlayerRepository');
+      }
+      // Resume polling if we are initialized, have config, and NOT playing audio
+      if (_currentState.isInitialized && 
+          _currentConfig != null && 
+          !_isAudioActuallyPlaying) {
+         _startMetadataPolling();
+      }
+    }
   }
 
   _NormalizedMetadata _normalizeMetadata(String? artist, String? title) {

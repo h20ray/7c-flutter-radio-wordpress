@@ -37,6 +37,7 @@ class ConfirmationDialog extends StatelessWidget {
     String cancelTextKey = 'dialog_cancel',
     IconData? icon,
     Color? iconColor,
+    Color? barrierColor,
   }) {
     final completer = Completer<bool?>();
 
@@ -44,7 +45,7 @@ class ConfirmationDialog extends StatelessWidget {
     showDialog(
       context: context,
       barrierDismissible: true,
-      barrierColor: tokens.barrier,
+      barrierColor: barrierColor ?? tokens.barrier,
       builder: (dialogContext) => ConfirmationDialog(
         titleKey: titleKey,
         messageKey: messageKey,

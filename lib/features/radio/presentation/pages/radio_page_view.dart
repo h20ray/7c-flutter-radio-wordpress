@@ -112,6 +112,11 @@ class _RadioPageViewContentState extends State<_RadioPageViewContent> {
 
   @override
   Widget build(BuildContext context) {
+    final safeAreaBottom = MediaQuery.of(context).padding.bottom;
+    final bottomSpacing = DesignTokens.spacingS;
+    final extraSpacing = DesignTokens.spacingXl;
+    final totalBottomSpacing = FloatingBottomNavBar.totalHeight + bottomSpacing + safeAreaBottom + extraSpacing;
+
     return Stack(
       children: [
         CustomScrollView(
@@ -166,7 +171,7 @@ class _RadioPageViewContentState extends State<_RadioPageViewContent> {
                       padding: EdgeInsets.symmetric(horizontal: 16.0),
                       child: RadioSongHistorySection(),
                     ),
-                    const SizedBox(height: 200), // Increased bottom padding for controls + navbar
+                    SizedBox(height: totalBottomSpacing),
                   ],
                 ),
               ),
