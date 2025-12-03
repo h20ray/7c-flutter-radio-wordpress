@@ -5,6 +5,8 @@ import '../../../../config/radio_config.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/themes/component_tokens.dart';
 import '../../../../core/themes/design_tokens.dart';
+import '../../../../core/widgets/haptic_widgets.dart';
+import '../../../../core/utils/haptic_feedback_helper.dart';
 
 class RadioMenuChipsSection extends StatelessWidget {
   const RadioMenuChipsSection({super.key});
@@ -102,7 +104,8 @@ class _MenuChip extends StatelessWidget {
     final tokens = ModeTabsTokens.of(context);
     final theme = Theme.of(context);
 
-    return GestureDetector(
+    return HapticGestureDetector(
+      hapticType: HapticFeedbackType.selectionClick,
       onTap: onTap,
       child: Container(
         padding: EdgeInsets.symmetric(

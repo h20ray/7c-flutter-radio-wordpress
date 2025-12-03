@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 
 import '../themes/component_tokens.dart';
 import '../themes/design_tokens.dart';
+import 'haptic_widgets.dart';
+import '../utils/haptic_feedback_helper.dart';
 
 class ConfirmationDialog extends StatelessWidget {
   final String titleKey;
@@ -146,7 +148,7 @@ class ConfirmationDialog extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                TextButton(
+                HapticTextButton(
                   onPressed: onCancel ?? () => Navigator.of(context).pop(),
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
@@ -157,7 +159,8 @@ class ConfirmationDialog extends StatelessWidget {
                   child: Text(cancelTextKey.tr()),
                 ),
                 SizedBox(width: DesignTokens.spacingM),
-                FilledButton(
+                HapticFilledButton(
+                  hapticType: HapticFeedbackType.mediumImpact,
                   onPressed: onConfirm,
                   style: FilledButton.styleFrom(
                     padding: const EdgeInsets.symmetric(

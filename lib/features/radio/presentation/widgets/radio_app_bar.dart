@@ -3,6 +3,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../../core/widgets/glass_app_bar_background.dart';
+import '../../../../core/widgets/haptic_widgets.dart';
 import '../widgets/volume_dialog.dart';
 
 class RadioAppBar extends StatelessWidget {
@@ -20,7 +21,7 @@ class RadioAppBar extends StatelessWidget {
       automaticallyImplyLeading: false,
       backgroundColor: Colors.transparent,
       surfaceTintColor: Theme.of(context).colorScheme.surfaceTint,
-      title: GestureDetector(
+      title: HapticGestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: onScrollToTop,
         child: Text(
@@ -33,14 +34,14 @@ class RadioAppBar extends StatelessWidget {
       actions: [
         Builder(
           builder: (context) {
-            return IconButton(
+            return HapticIconButton(
               onPressed: () => VolumeDialog.show(context),
               icon: const Icon(LucideIcons.volume_2, size: 20),
               tooltip: 'Volume',
             );
           },
         ),
-        IconButton(
+        HapticIconButton(
           onPressed: () {
             final isDark = Theme.of(context).brightness == Brightness.dark;
             if (isDark) {

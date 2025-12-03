@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/themes/component_tokens.dart';
 import '../../../../core/themes/design_tokens.dart';
+import '../../../../core/widgets/haptic_widgets.dart';
+import '../../../../core/utils/haptic_feedback_helper.dart';
 
 class ModeTabs extends StatefulWidget {
   final int selectedIndex;
@@ -75,7 +77,8 @@ class _ModeTabsState extends State<ModeTabs>
         children: List.generate(tabs.length, (index) {
           final isSelected = widget.selectedIndex == index;
           return Expanded(
-            child: GestureDetector(
+            child: HapticGestureDetector(
+              hapticType: HapticFeedbackType.selectionClick,
               onTap: () => widget.onTabChanged(index),
               child: AnimatedContainer(
                 duration: DesignTokens.animationDurationMedium,

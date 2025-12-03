@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/themes/component_tokens.dart';
 import '../../../../core/themes/design_tokens.dart';
+import '../../../../core/widgets/haptic_widgets.dart';
+import '../../../../core/utils/haptic_feedback_helper.dart';
 
 class RadioGameTabs extends StatefulWidget {
   final int selectedIndex;
@@ -76,7 +78,8 @@ class _RadioGameTabsState extends State<RadioGameTabs>
           children: List.generate(tabs.length, (index) {
             final isSelected = widget.selectedIndex == index;
             return Expanded(
-              child: GestureDetector(
+              child: HapticGestureDetector(
+                hapticType: HapticFeedbackType.selectionClick,
                 onTap: () => widget.onChanged(index),
                 child: AnimatedContainer(
                   duration: DesignTokens.animationDurationMedium,

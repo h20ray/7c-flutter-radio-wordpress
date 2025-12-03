@@ -1,10 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../../../../core/themes/app_color_system.dart';
 import '../../../../core/themes/component_tokens.dart';
 import '../../../../core/themes/design_tokens.dart';
+import '../../../../core/widgets/haptic_widgets.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../domain/entities/post_entity.dart';
 import 'news_post_image.dart';
@@ -44,9 +44,8 @@ class NewsCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
         child: Material(
           color: Colors.transparent,
-          child: InkWell(
+          child: HapticInkWell(
             onTap: () {
-              HapticFeedback.lightImpact();
               Navigator.pushNamed(
                 context,
                 AppRoutes.postDetail,

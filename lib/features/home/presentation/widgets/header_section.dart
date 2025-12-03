@@ -7,6 +7,8 @@ import '../../data/models/mock_user_profile.dart';
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/themes/m3x_menu_style.dart';
+import '../../../../core/widgets/haptic_widgets.dart';
+import '../../../../core/utils/haptic_feedback_helper.dart';
 import '../../data/social_media_service.dart';
 import 'radio_game_tabs.dart';
 
@@ -56,7 +58,7 @@ class HeaderSection extends StatelessWidget {
                       style: M3XMenuStyle.menuStyle,
                       alignmentOffset: const Offset(0, 8),
                       builder: (context, controller, child) {
-                        return GestureDetector(
+                        return HapticGestureDetector(
                           onTap: () {
                             if (controller.isOpen) {
                               controller.close();
@@ -96,6 +98,7 @@ class HeaderSection extends StatelessWidget {
                           leadingIcon: Icon(LucideIcons.log_in, size: 20),
                           child: Text('Login'),
                           onPressed: () {
+                            HapticFeedbackHelper.lightImpact();
                             // TODO: Implement Login
                           },
                         ),
@@ -112,6 +115,7 @@ class HeaderSection extends StatelessWidget {
                           ),
                               child: Text(isDark ? 'Light Mode' : 'Dark Mode'),
                           onPressed: () {
+                                HapticFeedbackHelper.lightImpact();
                                 if (isDark) {
                                   adaptiveTheme.setLight();
                                 } else {
@@ -126,6 +130,7 @@ class HeaderSection extends StatelessWidget {
                           leadingIcon: Icon(LucideIcons.settings, size: 20),
                           child: Text('Settings'),
                           onPressed: () {
+                            HapticFeedbackHelper.lightImpact();
                             // TODO: Implement Settings
                           },
                         ),
@@ -187,6 +192,7 @@ class HeaderSection extends StatelessWidget {
                                           .replaceAll('Url', '')
                                           .toUpperCase()),
                                       onPressed: () async {
+                                        HapticFeedbackHelper.lightImpact();
                                         try {
                                           String url = entry.value.trim();
                                           
@@ -326,7 +332,7 @@ class HeaderSection extends StatelessWidget {
                       color: tokens.tileBackground,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: IconButton(
+                    child: HapticIconButton(
                       padding: EdgeInsets.zero,
                       iconSize: 20,
                       icon: Icon(LucideIcons.bell, color: tokens.tileIcon),

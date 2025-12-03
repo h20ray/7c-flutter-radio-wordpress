@@ -47,6 +47,9 @@ class WordPressRemoteDataSourceImpl implements WordPressRemoteDataSource {
     
     if (search != null && search.isNotEmpty) {
       queryParams['search'] = search;
+      // Order by relevance for search queries (default is date DESC)
+      queryParams['orderby'] = 'relevance';
+      queryParams['order'] = 'desc';
     }
     
     final response = await apiClient.get(

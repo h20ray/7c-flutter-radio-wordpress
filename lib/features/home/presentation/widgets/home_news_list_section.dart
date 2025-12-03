@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../../../../core/widgets/app_network_image.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -9,6 +8,7 @@ import '../../../../core/themes/app_color_system.dart';
 import '../../../../core/themes/component_tokens.dart';
 import '../../../../core/themes/design_tokens.dart';
 import '../../../../core/widgets/home_news_card_skeleton.dart';
+import '../../../../core/widgets/haptic_widgets.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../wordpress/domain/entities/post_entity.dart';
 import '../../../wordpress/presentation/bloc/wordpress_bloc.dart';
@@ -455,9 +455,8 @@ class _HomeNewsListSectionState extends State<HomeNewsListSection> {
         ),
         child: Material(
           color: Colors.transparent,
-          child: InkWell(
+          child: HapticInkWell(
             onTap: () {
-              HapticFeedback.lightImpact();
               Navigator.pushNamed(
                 context,
                 AppRoutes.postDetail,

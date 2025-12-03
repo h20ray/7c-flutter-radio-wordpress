@@ -8,6 +8,7 @@ import '../themes/app_color_system.dart';
 import '../themes/component_tokens.dart';
 import '../themes/design_tokens.dart';
 import '../routes/app_routes.dart';
+import 'haptic_widgets.dart';
 
 enum NavItem { home, radio, news, shoutbox, profile }
 
@@ -113,7 +114,7 @@ class FloatingBottomNavBar extends StatelessWidget {
     return Expanded(
       child: Material(
         color: Colors.transparent,
-        child: InkWell(
+        child: HapticInkWell(
           borderRadius: BorderRadius.circular(24),
           onTap: () {
             if (isSelected) {

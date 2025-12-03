@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../../../config/news_config.dart';
 import '../../../../core/error/failures.dart';
+import '../../../../core/utils/search_query_helper.dart';
 import '../../domain/entities/post_entity.dart';
 import '../../domain/usecases/get_posts.dart';
 
@@ -27,6 +28,40 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
   ) async {
     final categoryId = event.categoryId;
     
+    // Preserve search state from current state before processing
+    String? preservedSearchQuery;
+    List<PostEntity>? preservedSearchResults;
+    int preservedSearchPage = 1;
+    bool preservedHasMoreSearchResults = false;
+    bool preservedIsLoadingSearch = false;
+    Failure? preservedSearchError;
+    
+    state.maybeWhen(
+      loaded: (
+        posts,
+        postsByCategory,
+        selectedCategoryId,
+        hasMoreByCategory,
+        isLoadingByCategory,
+        errorsByCategory,
+        currentPageByCategory,
+        searchResults,
+        searchQuery,
+        searchPage,
+        hasMoreSearchResults,
+        isLoadingSearch,
+        searchError,
+      ) {
+        preservedSearchQuery = searchQuery;
+        preservedSearchResults = searchResults;
+        preservedSearchPage = searchPage;
+        preservedHasMoreSearchResults = hasMoreSearchResults;
+        preservedIsLoadingSearch = isLoadingSearch;
+        preservedSearchError = searchError;
+      },
+      orElse: () {},
+    );
+    
     await state.maybeWhen(
       loaded: (
         posts,
@@ -43,6 +78,14 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
         isLoadingSearch,
         searchError,
       ) async {
+        // Use preserved search state if available, otherwise use current state
+        final finalSearchQuery = preservedSearchQuery ?? searchQuery;
+        final finalSearchResults = preservedSearchResults ?? searchResults;
+        final finalSearchPage = preservedSearchQuery != null ? preservedSearchPage : searchPage;
+        final finalHasMoreSearchResults = preservedSearchQuery != null ? preservedHasMoreSearchResults : hasMoreSearchResults;
+        final finalIsLoadingSearch = preservedSearchQuery != null ? preservedIsLoadingSearch : isLoadingSearch;
+        final finalSearchError = preservedSearchQuery != null ? preservedSearchError : searchError;
+        
         await _handleGetPostsForCategory(
           event: event,
           emit: emit,
@@ -54,15 +97,50 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
           isLoadingByCategory: isLoadingByCategory,
           errorsByCategory: errorsByCategory,
           currentPageByCategory: currentPageByCategory,
-          searchResults: searchResults,
-          searchQuery: searchQuery,
-          searchPage: searchPage,
-          hasMoreSearchResults: hasMoreSearchResults,
-          isLoadingSearch: isLoadingSearch,
-          searchError: searchError,
+          searchResults: finalSearchResults,
+          searchQuery: finalSearchQuery,
+          searchPage: finalSearchPage,
+          hasMoreSearchResults: finalHasMoreSearchResults,
+          isLoadingSearch: finalIsLoadingSearch,
+          searchError: finalSearchError,
         );
       },
       orElse: () async {
+        // Preserve search state even when initial state is not loaded
+        final currentState = state;
+        String? preservedSearchQuery;
+        List<PostEntity>? preservedSearchResults;
+        int preservedSearchPage = 1;
+        bool preservedHasMoreSearchResults = false;
+        bool preservedIsLoadingSearch = false;
+        Failure? preservedSearchError;
+        
+        currentState.maybeWhen(
+          loaded: (
+            posts,
+            postsByCategory,
+            selectedCategoryId,
+            hasMoreByCategory,
+            isLoadingByCategory,
+            errorsByCategory,
+            currentPageByCategory,
+            searchResults,
+            searchQuery,
+            searchPage,
+            hasMoreSearchResults,
+            isLoadingSearch,
+            searchError,
+          ) {
+            preservedSearchQuery = searchQuery;
+            preservedSearchResults = searchResults;
+            preservedSearchPage = searchPage;
+            preservedHasMoreSearchResults = hasMoreSearchResults;
+            preservedIsLoadingSearch = isLoadingSearch;
+            preservedSearchError = searchError;
+          },
+          orElse: () {},
+        );
+        
         await _handleGetPostsForCategory(
           event: event,
           emit: emit,
@@ -74,12 +152,12 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
           isLoadingByCategory: const {},
           errorsByCategory: const {},
           currentPageByCategory: const {},
-          searchResults: null,
-          searchQuery: null,
-          searchPage: 1,
-          hasMoreSearchResults: false,
-          isLoadingSearch: false,
-          searchError: null,
+          searchResults: preservedSearchResults,
+          searchQuery: preservedSearchQuery,
+          searchPage: preservedSearchPage,
+          hasMoreSearchResults: preservedHasMoreSearchResults,
+          isLoadingSearch: preservedIsLoadingSearch,
+          searchError: preservedSearchError,
         );
       },
     );
@@ -564,9 +642,9 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
     SearchNewsPostsEvent event,
     Emitter<NewsState> emit,
   ) async {
-    final query = event.query.trim();
+    final sanitizedQuery = SearchQueryHelper.sanitize(event.query);
     
-    if (query.isEmpty) {
+    if (sanitizedQuery.isEmpty) {
       await _onClearSearch(ClearNewsSearchEvent(), emit);
       return;
     }
@@ -587,6 +665,9 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
         isLoadingSearch,
         searchError,
       ) async {
+        // Clear old results if searching for a different query
+        final shouldClearResults = searchQuery != sanitizedQuery;
+        
         emit(_updateSearchLoading(
           posts: posts,
           postsByCategory: postsByCategory,
@@ -595,17 +676,22 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
           isLoadingByCategory: isLoadingByCategory,
           errorsByCategory: errorsByCategory,
           currentPageByCategory: currentPageByCategory,
-          searchResults: searchResults,
-          searchQuery: query,
+          searchResults: shouldClearResults ? null : searchResults,
+          searchQuery: sanitizedQuery,
           searchPage: 1,
           hasMoreSearchResults: false,
           searchError: null,
         ));
         
-        final cachedResults = await getPosts.getCachedPosts(search: query, page: 1);
+        final cachedResults = await getPosts.getCachedPosts(search: sanitizedQuery, page: 1);
         
         if (cachedResults != null && cachedResults.isNotEmpty) {
-          final updatedHasMore = cachedResults.length >= NewsConfig.newsPageListLimit;
+          final prioritizedCachedResults = SearchQueryHelper.prioritizeTitleMatches(
+            items: cachedResults,
+            query: sanitizedQuery,
+            getTitle: (post) => post.title,
+          );
+          final updatedHasMore = prioritizedCachedResults.length >= NewsConfig.newsPageListLimit;
           emit(_updateSearchResults(
             posts: posts,
             postsByCategory: postsByCategory,
@@ -614,17 +700,17 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
             isLoadingByCategory: isLoadingByCategory,
             errorsByCategory: errorsByCategory,
             currentPageByCategory: currentPageByCategory,
-            searchResults: cachedResults,
-            searchQuery: query,
+            searchResults: prioritizedCachedResults,
+            searchQuery: sanitizedQuery,
             searchPage: 1,
             hasMoreSearchResults: updatedHasMore,
             searchError: null,
           ));
           
-          _fetchAndUpdateCacheInBackground(search: query, page: 1);
+          _fetchAndUpdateCacheInBackground(search: sanitizedQuery, page: 1);
         }
         
-        final result = await getPosts(search: query, page: 1);
+        final result = await getPosts(search: sanitizedQuery, page: 1);
         result.fold(
           (failure) {
             emit(_updateSearchError(
@@ -636,14 +722,19 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
               errorsByCategory: errorsByCategory,
               currentPageByCategory: currentPageByCategory,
               searchResults: cachedResults ?? [],
-              searchQuery: query,
+              searchQuery: sanitizedQuery,
               searchPage: 1,
               hasMoreSearchResults: false,
               searchError: failure,
             ));
           },
           (results) {
-            final updatedHasMore = results.length >= NewsConfig.newsPageListLimit;
+            final prioritizedResults = SearchQueryHelper.prioritizeTitleMatches(
+              items: results,
+              query: sanitizedQuery,
+              getTitle: (post) => post.title,
+            );
+            final updatedHasMore = prioritizedResults.length >= NewsConfig.newsPageListLimit;
             emit(_updateSearchResults(
               posts: posts,
               postsByCategory: postsByCategory,
@@ -652,8 +743,8 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
               isLoadingByCategory: isLoadingByCategory,
               errorsByCategory: errorsByCategory,
               currentPageByCategory: currentPageByCategory,
-              searchResults: results,
-              searchQuery: query,
+              searchResults: prioritizedResults,
+              searchQuery: sanitizedQuery,
               searchPage: 1,
               hasMoreSearchResults: updatedHasMore,
               searchError: null,
@@ -662,14 +753,22 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
         );
       },
       orElse: () async {
-        emit(const NewsState.loading(categoryId: null));
-        final result = await getPosts(search: query, page: 1);
+        // If state is not loaded, emit loading state with search query preserved
+        // This ensures search state is maintained when news list finishes loading
+        emit(NewsState.loading(categoryId: null));
+        
+        final result = await getPosts(search: sanitizedQuery, page: 1);
         result.fold(
           (failure) {
             emit(NewsState.error(failure: failure, categoryId: null));
           },
           (results) {
-            final updatedHasMore = results.length >= NewsConfig.newsPageListLimit;
+            final prioritizedResults = SearchQueryHelper.prioritizeTitleMatches(
+              items: results,
+              query: sanitizedQuery,
+              getTitle: (post) => post.title,
+            );
+            final updatedHasMore = prioritizedResults.length >= NewsConfig.newsPageListLimit;
             emit(_buildLoadedState(
               posts: const [],
               postsByCategory: const {},
@@ -678,8 +777,8 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
               isLoadingByCategory: const {},
               errorsByCategory: const {},
               currentPageByCategory: const {},
-              searchResults: results,
-              searchQuery: query,
+              searchResults: prioritizedResults,
+              searchQuery: sanitizedQuery,
               searchPage: 1,
               hasMoreSearchResults: updatedHasMore,
               isLoadingSearch: false,
@@ -735,8 +834,18 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
         final cachedNextPage = await getPosts.getCachedPosts(search: searchQuery, page: nextPage);
         
         if (cachedNextPage != null && cachedNextPage.isNotEmpty) {
-          final mergedResults = [...existingResults, ...cachedNextPage];
-          final updatedHasMore = cachedNextPage.length >= NewsConfig.newsPageListLimit;
+          final prioritizedCachedNextPage = SearchQueryHelper.prioritizeTitleMatches(
+            items: cachedNextPage,
+            query: searchQuery,
+            getTitle: (post) => post.title,
+          );
+          final mergedResults = [...existingResults, ...prioritizedCachedNextPage];
+          final prioritizedMergedResults = SearchQueryHelper.prioritizeTitleMatches(
+            items: mergedResults,
+            query: searchQuery,
+            getTitle: (post) => post.title,
+          );
+          final updatedHasMore = prioritizedCachedNextPage.length >= NewsConfig.newsPageListLimit;
           
           emit(_updateSearchResults(
             posts: posts,
@@ -746,7 +855,7 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
             isLoadingByCategory: isLoadingByCategory,
             errorsByCategory: errorsByCategory,
             currentPageByCategory: currentPageByCategory,
-            searchResults: mergedResults,
+            searchResults: prioritizedMergedResults,
             searchQuery: searchQuery,
             searchPage: nextPage,
             hasMoreSearchResults: updatedHasMore,
@@ -776,8 +885,18 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
             ));
           },
           (newResults) {
-            final mergedResults = [...existingResults, ...newResults];
-            final updatedHasMore = newResults.length >= NewsConfig.newsPageListLimit;
+            final prioritizedNewResults = SearchQueryHelper.prioritizeTitleMatches(
+              items: newResults,
+              query: searchQuery,
+              getTitle: (post) => post.title,
+            );
+            final mergedResults = [...existingResults, ...prioritizedNewResults];
+            final prioritizedMergedResults = SearchQueryHelper.prioritizeTitleMatches(
+              items: mergedResults,
+              query: searchQuery,
+              getTitle: (post) => post.title,
+            );
+            final updatedHasMore = prioritizedNewResults.length >= NewsConfig.newsPageListLimit;
             
             emit(_updateSearchResults(
               posts: posts,
@@ -787,7 +906,7 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
               isLoadingByCategory: isLoadingByCategory,
               errorsByCategory: errorsByCategory,
               currentPageByCategory: currentPageByCategory,
-              searchResults: mergedResults,
+              searchResults: prioritizedMergedResults,
               searchQuery: searchQuery,
               searchPage: nextPage,
               hasMoreSearchResults: updatedHasMore,

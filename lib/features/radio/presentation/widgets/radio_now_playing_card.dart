@@ -5,6 +5,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/widgets/album_art_widget.dart';
+import '../../../../core/widgets/haptic_widgets.dart';
 import '../../../../core/widgets/smooth_marquee_text.dart';
 import '../../../../core/services/palette_service.dart';
 import '../../../../core/utils/palette_cache.dart';
@@ -609,9 +610,9 @@ class _GlassButton extends StatelessWidget {
 
     return Tooltip(
       message: tooltip ?? '',
-      child: Material(
+        child: Material(
         color: Colors.transparent,
-        child: InkWell(
+        child: HapticInkWell(
           onTap: onPressed,
           borderRadius: BorderRadius.circular(20),
           child: Container(

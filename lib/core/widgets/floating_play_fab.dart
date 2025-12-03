@@ -5,6 +5,7 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import '../themes/app_color_system.dart';
 import '../themes/component_tokens.dart';
 import '../themes/design_tokens.dart';
+import 'haptic_widgets.dart';
 import '../../features/radio/presentation/bloc/radio_player_bloc.dart';
 import '../../features/radio/presentation/bloc/radio_player_event.dart';
 import '../../features/radio/presentation/bloc/radio_player_state.dart';
@@ -108,7 +109,7 @@ class _FloatingPlayFabState extends State<FloatingPlayFab>
                   child: Material(
                     color: Colors.transparent,
                     borderRadius: borderRadius,
-                    child: InkWell(
+                    child: HapticInkWell(
                       borderRadius: borderRadius,
                       onTap: () {
                         context.read<RadioPlayerBloc>().add(
