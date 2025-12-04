@@ -68,6 +68,7 @@ import '../../features/wordpress/presentation/bloc/news_bloc.dart';
 
 // Home feature imports
 import '../../features/gamification/data/datasources/listening_stats_local_data_source.dart';
+import '../../features/gamification/data/datasources/listening_stats_remote_data_source.dart';
 import '../../features/gamification/data/datasources/level_celebration_local_data_source.dart';
 import '../../features/gamification/data/repositories/listening_stats_repository_impl.dart';
 import '../../features/gamification/domain/repositories/listening_stats_repository.dart';
@@ -77,6 +78,7 @@ import '../../features/gamification/domain/usecases/switch_listening_stats_user.
 import '../../features/gamification/domain/usecases/merge_guest_stats_to_user.dart';
 import '../../features/gamification/domain/usecases/flush_listening_stats_to_guest.dart';
 import '../../features/gamification/domain/usecases/sync_listening_stats_with_server.dart';
+import '../../features/gamification/domain/usecases/fetch_listening_stats_from_server.dart';
 import '../../features/gamification/presentation/bloc/gamification_bloc.dart';
 import '../../features/home/data/datasources/home_radio_metadata_datasource.dart';
 import '../../features/home/data/repositories/home_radio_repository_impl.dart';
@@ -122,7 +124,10 @@ final getIt = GetIt.instance;
 Future<void> initDependencies() async {
   // Guard to avoid double initialization
   if (getIt.isRegistered<Dio>()) {
-    DebugLogger.log('[DI] Dependencies already initialized, skipping', tag: 'DI');
+    DebugLogger.log(
+      '[DI] Dependencies already initialized, skipping',
+      tag: 'DI',
+    );
     return;
   }
 
@@ -140,9 +145,7 @@ Future<void> initDependencies() async {
   getIt.registerLazySingleton<ApiClient>(() => ApiClient(getIt()));
 
   final connectivity = Connectivity();
-  getIt.registerLazySingleton<NetworkInfo>(
-    () => NetworkInfoImpl(connectivity),
-  );
+  getIt.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(connectivity));
 
   // Core services
   getIt.registerLazySingleton<AudioFocusManager>(
@@ -202,9 +205,7 @@ void _initRadio() {
   );
 
   // Services
-  getIt.registerLazySingleton<AlbumArtService>(
-    () => AlbumArtService.instance,
-  );
+  getIt.registerLazySingleton<AlbumArtService>(() => AlbumArtService.instance);
 
   // Repositories
   getIt.registerLazySingleton<RadioRepository>(
@@ -237,9 +238,7 @@ void _initRadio() {
   getIt.registerLazySingleton(() => GetAlbumArtUrl(getIt()));
 
   // BLoCs
-  getIt.registerLazySingleton(
-    () => RadioBloc(getRadioConfig: getIt()),
-  );
+  getIt.registerLazySingleton(() => RadioBloc(getRadioConfig: getIt()));
   getIt.registerLazySingleton(
     () => RadioPlayerBloc(
       initializeRadioPlayer: getIt(),
@@ -281,19 +280,14 @@ void _initRadio() {
       ),
     );
   }
-  getIt.registerFactory(
-    () => SongHistoryBloc(repository: getIt()),
-  );
+  getIt.registerFactory(() => SongHistoryBloc(repository: getIt()));
 
   // Lyrics
   getIt.registerLazySingleton<LyricsLocalDataSource>(
     () => LyricsLocalDataSourceImpl(),
   );
   getIt.registerLazySingleton<LyricsRemoteDataSource>(
-    () => LyricsRemoteDataSourceImpl(
-      apiClient: getIt(),
-      dio: getIt(),
-    ),
+    () => LyricsRemoteDataSourceImpl(apiClient: getIt(), dio: getIt()),
   );
   getIt.registerLazySingleton<LyricsRepository>(
     () => LyricsRepositoryImpl(
@@ -301,22 +295,20 @@ void _initRadio() {
       remoteDataSource: getIt(),
     ),
   );
-  getIt.registerFactory(
-    () => LyricsBloc(repository: getIt()),
-  );
+  getIt.registerFactory(() => LyricsBloc(repository: getIt()));
 
   // Request
   getIt.registerLazySingleton<RequestRemoteDataSource>(
     () => RequestRemoteDataSourceImpl(apiClient: getIt()),
   );
-  
+
   // Register AzuraCast request data source if mode is not webview
   if (RadioConfig.requestMode != 'webview') {
     getIt.registerLazySingleton<RequestAzuracastDataSource>(
       () => RequestAzuracastDataSourceImpl(dio: getIt()),
     );
   }
-  
+
   getIt.registerLazySingleton<RequestRepository>(
     () => RequestRepositoryImpl(
       remoteDataSource: getIt(),
@@ -325,9 +317,7 @@ void _initRadio() {
           : null,
     ),
   );
-  getIt.registerFactory(
-    () => RequestBloc(repository: getIt()),
-  );
+  getIt.registerFactory(() => RequestBloc(repository: getIt()));
 }
 
 void _initShoutbox() {
@@ -370,34 +360,21 @@ void _initWordPress() {
 
   getIt.registerLazySingleton(() => GetPosts(getIt()));
 
-  getIt.registerLazySingleton(
-    () => WordPressBloc(getPosts: getIt()),
-  );
+  getIt.registerLazySingleton(() => WordPressBloc(getPosts: getIt()));
 
-  getIt.registerLazySingleton(
-    () => NewsBloc(getPosts: getIt()),
-  );
+  getIt.registerLazySingleton(() => NewsBloc(getPosts: getIt()));
 }
 
 void _initHome() {
   getIt.registerLazySingleton<HomeRadioMetadataDataSource>(
-    () => HomeRadioMetadataDataSourceImpl(
-      radioPlayerRepository: getIt(),
-    ),
+    () => HomeRadioMetadataDataSourceImpl(radioPlayerRepository: getIt()),
   );
   getIt.registerLazySingleton<HomeRadioRepository>(
-    () => HomeRadioRepositoryImpl(
-      metadataDataSource: getIt(),
-    ),
+    () => HomeRadioRepositoryImpl(metadataDataSource: getIt()),
   );
+  getIt.registerLazySingleton(() => WatchHomeNowPlaying(getIt()));
   getIt.registerLazySingleton(
-    () => WatchHomeNowPlaying(getIt()),
-  );
-  getIt.registerLazySingleton(
-    () => HomeBloc(
-      watchHomeNowPlaying: getIt(),
-      categoryRepository: getIt(),
-    ),
+    () => HomeBloc(watchHomeNowPlaying: getIt(), categoryRepository: getIt()),
   );
 }
 
@@ -439,12 +416,16 @@ void _initGamification() {
   getIt.registerLazySingleton<ListeningStatsLocalDataSource>(
     () => ListeningStatsLocalDataSourceImpl(),
   );
+  getIt.registerLazySingleton<ListeningStatsRemoteDataSource>(
+    () => ListeningStatsRemoteDataSourceImpl(apiClient: getIt()),
+  );
   getIt.registerLazySingleton<LevelCelebrationLocalDataSource>(
     () => LevelCelebrationLocalDataSourceImpl(),
   );
   getIt.registerLazySingleton<ListeningStatsRepository>(
     () => ListeningStatsRepositoryImpl(
       localDataSource: getIt(),
+      remoteDataSource: getIt(),
     ),
   );
   getIt.registerLazySingleton(() => WatchListeningStats(getIt()));
@@ -453,12 +434,11 @@ void _initGamification() {
   getIt.registerLazySingleton(() => MergeGuestStatsToUser(getIt()));
   getIt.registerLazySingleton(() => FlushListeningStatsToGuest(getIt()));
   getIt.registerLazySingleton(() => SyncListeningStatsWithServer(getIt()));
+  getIt.registerLazySingleton(() => FetchListeningStatsFromServer(getIt()));
   getIt.registerLazySingleton(
-    () => GamificationBloc(
-      watchListeningStats: getIt(),
-    ),
+    () => GamificationBloc(watchListeningStats: getIt()),
   );
-  
+
   getIt.registerLazySingleton(() => LevelUpCelebrationService.instance);
 }
 
@@ -467,15 +447,9 @@ void _initTamtama() {
     () => TamtamaLocalDataSourceImpl(),
   );
   getIt.registerLazySingleton<TamtamaRepository>(
-    () => TamtamaRepositoryImpl(
-      localDataSource: getIt(),
-    ),
+    () => TamtamaRepositoryImpl(localDataSource: getIt()),
   );
-  getIt.registerFactory(
-    () => TamtamaBloc(
-      repository: getIt(),
-    ),
-  );
+  getIt.registerFactory(() => TamtamaBloc(repository: getIt()));
 }
 
 void _initAuth() {
@@ -510,7 +484,7 @@ void _initAuth() {
       mergeGuestStatsToUser: getIt(),
       flushListeningStatsToGuest: getIt(),
       syncListeningStatsWithServer: getIt(),
+      fetchListeningStatsFromServer: getIt(),
     ),
   );
 }
-

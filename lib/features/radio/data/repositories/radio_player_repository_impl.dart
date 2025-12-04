@@ -10,6 +10,7 @@ import '../../domain/entities/radio_player_entity.dart';
 import '../../domain/repositories/radio_player_repository.dart';
 import '../datasources/radio_player_remote_datasource.dart';
 import '../services/album_art_service.dart';
+import '../services/album_art_cache_service.dart';
 import '../services/azuracast_detection_service.dart';
 import '../services/now_playing_polling_service.dart';
 import 'package:radio_player/radio_player.dart';
@@ -173,6 +174,20 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
         String? albumArtUrl;
         if (albumArtState.hasUrl) {
           albumArtUrl = albumArtState.url;
+        } else if (albumArtState.isFallback && 
+                   albumArtState.artist != null && 
+                   albumArtState.title != null) {
+          // If we're in fallback state but have artist/title, check cache directly
+          // This handles the case where cached art is scheduled but fallback is shown first
+          final cacheService = AlbumArtCacheService.instance;
+          final cachedResult = cacheService.getCachedAlbumArtWithSource(
+            albumArtState.artist!,
+            albumArtState.title!,
+          );
+          if (cachedResult != null && cachedResult['url'] != null) {
+            albumArtUrl = cachedResult['url'];
+            DebugLogger.log('[RadioPlayerRepository] Found cached album art URL during fallback state', tag: 'RadioPlayerRepository');
+          }
         }
         
         _updateState(_currentState.copyWith(
@@ -180,16 +195,23 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
         ));
 
         // Update notification with new album art using exponential backoff
-        // Only update notifications if audio has actually started playing (not during pre-buffering)
+        // Only update notifications if:
+        // 1. We have a valid URL (not fallback state without cached URL)
+        // 2. Audio has actually started playing (not during pre-buffering)
+        // 3. We have required metadata
         if (_currentConfig != null && 
             albumArtState.artist != null && 
             albumArtState.title != null &&
             (!RadioConfig.delayMetadataUntilAudioStarts || _isAudioActuallyPlaying)) {
-          await _updateNotificationWithBackoff(
-            artist: albumArtState.artist!,
-            title: albumArtState.title!,
-            artworkUrl: albumArtUrl,
-          );
+          // Only update notification if we have a URL or if this is not a fallback state
+          // Fallback states will be updated when the success state arrives
+          if (albumArtUrl != null || !albumArtState.isFallback) {
+            await _updateNotificationWithBackoff(
+              artist: albumArtState.artist!,
+              title: albumArtState.title!,
+              artworkUrl: albumArtUrl,
+            );
+          }
         }
       },
       onError: (error) {

@@ -8,7 +8,7 @@ abstract class ListeningStatsRepository {
   Future<Either<Failure, UserListeningStatsEntity>> addListeningDuration(
     Duration duration,
   );
-  
+
   Future<Either<Failure, UserListeningStatsEntity>> switchToUser(String userId);
   Future<Either<Failure, UserListeningStatsEntity>> mergeGuestStatsToUser(
     String userId,
@@ -18,6 +18,8 @@ abstract class ListeningStatsRepository {
     String userId,
     UserListeningStatsEntity serverStats,
   );
+  Future<Either<Failure, UserListeningStatsEntity>> fetchFromServer(
+    String userId,
+  );
   String get currentUserId;
 }
-

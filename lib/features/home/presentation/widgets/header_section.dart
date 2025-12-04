@@ -4,7 +4,7 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/themes/component_tokens.dart';
 import '../../../../core/themes/design_tokens.dart';
-import '../../data/models/mock_user_profile.dart';
+import '../../../auth/domain/entities/user_entity.dart';
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/themes/m3x_menu_style.dart';
@@ -16,7 +16,7 @@ import '../../../auth/presentation/pages/login_dialog.dart';
 import 'radio_game_tabs.dart';
 
 class HeaderSection extends StatelessWidget {
-  final MockUserProfile? userProfile;
+  final UserEntity? userProfile;
   final int selectedGameTab;
   final ValueChanged<int> onGameTabChanged;
 
@@ -35,28 +35,35 @@ class HeaderSection extends StatelessWidget {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, authState) {
         final profile = authState.maybeWhen(
-          authenticated: (user) => MockUserProfile(
-            name: user.name,
-            listenerId: user.listenerId ?? user.email,
-            avatarUrl: user.avatarUrl,
-            favoriteStation: 'Tujuh Cahaya Radio',
-          ),
-          orElse: () => userProfile ?? MockUserProfile.defaultProfile,
+          authenticated: (user) => user,
+          orElse: () => userProfile ?? _defaultUserProfile,
         );
 
-        return _buildHeader(context, profile, tokens, statusBarHeight, authState);
+        return _buildHeader(
+          context,
+          profile,
+          tokens,
+          statusBarHeight,
+          authState,
+        );
       },
     );
   }
 
+  static const UserEntity _defaultUserProfile = UserEntity(
+    id: 0,
+    name: 'Guest User',
+    email: '',
+    listenerId: '-',
+  );
+
   Widget _buildHeader(
     BuildContext context,
-    MockUserProfile profile,
+    UserEntity profile,
     HomeHeaderTokens tokens,
     double statusBarHeight,
     AuthState authState,
   ) {
-
     return Container(
       height: 190 + statusBarHeight,
       decoration: BoxDecoration(
@@ -161,7 +168,9 @@ class HeaderSection extends StatelessWidget {
                             child: Text('auth_logout'.tr()),
                             onPressed: () {
                               HapticFeedbackHelper.lightImpact();
-                              context.read<AuthBloc>().add(const AuthEvent.logout());
+                              context.read<AuthBloc>().add(
+                                const AuthEvent.logout(),
+                              );
                             },
                           ),
                         ],
@@ -171,13 +180,13 @@ class HeaderSection extends StatelessWidget {
                                 Theme.of(context).brightness == Brightness.dark;
                             final adaptiveTheme = AdaptiveTheme.of(context);
                             return MenuItemButton(
-                          style: M3XMenuStyle.itemStyle,
-                          leadingIcon: Icon(
+                              style: M3XMenuStyle.itemStyle,
+                              leadingIcon: Icon(
                                 isDark ? LucideIcons.sun : LucideIcons.moon,
-                            size: 20,
-                          ),
+                                size: 20,
+                              ),
                               child: Text(isDark ? 'Light Mode' : 'Dark Mode'),
-                          onPressed: () {
+                              onPressed: () {
                                 HapticFeedbackHelper.lightImpact();
                                 if (isDark) {
                                   adaptiveTheme.setLight();
@@ -196,7 +205,8 @@ class HeaderSection extends StatelessWidget {
                           leadingIcon: Icon(LucideIcons.share_2, size: 20),
                           menuChildren: [
                             FutureBuilder<Map<String, String>>(
-                              future: SocialMediaService().getSocialMediaLinks(),
+                              future: SocialMediaService()
+                                  .getSocialMediaLinks(),
                               builder: (context, snapshot) {
                                 if (snapshot.connectionState ==
                                     ConnectionState.waiting) {
@@ -242,67 +252,91 @@ class HeaderSection extends StatelessWidget {
                                     }
                                     return MenuItemButton(
                                       leadingIcon: Icon(icon, size: 18),
-                                      child: Text(entry.key
-                                          .replaceAll('Url', '')
-                                          .toUpperCase()),
+                                      child: Text(
+                                        entry.key
+                                            .replaceAll('Url', '')
+                                            .toUpperCase(),
+                                      ),
                                       onPressed: () async {
                                         HapticFeedbackHelper.lightImpact();
                                         try {
                                           String url = entry.value.trim();
-                                          
+
                                           if (url.isEmpty) {
                                             if (context.mounted) {
-                                              ScaffoldMessenger.of(context).showSnackBar(
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
                                                 const SnackBar(
                                                   content: Text('URL is empty'),
-                                                  duration: Duration(seconds: 2),
+                                                  duration: Duration(
+                                                    seconds: 2,
+                                                  ),
                                                 ),
                                               );
                                             }
                                             return;
                                           }
-                                          
-                                          if (!url.startsWith('http://') && 
+
+                                          if (!url.startsWith('http://') &&
                                               !url.startsWith('https://') &&
                                               !url.startsWith('mailto:') &&
                                               !url.startsWith('tel:') &&
                                               !url.startsWith('sms:')) {
                                             url = 'https://$url';
                                           }
-                                          
+
                                           final uri = Uri.parse(url);
-                                          
+
                                           if (!uri.hasScheme) {
                                             if (context.mounted) {
-                                              ScaffoldMessenger.of(context).showSnackBar(
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
                                                 const SnackBar(
-                                                  content: Text('Invalid URL format'),
-                                                  duration: Duration(seconds: 2),
+                                                  content: Text(
+                                                    'Invalid URL format',
+                                                  ),
+                                                  duration: Duration(
+                                                    seconds: 2,
+                                                  ),
                                                 ),
                                               );
                                             }
                                             return;
                                           }
-                                          
+
                                           final launched = await launchUrl(
                                             uri,
                                             mode: LaunchMode.platformDefault,
                                           );
-                                          
+
                                           if (!launched && context.mounted) {
-                                            ScaffoldMessenger.of(context).showSnackBar(
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
                                               SnackBar(
-                                                content: Text('Unable to open ${entry.key.replaceAll('Url', '')}'),
-                                                duration: const Duration(seconds: 2),
+                                                content: Text(
+                                                  'Unable to open ${entry.key.replaceAll('Url', '')}',
+                                                ),
+                                                duration: const Duration(
+                                                  seconds: 2,
+                                                ),
                                               ),
                                             );
                                           }
                                         } catch (e) {
                                           if (context.mounted) {
-                                            ScaffoldMessenger.of(context).showSnackBar(
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
                                               SnackBar(
-                                                content: Text('Error: ${e.toString()}'),
-                                                duration: const Duration(seconds: 3),
+                                                content: Text(
+                                                  'Error: ${e.toString()}',
+                                                ),
+                                                duration: const Duration(
+                                                  seconds: 3,
+                                                ),
                                               ),
                                             );
                                           }

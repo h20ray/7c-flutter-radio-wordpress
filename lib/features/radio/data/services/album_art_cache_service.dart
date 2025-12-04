@@ -25,7 +25,8 @@ class AlbumArtCacheService {
   Duration get _cacheDuration => Duration(hours: RadioConfig.albumArtCacheTTLHours);
 
   // Maximum cache size to prevent memory leaks
-  static const int _maxCacheSize = 100;
+  // Increased to 512 for better coverage of frequently played tracks
+  static const int _maxCacheSize = 512;
 
   /// Generate cache key from artist and title
   String _generateCacheKey(String artist, String title) {

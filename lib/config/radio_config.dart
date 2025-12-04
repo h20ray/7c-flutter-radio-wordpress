@@ -46,7 +46,8 @@ class RadioConfig {
       'assets/images/fallback_artwork.jpg';
 
   /// Album art cache time-to-live in hours.
-  static const int albumArtCacheTTLHours = 1;
+  /// Set to 30 days (720 hours) for long-term caching
+  static const int albumArtCacheTTLHours = 720;
 
   /// Timeout in milliseconds for album art network requests.
   static const int albumArtRequestTimeoutMs = 10000;

@@ -7,6 +7,7 @@ import '../../../../core/themes/app_color_system.dart';
 import '../../../../core/themes/design_tokens.dart';
 import '../../../../core/widgets/floating_bottom_nav_bar.dart';
 import '../../../../core/widgets/floating_play_fab.dart';
+import '../../../auth/domain/entities/user_entity.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/pages/login_dialog.dart';
 import '../widgets/profile_app_bar.dart';
@@ -161,7 +162,7 @@ class _ProfilePageViewState extends State<ProfilePageView> {
     );
   }
 
-  Widget _buildUserProfileSection(user) {
+  Widget _buildUserProfileSection(UserEntity user) {
     final colors = context.appColors;
     final theme = Theme.of(context);
 

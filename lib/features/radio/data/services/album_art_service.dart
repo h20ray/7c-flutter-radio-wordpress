@@ -70,7 +70,23 @@ class AlbumArtService {
   AlbumArtState get currentState => _currentState;
 
   /// Clear stale state - useful when app resumes or playback starts
+  /// If there's pending cached album art, emit it immediately instead of clearing
   void clearStaleState() {
+    // If we have pending success state (cached album art ready), emit it immediately
+    // This prevents losing cached album art when player restarts (e.g., after login)
+    if (_pendingSuccessState != null && _pendingSuccessState!.hasUrl) {
+      DebugLogger.log('[AlbumArtService] Clearing stale state but preserving cached album art', tag: 'AlbumArtService');
+      _fallbackDisplayTimer?.cancel();
+      _fallbackDisplayStartTime = null;
+      _emitSuccessState();
+      // Continue clearing other stale state
+      _currentFetchKey = null;
+      _currentCancelToken?.cancel();
+      _currentCancelToken = null;
+      return;
+    }
+    
+    // No cached album art pending, clear everything
     _currentFetchKey = null;
     _currentCancelToken?.cancel();
     _currentCancelToken = null;

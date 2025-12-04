@@ -3,7 +3,7 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
 class ImageCacheManager extends CacheManager {
   static const String _cacheKey = 'imageCache';
-  static const int _maxCacheObjects = 200;
+  static const int _maxCacheObjects = 512;
   static const Duration _stalePeriod = Duration(days: 30);
 
   static final ImageCacheManager _instance = ImageCacheManager._internal();

@@ -7,10 +7,12 @@ import '../../../../core/error/failures.dart';
 import '../../domain/entities/user_listening_stats_entity.dart';
 import '../../domain/repositories/listening_stats_repository.dart';
 import '../datasources/listening_stats_local_data_source.dart';
+import '../datasources/listening_stats_remote_data_source.dart';
 import '../models/user_listening_stats_model.dart';
 
 class ListeningStatsRepositoryImpl implements ListeningStatsRepository {
   final ListeningStatsLocalDataSource localDataSource;
+  final ListeningStatsRemoteDataSource? remoteDataSource;
   String _currentUserId;
   static const String _guestUserId = 'local_user';
 
@@ -18,6 +20,7 @@ class ListeningStatsRepositoryImpl implements ListeningStatsRepository {
 
   ListeningStatsRepositoryImpl({
     required this.localDataSource,
+    this.remoteDataSource,
     String? initialUserId,
   }) : _currentUserId = initialUserId ?? _guestUserId;
 
@@ -44,16 +47,47 @@ class ListeningStatsRepositoryImpl implements ListeningStatsRepository {
       if (seconds <= 0) {
         return Right(current);
       }
-      final updatedSeconds = current.totalListeningSeconds + seconds;
+
+      UserListeningStatsEntity baseStats = current;
+
+      if (remoteDataSource != null && _currentUserId != _guestUserId) {
+        try {
+          final serverStatsResult = await remoteDataSource!
+              .getStatsFromServer();
+          final serverStats = serverStatsResult;
+          final serverSeconds = serverStats.totalListeningSeconds;
+          final serverLastUpdated = serverStats.lastUpdatedAt;
+          final currentLastUpdated = current.lastUpdatedAt;
+
+          if (serverSeconds < current.totalListeningSeconds &&
+              serverLastUpdated.isAfter(currentLastUpdated)) {
+            baseStats = serverStats;
+          } else if (serverSeconds > current.totalListeningSeconds) {
+            baseStats = serverStats;
+          }
+        } catch (e) {
+          // If fetch fails, continue with local stats
+        }
+      }
+
+      final updatedSeconds = baseStats.totalListeningSeconds + seconds;
       final hours = updatedSeconds / 3600;
       final definition = GameRadioTimeConfig.resolveByHours(hours);
-      final updatedModel = UserListeningStatsModel.fromEntity(current).copyWith(
-        totalListeningSeconds: updatedSeconds,
-        currentLevel: definition.id,
-        lastUpdatedAt: DateTime.now(),
-      );
+      final updatedModel = UserListeningStatsModel.fromEntity(baseStats)
+          .copyWith(
+            totalListeningSeconds: updatedSeconds,
+            currentLevel: definition.id,
+            lastUpdatedAt: DateTime.now(),
+          );
       await localDataSource.save(updatedModel);
       await _emit(updatedModel);
+
+      if (remoteDataSource != null && _currentUserId != _guestUserId) {
+        remoteDataSource!.syncStatsToServer(updatedModel).catchError((e) {
+          return updatedModel;
+        });
+      }
+
       return Right(updatedModel);
     } catch (error) {
       return Left(CacheFailure(error.toString()));
@@ -105,29 +139,72 @@ class ListeningStatsRepositoryImpl implements ListeningStatsRepository {
       final guestStats = await localDataSource.fetch(_guestUserId);
       final userStats = await localDataSource.fetch(userId);
 
-      // Merge guest stats with user stats (additive)
-      final mergedSeconds = guestStats.totalListeningSeconds +
-          userStats.totalListeningSeconds;
-      final mergedHours = mergedSeconds / 3600;
-      final definition = GameRadioTimeConfig.resolveByHours(mergedHours);
+      // Only merge if guest has actual listening time
+      // If guest stats are suspiciously high (likely contains previous user stats),
+      // don't merge to prevent duplication
+      if (guestStats.totalListeningSeconds > 0) {
+        // Merge guest stats with user stats (additive)
+        final mergedSeconds =
+            guestStats.totalListeningSeconds + userStats.totalListeningSeconds;
+        final mergedHours = mergedSeconds / 3600;
+        final definition = GameRadioTimeConfig.resolveByHours(mergedHours);
 
-      final mergedStats = UserListeningStatsModel(
-        userId: userId,
-        totalListeningSeconds: mergedSeconds,
-        currentLevel: definition.id,
-        lastUpdatedAt: DateTime.now(),
-      );
+        final mergedStats = UserListeningStatsModel(
+          userId: userId,
+          totalListeningSeconds: mergedSeconds,
+          currentLevel: definition.id,
+          lastUpdatedAt: DateTime.now(),
+        );
 
-      await localDataSource.save(mergedStats);
+        await localDataSource.save(mergedStats);
 
-      // Clear guest stats after successful merge
-      final clearedGuestStats = UserListeningStatsModel.initial(_guestUserId);
-      await localDataSource.save(clearedGuestStats);
+        // Clear guest stats after successful merge
+        final clearedGuestStats = UserListeningStatsModel.initial(_guestUserId);
+        await localDataSource.save(clearedGuestStats);
 
-      // Switch to user ID
-      _currentUserId = userId;
-      await _emit(mergedStats);
-      return Right(mergedStats);
+        // Switch to user ID
+        _currentUserId = userId;
+        await _emit(mergedStats);
+
+        if (remoteDataSource != null) {
+          remoteDataSource!.syncStatsToServer(mergedStats).catchError((e) {
+            // Log error but don't fail the operation - fire and forget
+            return mergedStats;
+          });
+        }
+
+        return Right(mergedStats);
+      } else {
+        // No guest stats to merge, just switch to user
+        _currentUserId = userId;
+
+        // Ensure user entry exists in database (even with 0 stats)
+        if (userStats.totalListeningSeconds == 0) {
+          final initialStats = UserListeningStatsModel.initial(userId);
+          await localDataSource.save(initialStats);
+
+          if (remoteDataSource != null) {
+            remoteDataSource!.syncStatsToServer(initialStats).catchError((e) {
+              return initialStats;
+            });
+          }
+
+          await _emit(initialStats);
+          return Right(initialStats);
+        }
+
+        await _emit(userStats);
+
+        if (remoteDataSource != null) {
+          remoteDataSource!
+              .syncStatsToServer(UserListeningStatsModel.fromEntity(userStats))
+              .catchError((e) {
+                return UserListeningStatsModel.fromEntity(userStats);
+              });
+        }
+
+        return Right(userStats);
+      }
     } catch (error) {
       return Left(CacheFailure(error.toString()));
     }
@@ -140,28 +217,13 @@ class ListeningStatsRepositoryImpl implements ListeningStatsRepository {
         return Right(await _loadCurrent());
       }
 
-      final currentStats = await _loadCurrent();
       await _flushCurrentSession();
 
       final guestStats = await localDataSource.fetch(_guestUserId);
-      
-      final mergedSeconds =
-          guestStats.totalListeningSeconds + currentStats.totalListeningSeconds;
-      final mergedHours = mergedSeconds / 3600;
-      final definition = GameRadioTimeConfig.resolveByHours(mergedHours);
-
-      final mergedGuestStats = UserListeningStatsModel(
-        userId: _guestUserId,
-        totalListeningSeconds: mergedSeconds,
-        currentLevel: definition.id,
-        lastUpdatedAt: DateTime.now(),
-      );
-
-      await localDataSource.save(mergedGuestStats);
 
       _currentUserId = _guestUserId;
-      await _emit(mergedGuestStats);
-      return Right(mergedGuestStats);
+      await _emit(guestStats);
+      return Right(guestStats);
     } catch (error) {
       return Left(CacheFailure(error.toString()));
     }
@@ -178,16 +240,31 @@ class ListeningStatsRepositoryImpl implements ListeningStatsRepository {
       final serverSeconds = serverStats.totalListeningSeconds;
       final localSeconds = localStats.totalListeningSeconds;
 
-      final mergedSeconds = serverSeconds > localSeconds
-          ? serverSeconds
-          : localSeconds;
-      final mergedHours = mergedSeconds / 3600;
+      final serverLastUpdated = serverStats.lastUpdatedAt;
+      final localLastUpdated = localStats.lastUpdatedAt;
+
+      int finalSeconds;
+      bool shouldUploadToServer = false;
+
+      if (serverSeconds >= localSeconds) {
+        finalSeconds = serverSeconds;
+      } else {
+        if (serverLastUpdated.isAfter(localLastUpdated)) {
+          finalSeconds = serverSeconds;
+        } else {
+          finalSeconds = localSeconds;
+          shouldUploadToServer = true;
+        }
+      }
+
+      final mergedHours = finalSeconds / 3600;
       final definition = GameRadioTimeConfig.resolveByHours(mergedHours);
+      final finalLevelResolved = definition.id;
 
       final syncedStats = UserListeningStatsModel(
         userId: userId,
-        totalListeningSeconds: mergedSeconds,
-        currentLevel: definition.id,
+        totalListeningSeconds: finalSeconds,
+        currentLevel: finalLevelResolved,
         lastUpdatedAt: DateTime.now(),
       );
 
@@ -197,9 +274,35 @@ class ListeningStatsRepositoryImpl implements ListeningStatsRepository {
         await _emit(syncedStats);
       }
 
+      if (remoteDataSource != null &&
+          userId != _guestUserId &&
+          shouldUploadToServer) {
+        remoteDataSource!.syncStatsToServer(syncedStats).catchError((e) {
+          return syncedStats;
+        });
+      }
+
       return Right(syncedStats);
     } catch (error) {
       return Left(CacheFailure(error.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserListeningStatsEntity>> fetchFromServer(
+    String userId,
+  ) async {
+    if (remoteDataSource == null || userId == _guestUserId) {
+      return Left(ServerFailure('Cannot fetch server stats for guest user'));
+    }
+
+    try {
+      final serverStats = await remoteDataSource!.getStatsFromServer();
+      return Right(serverStats);
+    } catch (error) {
+      return Left(
+        ServerFailure('Failed to fetch stats from server: ${error.toString()}'),
+      );
     }
   }
 
@@ -208,9 +311,9 @@ class ListeningStatsRepositoryImpl implements ListeningStatsRepository {
       final current = await _loadCurrent();
       if (current.totalListeningSeconds > 0) {
         await localDataSource.save(
-          UserListeningStatsModel.fromEntity(current).copyWith(
-            lastUpdatedAt: DateTime.now(),
-          ),
+          UserListeningStatsModel.fromEntity(
+            current,
+          ).copyWith(lastUpdatedAt: DateTime.now()),
         );
       }
     } catch (error) {
@@ -218,4 +321,3 @@ class ListeningStatsRepositoryImpl implements ListeningStatsRepository {
     }
   }
 }
-

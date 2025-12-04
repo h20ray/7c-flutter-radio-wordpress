@@ -12,6 +12,7 @@ import '../../domain/usecases/refresh_token.dart';
 import '../../../gamification/domain/usecases/merge_guest_stats_to_user.dart';
 import '../../../gamification/domain/usecases/flush_listening_stats_to_guest.dart';
 import '../../../gamification/domain/usecases/sync_listening_stats_with_server.dart';
+import '../../../gamification/domain/usecases/fetch_listening_stats_from_server.dart';
 import '../../../gamification/domain/entities/user_listening_stats_entity.dart';
 
 part 'auth_bloc.freezed.dart';
@@ -28,6 +29,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final MergeGuestStatsToUser? mergeGuestStatsToUser;
   final FlushListeningStatsToGuest? flushListeningStatsToGuest;
   final SyncListeningStatsWithServer? syncListeningStatsWithServer;
+  final FetchListeningStatsFromServer? fetchListeningStatsFromServer;
 
   AuthBloc({
     required this.loginWithEmail,
@@ -39,6 +41,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     this.mergeGuestStatsToUser,
     this.flushListeningStatsToGuest,
     this.syncListeningStatsWithServer,
+    this.fetchListeningStatsFromServer,
   }) : super(const AuthState.initial()) {
     on<_LoginWithEmail>(_onLoginWithEmail);
     on<_LoginWithGoogle>(_onLoginWithGoogle);
@@ -59,13 +62,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       password: event.password,
       rememberMe: true,
     );
-    await result.fold(
-      (failure) async => emit(AuthState.error(failure)),
-      (user) async {
-        await _handleStatsMigrationOnLogin(user);
-        emit(AuthState.authenticated(user));
-      },
-    );
+    await result.fold((failure) async => emit(AuthState.error(failure)), (
+      user,
+    ) async {
+      await _handleStatsMigrationOnLogin(user);
+      emit(AuthState.authenticated(user));
+    });
   }
 
   Future<void> _onLoginWithGoogle(
@@ -77,28 +79,23 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       idToken: event.idToken,
       accessToken: event.accessToken,
     );
-    await result.fold(
-      (failure) async => emit(AuthState.error(failure)),
-      (user) async {
-        await _handleStatsMigrationOnLogin(user);
-        emit(AuthState.authenticated(user));
-      },
-    );
+    await result.fold((failure) async => emit(AuthState.error(failure)), (
+      user,
+    ) async {
+      await _handleStatsMigrationOnLogin(user);
+      emit(AuthState.authenticated(user));
+    });
   }
 
-  Future<void> _onLogout(
-    _Logout event,
-    Emitter<AuthState> emit,
-  ) async {
+  Future<void> _onLogout(_Logout event, Emitter<AuthState> emit) async {
     emit(const AuthState.loading());
     final result = await logout();
-    await result.fold(
-      (failure) async => emit(AuthState.error(failure)),
-      (_) async {
-        await _handleStatsMigrationOnLogout();
-        emit(const AuthState.unauthenticated());
-      },
-    );
+    await result.fold((failure) async => emit(AuthState.error(failure)), (
+      _,
+    ) async {
+      await _handleStatsMigrationOnLogout();
+      emit(const AuthState.unauthenticated());
+    });
   }
 
   Future<void> _onRefreshToken(
@@ -146,16 +143,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     final result = await checkAuthStatus();
-    result.fold(
-      (failure) => emit(AuthState.error(failure)),
-      (isAuthenticated) {
-        if (isAuthenticated) {
-          add(const AuthEvent.getCurrentUser());
-        } else {
-          emit(const AuthState.unauthenticated());
-        }
-      },
-    );
+    result.fold((failure) => emit(AuthState.error(failure)), (isAuthenticated) {
+      if (isAuthenticated) {
+        add(const AuthEvent.getCurrentUser());
+      } else {
+        emit(const AuthState.unauthenticated());
+      }
+    });
   }
 
   Future<void> _onTokenExpired(
@@ -172,16 +166,35 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       final userId = user.id.toString();
 
-      // Step 1: Sync with server stats first (to get latest server data)
-      final serverStats = _extractServerStats(user);
-      if (serverStats != null && syncListeningStatsWithServer != null) {
+      // Step 1: Fetch fresh stats from server API (most up-to-date)
+      UserListeningStatsEntity? freshServerStats;
+      if (fetchListeningStatsFromServer != null) {
+        final fetchResult = await fetchListeningStatsFromServer!(
+          userId: userId,
+        );
+        fetchResult.fold(
+          (failure) {
+            // Fallback to JWT token stats if API fetch fails
+            freshServerStats = _extractServerStats(user);
+          },
+          (stats) {
+            freshServerStats = stats;
+          },
+        );
+      } else {
+        // Fallback to JWT token stats if use case not available
+        freshServerStats = _extractServerStats(user);
+      }
+
+      // Step 2: Sync with fresh server stats (server is authoritative)
+      if (freshServerStats != null && syncListeningStatsWithServer != null) {
         await syncListeningStatsWithServer!(
           userId: userId,
-          serverStats: serverStats,
+          serverStats: freshServerStats!,
         );
       }
 
-      // Step 2: Merge guest stats to user (adds guest time to user time)
+      // Step 3: Merge guest stats to user (adds guest time to user time)
       // This ensures guest listening time is preserved and added to user stats
       await mergeGuestStatsToUser!(userId);
     } catch (e) {
@@ -204,7 +217,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     if (user.preferences == null) return null;
 
     final totalSeconds = user.preferences!['total_listening_seconds'] as int?;
-    final level = user.currentLevel ?? user.preferences!['current_level'] as String?;
+    final level =
+        user.currentLevel ?? user.preferences!['current_level'] as String?;
 
     if (totalSeconds == null) return null;
 
@@ -216,4 +230,3 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     );
   }
 }
-
