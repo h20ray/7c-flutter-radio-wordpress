@@ -68,6 +68,8 @@ class AppNetworkImage extends StatelessWidget {
       imageBuilder: imageBuilder,
       fadeInDuration: fadeInDuration ?? const Duration(milliseconds: 300),
       fadeOutDuration: Duration.zero,
+      useOldImageOnUrlChange: true,
+      cacheKey: imageUrl,
     );
   }
 

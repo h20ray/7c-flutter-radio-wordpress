@@ -10,20 +10,35 @@ import '../../../../core/routes/app_routes.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/widgets/floating_bottom_nav_bar.dart';
 import '../../../../core/widgets/floating_play_fab.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../bloc/news_bloc.dart';
 import '../widgets/news_app_bar.dart';
 import '../widgets/news_list_content.dart';
 import '../widgets/news_search_overlay.dart';
 
-class NewsPageView extends StatelessWidget {
+class NewsPageView extends StatefulWidget {
   const NewsPageView({super.key});
+
+  @override
+  State<NewsPageView> createState() => _NewsPageViewState();
+}
+
+class _NewsPageViewState extends State<NewsPageView> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final bloc = getIt<NewsBloc>();
+      if (bloc.state == const NewsState.initial()) {
+        bloc.add(const NewsEvent.getPosts(useNewsPageLimit: true));
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final bloc = getIt<NewsBloc>();
-    if (bloc.state == const NewsState.initial()) {
-      bloc.add(const NewsEvent.getPosts(useNewsPageLimit: true));
-    }
     
     return BlocProvider.value(
       value: bloc,
@@ -282,54 +297,105 @@ class _NewsPageViewContentState extends State<_NewsPageViewContent> {
         backgroundColor: colors.primaryBackground,
         body: Stack(
           children: [
-            BlocListener<NewsBloc, NewsState>(
-              listener: (context, state) {
-                WidgetsBinding.instance.addPostFrameCallback((duration) {
-                  _checkFillViewportIfNeeded(state);
-                });
-                
-                state.maybeWhen(
-                  loaded: (
-                    posts,
-                    postsByCategory,
-                    selectedCategoryId,
-                    hasMoreByCategory,
-                    isLoadingByCategory,
-                    errorsByCategory,
-                    currentPageByCategory,
-                    searchResults,
-                    searchQuery,
-                    searchPage,
-                    hasMoreSearchResults,
-                    isLoadingSearch,
-                    searchError,
-                  ) {
-                    // Don't sync if user is actively typing (prevents text reset while typing)
-                    if (_isUserTyping) return;
-                    
-                    // Sync search controller with bloc state only when user is not typing
-                    if (searchQuery == null || searchQuery.isEmpty) {
-                      // Clear controller if bloc has no search query
-                      if (_searchController.text.isNotEmpty) {
-                        _searchController.clear();
-                        _lastSearchQuery = null;
-                      }
-                    } else {
-                      // Update controller if bloc search query differs from controller text
-                      final sanitizedControllerText = SearchQueryHelper.sanitize(_searchController.text.trim());
-                      if (sanitizedControllerText != searchQuery) {
-                        _searchController.value = TextEditingValue(
-                          text: searchQuery,
-                          selection: TextSelection.collapsed(offset: searchQuery.length),
-                        );
-                        _lastSearchQuery = searchQuery;
-                      }
-                    }
-                  },
-                  orElse: () {},
+            BlocListener<AuthBloc, AuthState>(
+              listenWhen: (previous, current) {
+                return previous.maybeWhen(
+                  unauthenticated: () => current.maybeWhen(
+                    authenticated: (_) => true,
+                    orElse: () => false,
+                  ),
+                  orElse: () => false,
                 );
               },
-              child: Stack(
+              listener: (context, authState) {
+                if (!mounted) return;
+                
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (!mounted) return;
+                  
+                  final newsBloc = context.read<NewsBloc>();
+                  final newsState = newsBloc.state;
+                  
+                  final shouldRefresh = newsState.maybeWhen(
+                    loaded: (
+                      posts,
+                      postsByCategory,
+                      selectedCategoryId,
+                      hasMoreByCategory,
+                      isLoadingByCategory,
+                      errorsByCategory,
+                      currentPageByCategory,
+                      searchResults,
+                      searchQuery,
+                      searchPage,
+                      hasMoreSearchResults,
+                      isLoadingSearch,
+                      searchError,
+                    ) {
+                      if (isLoadingByCategory[selectedCategoryId] == true) return false;
+                      final currentPosts = selectedCategoryId != null
+                          ? (postsByCategory[selectedCategoryId] ?? [])
+                          : posts;
+                      return currentPosts.isEmpty;
+                    },
+                    error: (failure, categoryId) => true,
+                    initial: () => true,
+                    orElse: () => false,
+                  );
+                  
+                  if (shouldRefresh) {
+                    newsBloc.add(const NewsEvent.getPosts(useNewsPageLimit: true, forceRefresh: true));
+                  }
+                });
+              },
+              child: BlocListener<NewsBloc, NewsState>(
+                listener: (context, state) {
+                  WidgetsBinding.instance.addPostFrameCallback((duration) {
+                    _checkFillViewportIfNeeded(state);
+                  });
+                  
+                  state.maybeWhen(
+                    loaded: (
+                      posts,
+                      postsByCategory,
+                      selectedCategoryId,
+                      hasMoreByCategory,
+                      isLoadingByCategory,
+                      errorsByCategory,
+                      currentPageByCategory,
+                      searchResults,
+                      searchQuery,
+                      searchPage,
+                      hasMoreSearchResults,
+                      isLoadingSearch,
+                      searchError,
+                    ) {
+                      // Don't sync if user is actively typing (prevents text reset while typing)
+                      if (_isUserTyping) return;
+                      
+                      // Sync search controller with bloc state only when user is not typing
+                      if (searchQuery == null || searchQuery.isEmpty) {
+                        // Clear controller if bloc has no search query
+                        if (_searchController.text.isNotEmpty) {
+                          _searchController.clear();
+                          _lastSearchQuery = null;
+                        }
+                      } else {
+                        // Update controller if bloc search query differs from controller text
+                        final sanitizedControllerText = SearchQueryHelper.sanitize(_searchController.text.trim());
+                        if (sanitizedControllerText != searchQuery) {
+                          _searchController.value = TextEditingValue(
+                            text: searchQuery,
+                            selection: TextSelection.collapsed(offset: searchQuery.length),
+                          );
+                          _lastSearchQuery = searchQuery;
+                        }
+                      }
+                    },
+                    orElse: () {},
+                  );
+                },
+                child: Stack(
                 children: [
                   const NewsSearchOverlay(),
                   CustomScrollView(
@@ -349,6 +415,7 @@ class _NewsPageViewContentState extends State<_NewsPageViewContent> {
                   ),
                 ],
               ),
+            ),
             ),
             Positioned(
               left: 0,

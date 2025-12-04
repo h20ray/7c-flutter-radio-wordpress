@@ -1,15 +1,18 @@
+import 'dart:io';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:easy_localization/easy_localization.dart';
-import '../../../../core/widgets/app_network_image.dart';
+import '../../../../core/cache/image_cache_manager.dart';
+import '../../../../core/routes/app_routes.dart';
 import '../../../../core/themes/app_color_system.dart';
 import '../../../../core/themes/component_tokens.dart';
 import '../../../../core/themes/design_tokens.dart';
-import '../../../../core/widgets/news_card_skeleton.dart';
+import '../../../../core/widgets/avif_cached_image_provider.dart';
 import '../../../../core/widgets/haptic_widgets.dart';
-import '../../../../core/routes/app_routes.dart';
-import '../../../wordpress/presentation/bloc/wordpress_bloc.dart';
+import '../../../../core/widgets/news_card_skeleton.dart';
 import '../../../wordpress/domain/entities/post_entity.dart';
+import '../../../wordpress/presentation/bloc/wordpress_bloc.dart';
 
 class LatestNewsCarousel extends StatefulWidget {
   const LatestNewsCarousel({super.key});
@@ -20,30 +23,47 @@ class LatestNewsCarousel extends StatefulWidget {
 
 class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
   late PageController _pageController;
-  int _currentPage = 0;
+  final ValueNotifier<int> _currentPageNotifier = ValueNotifier(0);
   List<PostEntity>? _previousPosts;
+  final Map<String, ImageProvider> _imageProviderCache = {};
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
-    final state = context.read<WordPressBloc>().state;
+    final bloc = context.read<WordPressBloc>();
+    final state = bloc.state;
     state.maybeWhen(
-      loaded: (posts, postsByCategory, selectedCategoryId, hasMoreByCategory, isLoadingByCategory, errorsByCategory, currentPageByCategory, searchResults, searchQuery, searchPage, hasMoreSearchResults, isLoadingSearch, searchError) {
-        _previousPosts = postsByCategory[null] ?? posts;
-      },
+      loaded:
+          (
+            posts,
+            postsByCategory,
+            selectedCategoryId,
+            hasMoreByCategory,
+            isLoadingByCategory,
+            errorsByCategory,
+            currentPageByCategory,
+            searchResults,
+            searchQuery,
+            searchPage,
+            hasMoreSearchResults,
+            isLoadingSearch,
+            searchError,
+          ) {
+            _previousPosts = postsByCategory[null] ?? posts;
+          },
       loading: (categoryId) {},
       orElse: () {
-        context.read<WordPressBloc>().add(const GetPostsEvent());
+        bloc.add(const WordPressEvent.loadCachedData());
+        bloc.add(const GetPostsEvent());
       },
     );
 
     _pageController.addListener(() {
       final next = _pageController.page?.round() ?? 0;
-      if (_currentPage != next) {
-        setState(() {
-          _currentPage = next;
-        });
+      if (_currentPageNotifier.value != next) {
+        _currentPageNotifier.value = next;
+        _preloadAdjacentImages(next);
       }
     });
   }
@@ -51,13 +71,108 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
   @override
   void dispose() {
     _pageController.dispose();
+    _currentPageNotifier.dispose();
     super.dispose();
+  }
+
+  void _preloadImages(List<PostEntity> posts) {
+    if (posts.isEmpty) return;
+
+    final cacheManager = ImageCacheManager();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
+      for (int i = 0; i < posts.length; i++) {
+        final post = posts[i];
+        final imageUrl = post.featuredImageUrl;
+        if (imageUrl == null || imageUrl.isEmpty) continue;
+
+        final delay = i == 0 ? 0 : (i * 50);
+        Future.delayed(Duration(milliseconds: delay), () {
+          if (!mounted) return;
+
+          final isAvif = imageUrl.toLowerCase().endsWith('.avif');
+
+          if (isAvif) {
+            // Precache AVIF images to disk cache
+            cacheManager.getCachedFile(imageUrl).catchError((_) {
+              // Silently ignore precache errors - return a dummy file to satisfy type
+              return File('');
+            });
+          } else {
+            // Precache regular images to memory cache
+            try {
+              final imageProvider = ResizeImage(
+                CachedNetworkImageProvider(imageUrl),
+                width: 800,
+                height: 450,
+              );
+              precacheImage(imageProvider, context).catchError((_) {
+                // Silently ignore precache errors
+              });
+            } catch (e) {
+              // Ignore errors
+            }
+          }
+        });
+      }
+    });
+  }
+
+  void _preloadAdjacentImages(int currentIndex) {
+    if (_previousPosts == null || _previousPosts!.isEmpty) return;
+
+    final carouselPosts = _previousPosts!.length > 5
+        ? _previousPosts!.take(5).toList()
+        : _previousPosts!;
+
+    final cacheManager = ImageCacheManager();
+    final indicesToPreload = <int>[];
+    if (currentIndex > 0) {
+      indicesToPreload.add(currentIndex - 1);
+    }
+    if (currentIndex < carouselPosts.length - 1) {
+      indicesToPreload.add(currentIndex + 1);
+    }
+
+    for (final index in indicesToPreload) {
+      if (index >= 0 && index < carouselPosts.length) {
+        final post = carouselPosts[index];
+        final imageUrl = post.featuredImageUrl;
+        if (imageUrl == null || imageUrl.isEmpty) continue;
+
+        final isAvif = imageUrl.toLowerCase().endsWith('.avif');
+
+        if (isAvif) {
+          // Precache AVIF images to disk cache
+          cacheManager.getCachedFile(imageUrl).catchError((_) {
+            // Silently ignore precache errors - return a dummy file to satisfy type
+            return File('');
+          });
+        } else {
+          // Precache regular images to memory cache
+          try {
+            final imageProvider = ResizeImage(
+              CachedNetworkImageProvider(imageUrl),
+              width: 800,
+              height: 450,
+            );
+            precacheImage(imageProvider, context).catchError((_) {});
+          } catch (e) {
+            // Ignore errors
+          }
+        }
+      }
+    }
   }
 
   Size _computeCardSize(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
     final horizontalPadding = DesignTokens.spacingL * 2;
-    final cardWidth = width > horizontalPadding ? width - horizontalPadding : width;
+    final cardWidth = width > horizontalPadding
+        ? width - horizontalPadding
+        : width;
     final cardHeight = cardWidth / (16 / 9);
     return Size(cardWidth, cardHeight);
   }
@@ -108,11 +223,15 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
         BlocBuilder<WordPressBloc, WordPressState>(
           buildWhen: (previous, current) {
             final previousPosts = previous.maybeWhen(
-              loaded: (posts, postsByCategory, _, _, _, _, _, _, _, _, _, _, _) => postsByCategory[null] ?? posts,
+              loaded:
+                  (posts, postsByCategory, _, _, _, _, _, _, _, _, _, _, _) =>
+                      postsByCategory[null] ?? posts,
               orElse: () => const <PostEntity>[],
             );
             final currentPosts = current.maybeWhen(
-              loaded: (posts, postsByCategory, _, _, _, _, _, _, _, _, _, _, _) => postsByCategory[null] ?? posts,
+              loaded:
+                  (posts, postsByCategory, _, _, _, _, _, _, _, _, _, _, _) =>
+                      postsByCategory[null] ?? posts,
               orElse: () => const <PostEntity>[],
             );
 
@@ -121,112 +240,150 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
           },
           builder: (context, state) {
             return state.maybeWhen(
-              loaded: (posts, postsByCategory, selectedCategoryId, hasMoreByCategory, isLoadingByCategory, errorsByCategory, currentPageByCategory, searchResults, searchQuery, searchPage, hasMoreSearchResults, isLoadingSearch, searchError) {
-                final allPosts = postsByCategory[null] ?? posts;
-                final cardSize = _computeCardSize(context);
-                
-                if (allPosts.isEmpty) {
-                  final isLoading = isLoadingByCategory[null] ?? false;
-                  if (isLoading) {
-                    return SizedBox(
-                      height: cardSize.height,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: 5,
-                        itemBuilder: (context, index) =>
-                            NewsCardSkeleton(index: index, totalItems: 5),
-                      ),
-                    );
-                  }
-                  
-                  return SizedBox(
-                    height: cardSize.height,
-                    child: Center(
-                      child: Text(
-                        'news_empty_no_items'.tr(),
-                        style: TextStyle(color: colors.textSecondary),
-                      ),
-                    ),
-                  );
-                }
+              loaded:
+                  (
+                    posts,
+                    postsByCategory,
+                    selectedCategoryId,
+                    hasMoreByCategory,
+                    isLoadingByCategory,
+                    errorsByCategory,
+                    currentPageByCategory,
+                    searchResults,
+                    searchQuery,
+                    searchPage,
+                    hasMoreSearchResults,
+                    isLoadingSearch,
+                    searchError,
+                  ) {
+                    final allPosts = postsByCategory[null] ?? posts;
+                    final cardSize = _computeCardSize(context);
 
-                final carouselPosts = allPosts.length > 5 ? allPosts.take(5).toList() : allPosts;
-                final hasPostsChanged = _previousPosts == null ||
-                    _previousPosts!.length != carouselPosts.length ||
-                    !_arePostsEqual(_previousPosts!, carouselPosts);
-                
-                if (hasPostsChanged && _pageController.hasClients) {
-                  WidgetsBinding.instance.addPostFrameCallback((duration) {
-                    if (_pageController.hasClients && _currentPage > 0) {
-                      final maxPage = (carouselPosts.length - 1).clamp(0, 4);
-                      final targetPage = _currentPage.clamp(0, maxPage);
-                      if (targetPage != _currentPage) {
-                        _pageController.jumpToPage(targetPage);
+                    if (allPosts.isEmpty) {
+                      final isLoading = isLoadingByCategory[null] ?? false;
+                      if (isLoading) {
+                        return SizedBox(
+                          height: cardSize.height,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: 5,
+                            itemBuilder: (context, index) =>
+                                NewsCardSkeleton(index: index, totalItems: 5),
+                          ),
+                        );
                       }
-                    }
-                  });
-                }
-                
-                _previousPosts = carouselPosts;
 
-                return Column(
-                  children: [
-                    SizedBox(
-                      height: cardSize.height,
-                      child: PageView.builder(
-                        controller: _pageController,
-                        itemCount: carouselPosts.length,
-                        itemBuilder: (context, index) {
-                          final post = carouselPosts[index];
-                          final isLast = index == carouselPosts.length - 1;
-                          return _buildNewsCard(
-                            context,
-                            post,
-                            isLast,
-                            tokens,
-                            cardSize.width,
-                          );
-                        },
-                      ),
-                    ),
-                    SizedBox(height: DesignTokens.spacingS),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(
-                        carouselPosts.length,
-                        (index) => Container(
-                          width: 6,
-                          height: 6,
-                          margin: EdgeInsets.symmetric(horizontal: 2),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: _currentPage == index
-                                ? colors.gradientStart
-                                : colors.borderSubtle,
+                      return SizedBox(
+                        height: cardSize.height,
+                        child: Center(
+                          child: Text(
+                            'news_empty_no_items'.tr(),
+                            style: TextStyle(color: colors.textSecondary),
                           ),
                         ),
-                      ),
-                    ),
-                  ],
-                );
-              },
+                      );
+                    }
+
+                    final carouselPosts = allPosts.length > 5
+                        ? allPosts.take(5).toList()
+                        : allPosts;
+                    final hasPostsChanged =
+                        _previousPosts == null ||
+                        _previousPosts!.length != carouselPosts.length ||
+                        !_arePostsEqual(_previousPosts!, carouselPosts);
+
+                    if (hasPostsChanged && _pageController.hasClients) {
+                      WidgetsBinding.instance.addPostFrameCallback((duration) {
+                        if (_pageController.hasClients &&
+                            _currentPageNotifier.value > 0) {
+                          final maxPage = (carouselPosts.length - 1).clamp(
+                            0,
+                            4,
+                          );
+                          final targetPage = _currentPageNotifier.value.clamp(
+                            0,
+                            maxPage,
+                          );
+                          if (targetPage != _currentPageNotifier.value) {
+                            _pageController.jumpToPage(targetPage);
+                          }
+                        }
+                      });
+                    }
+
+                    _previousPosts = carouselPosts;
+
+                    _preloadImages(carouselPosts);
+
+                    return Column(
+                      children: [
+                        SizedBox(
+                          height: cardSize.height,
+                          child: PageView.builder(
+                            controller: _pageController,
+                            itemCount: carouselPosts.length,
+                            itemBuilder: (context, index) {
+                              final post = carouselPosts[index];
+                              final isLast = index == carouselPosts.length - 1;
+                              return RepaintBoundary(
+                                child: _buildNewsCard(
+                                  context,
+                                  post,
+                                  isLast,
+                                  tokens,
+                                  cardSize.width,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        SizedBox(height: DesignTokens.spacingS),
+                        ValueListenableBuilder<int>(
+                          valueListenable: _currentPageNotifier,
+                          builder: (context, currentPage, child) {
+                            return Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: List.generate(
+                                carouselPosts.length,
+                                (index) => Container(
+                                  width: 6,
+                                  height: 6,
+                                  margin: EdgeInsets.symmetric(horizontal: 2),
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: currentPage == index
+                                        ? colors.gradientStart
+                                        : colors.borderSubtle,
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    );
+                  },
               loading: (categoryId) {
                 final cardSize = _computeCardSize(context);
-                
+
                 if (_previousPosts != null && _previousPosts!.isNotEmpty) {
                   final carouselPosts = _previousPosts!.length > 5
                       ? _previousPosts!.take(5).toList()
                       : _previousPosts!;
-                  
-                  final safeCurrentPage = _currentPage.clamp(0, carouselPosts.length - 1);
-                  if (safeCurrentPage != _currentPage && _pageController.hasClients) {
+
+                  final safeCurrentPage = _currentPageNotifier.value.clamp(
+                    0,
+                    carouselPosts.length - 1,
+                  );
+                  if (safeCurrentPage != _currentPageNotifier.value &&
+                      _pageController.hasClients) {
                     WidgetsBinding.instance.addPostFrameCallback((duration) {
                       if (_pageController.hasClients) {
                         _pageController.jumpToPage(safeCurrentPage);
                       }
                     });
                   }
-                  
+
                   return Column(
                     children: [
                       SizedBox(
@@ -237,33 +394,40 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                           itemBuilder: (context, index) {
                             final post = carouselPosts[index];
                             final isLast = index == carouselPosts.length - 1;
-                            return _buildNewsCard(
-                              context,
-                              post,
-                              isLast,
-                              tokens,
-                              cardSize.width,
+                            return RepaintBoundary(
+                              child: _buildNewsCard(
+                                context,
+                                post,
+                                isLast,
+                                tokens,
+                                cardSize.width,
+                              ),
                             );
                           },
                         ),
                       ),
                       SizedBox(height: DesignTokens.spacingS),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(
-                          carouselPosts.length,
-                          (index) => Container(
-                            width: 6,
-                            height: 6,
-                            margin: EdgeInsets.symmetric(horizontal: 2),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: _currentPage == index
-                                  ? colors.gradientStart
-                                  : colors.borderSubtle,
+                      ValueListenableBuilder<int>(
+                        valueListenable: _currentPageNotifier,
+                        builder: (context, currentPage, child) {
+                          return Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: List.generate(
+                              carouselPosts.length,
+                              (index) => Container(
+                                width: 6,
+                                height: 6,
+                                margin: EdgeInsets.symmetric(horizontal: 2),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: currentPage == index
+                                      ? colors.gradientStart
+                                      : colors.borderSubtle,
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
+                          );
+                        },
                       ),
                     ],
                   );
@@ -329,7 +493,11 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
           boxShadow: [
-            BoxShadow(color: tokens.shadow, blurRadius: 8, offset: Offset(0, 2)),
+            BoxShadow(
+              color: tokens.shadow,
+              blurRadius: 8,
+              offset: Offset(0, 2),
+            ),
           ],
         ),
         child: ClipRRect(
@@ -348,49 +516,23 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                 aspectRatio: 16 / 9,
                 child: Stack(
                   children: [
-                    if (hasImage)
-                      Positioned.fill(
-                        child: AppNetworkImage(
-                          imageUrl: post.featuredImageUrl!,
-                          fit: BoxFit.cover,
-                          memCacheWidth: 800,
-                          memCacheHeight: 450,
-                          fadeInDuration: Duration.zero,
-                          placeholder: (context, url) => Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [tokens.gradientStart, tokens.gradientEnd],
-                              ),
-                            ),
-                          ),
-                          errorWidget: (context, url, error) => Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [tokens.gradientStart, tokens.gradientEnd],
-                              ),
-                            ),
-                            child: Icon(
-                              Icons.image_not_supported,
-                              color: Colors.white.withValues(alpha: 0.3),
-                              size: 48,
-                            ),
+                    Positioned.fill(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [tokens.gradientStart, tokens.gradientEnd],
                           ),
                         ),
-                      )
-                    else
+                      ),
+                    ),
+                    if (hasImage)
                       Positioned.fill(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [tokens.gradientStart, tokens.gradientEnd],
-                            ),
-                          ),
+                        child: _CarouselImage(
+                          imageUrl: post.featuredImageUrl!,
+                          gradientStart: tokens.gradientStart,
+                          gradientEnd: tokens.gradientEnd,
                         ),
                       ),
                     Positioned.fill(
@@ -416,7 +558,10 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                           if (post.categoryName != null &&
                               post.categoryName!.isNotEmpty)
                             Container(
-                              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
                               decoration: BoxDecoration(
                                 color: tokens.badgeBackground,
                                 borderRadius: BorderRadius.circular(8),
@@ -443,7 +588,9 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                                     Shadow(
                                       offset: Offset(0, 1),
                                       blurRadius: 3,
-                                      color: Colors.black.withValues(alpha: 0.5),
+                                      color: Colors.black.withValues(
+                                        alpha: 0.5,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -461,7 +608,9 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                                       Shadow(
                                         offset: Offset(0, 1),
                                         blurRadius: 2,
-                                        color: Colors.black.withValues(alpha: 0.5),
+                                        color: Colors.black.withValues(
+                                          alpha: 0.5,
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -493,7 +642,7 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
   String _formatDate(DateTime date, BuildContext context) {
     final now = DateTime.now();
     var difference = now.difference(date);
-    
+
     if (difference.isNegative) {
       difference = Duration.zero;
     }
@@ -538,6 +687,89 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
           color: colors.textPrimary,
         ),
       ),
+    );
+  }
+}
+
+class _CarouselImage extends StatefulWidget {
+  final String imageUrl;
+  final Color gradientStart;
+  final Color gradientEnd;
+
+  const _CarouselImage({
+    required this.imageUrl,
+    required this.gradientStart,
+    required this.gradientEnd,
+  });
+
+  @override
+  State<_CarouselImage> createState() => _CarouselImageState();
+}
+
+class _CarouselImageState extends State<_CarouselImage>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+
+    final carouselState = context
+        .findAncestorStateOfType<_LatestNewsCarouselState>();
+
+    if (carouselState == null) {
+      // Fallback if state not found
+      return Image(
+        image: ResizeImage(
+          CachedNetworkImageProvider(widget.imageUrl),
+          width: 800,
+          height: 450,
+        ),
+        fit: BoxFit.cover,
+        gaplessPlayback: true,
+        errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+      );
+    }
+
+    final cache = carouselState._imageProviderCache;
+    final url = widget.imageUrl;
+    final isAvif = url.toLowerCase().endsWith('.avif');
+
+    // 1. If cached — return immediately (ZERO blink)
+    if (cache.containsKey(url)) {
+      return Image(
+        image: cache[url]!,
+        fit: BoxFit.cover,
+        gaplessPlayback: true,
+        errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+      );
+    }
+
+    // 2. Create provider ONCE depending on type
+    late final ImageProvider provider;
+
+    if (isAvif) {
+      // AVIF uses custom provider
+      provider = AvifCachedImageProvider(url);
+    } else {
+      // Standard images use ResizeImage + CachedNetworkImageProvider
+      provider = ResizeImage(
+        CachedNetworkImageProvider(url),
+        width: 800,
+        height: 450,
+      );
+    }
+
+    // 3. Store provider in cache
+    cache[url] = provider;
+
+    // 4. Render
+    return Image(
+      image: provider,
+      fit: BoxFit.cover,
+      gaplessPlayback: true,
+      errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
     );
   }
 }

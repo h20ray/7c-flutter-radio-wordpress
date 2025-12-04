@@ -16,5 +16,6 @@ abstract class WordPressEvent with _$WordPressEvent {
   }) = SearchPostsEvent;
   const factory WordPressEvent.loadMoreSearchResults() = LoadMoreSearchResultsEvent;
   const factory WordPressEvent.clearSearch() = ClearSearchEvent;
+  const factory WordPressEvent.loadCachedData() = LoadCachedDataEvent;
 }
 

@@ -399,12 +399,34 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
           searchError: searchError,
         ));
       }, (posts) {
+        final updatedLoading2 = Map<int?, bool>.from(isLoadingByCategory);
+        updatedLoading2[categoryId] = false;
+        
+        if (_arePostsEqual(cachedPosts, posts)) {
+          if (isLoadingByCategory[categoryId] == true) {
+            emit(_buildLoadedState(
+              posts: cachedPosts,
+              postsByCategory: updatedPostsByCategory,
+              selectedCategoryId: categoryId,
+              hasMoreByCategory: updatedHasMore,
+              isLoadingByCategory: updatedLoading2,
+              errorsByCategory: errorsByCategory,
+              currentPageByCategory: updatedPages,
+              searchResults: searchResults,
+              searchQuery: searchQuery,
+              searchPage: searchPage,
+              hasMoreSearchResults: hasMoreSearchResults,
+              isLoadingSearch: isLoadingSearch,
+              searchError: searchError,
+            ));
+          }
+          return;
+        }
+        
         final updatedPostsByCategory2 = Map<int?, List<PostEntity>>.from(updatedPostsByCategory);
         updatedPostsByCategory2[categoryId] = posts;
         final updatedHasMore2 = Map<int?, bool>.from(updatedHasMore);
         updatedHasMore2[categoryId] = posts.length >= NewsConfig.newsPageListLimit;
-        final updatedLoading2 = Map<int?, bool>.from(isLoadingByCategory);
-        updatedLoading2[categoryId] = false;
         emit(_buildLoadedState(
           posts: posts,
           postsByCategory: updatedPostsByCategory2,
@@ -1203,5 +1225,13 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
     final now = DateTime.now();
     final difference = now.difference(cacheTimestamp);
     return difference.inMinutes < 5;
+  }
+
+  bool _arePostsEqual(List<PostEntity> list1, List<PostEntity> list2) {
+    if (list1.length != list2.length) return false;
+    for (int i = 0; i < list1.length; i++) {
+      if (list1[i] != list2[i]) return false;
+    }
+    return true;
   }
 }

@@ -55,7 +55,7 @@ extension WordPressEventPatterns on WordPressEvent {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( GetPostsEvent value)?  getPosts,TResult Function( LoadMorePostsEvent value)?  loadMorePosts,TResult Function( SearchPostsEvent value)?  searchPosts,TResult Function( LoadMoreSearchResultsEvent value)?  loadMoreSearchResults,TResult Function( ClearSearchEvent value)?  clearSearch,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( GetPostsEvent value)?  getPosts,TResult Function( LoadMorePostsEvent value)?  loadMorePosts,TResult Function( SearchPostsEvent value)?  searchPosts,TResult Function( LoadMoreSearchResultsEvent value)?  loadMoreSearchResults,TResult Function( ClearSearchEvent value)?  clearSearch,TResult Function( LoadCachedDataEvent value)?  loadCachedData,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case GetPostsEvent() when getPosts != null:
@@ -63,7 +63,8 @@ return getPosts(_that);case LoadMorePostsEvent() when loadMorePosts != null:
 return loadMorePosts(_that);case SearchPostsEvent() when searchPosts != null:
 return searchPosts(_that);case LoadMoreSearchResultsEvent() when loadMoreSearchResults != null:
 return loadMoreSearchResults(_that);case ClearSearchEvent() when clearSearch != null:
-return clearSearch(_that);case _:
+return clearSearch(_that);case LoadCachedDataEvent() when loadCachedData != null:
+return loadCachedData(_that);case _:
   return orElse();
 
 }
@@ -81,7 +82,7 @@ return clearSearch(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( GetPostsEvent value)  getPosts,required TResult Function( LoadMorePostsEvent value)  loadMorePosts,required TResult Function( SearchPostsEvent value)  searchPosts,required TResult Function( LoadMoreSearchResultsEvent value)  loadMoreSearchResults,required TResult Function( ClearSearchEvent value)  clearSearch,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( GetPostsEvent value)  getPosts,required TResult Function( LoadMorePostsEvent value)  loadMorePosts,required TResult Function( SearchPostsEvent value)  searchPosts,required TResult Function( LoadMoreSearchResultsEvent value)  loadMoreSearchResults,required TResult Function( ClearSearchEvent value)  clearSearch,required TResult Function( LoadCachedDataEvent value)  loadCachedData,}){
 final _that = this;
 switch (_that) {
 case GetPostsEvent():
@@ -89,7 +90,8 @@ return getPosts(_that);case LoadMorePostsEvent():
 return loadMorePosts(_that);case SearchPostsEvent():
 return searchPosts(_that);case LoadMoreSearchResultsEvent():
 return loadMoreSearchResults(_that);case ClearSearchEvent():
-return clearSearch(_that);case _:
+return clearSearch(_that);case LoadCachedDataEvent():
+return loadCachedData(_that);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -106,7 +108,7 @@ return clearSearch(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( GetPostsEvent value)?  getPosts,TResult? Function( LoadMorePostsEvent value)?  loadMorePosts,TResult? Function( SearchPostsEvent value)?  searchPosts,TResult? Function( LoadMoreSearchResultsEvent value)?  loadMoreSearchResults,TResult? Function( ClearSearchEvent value)?  clearSearch,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( GetPostsEvent value)?  getPosts,TResult? Function( LoadMorePostsEvent value)?  loadMorePosts,TResult? Function( SearchPostsEvent value)?  searchPosts,TResult? Function( LoadMoreSearchResultsEvent value)?  loadMoreSearchResults,TResult? Function( ClearSearchEvent value)?  clearSearch,TResult? Function( LoadCachedDataEvent value)?  loadCachedData,}){
 final _that = this;
 switch (_that) {
 case GetPostsEvent() when getPosts != null:
@@ -114,7 +116,8 @@ return getPosts(_that);case LoadMorePostsEvent() when loadMorePosts != null:
 return loadMorePosts(_that);case SearchPostsEvent() when searchPosts != null:
 return searchPosts(_that);case LoadMoreSearchResultsEvent() when loadMoreSearchResults != null:
 return loadMoreSearchResults(_that);case ClearSearchEvent() when clearSearch != null:
-return clearSearch(_that);case _:
+return clearSearch(_that);case LoadCachedDataEvent() when loadCachedData != null:
+return loadCachedData(_that);case _:
   return null;
 
 }
@@ -131,14 +134,15 @@ return clearSearch(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( bool forceRefresh,  int? categoryId,  bool useNewsPageLimit)?  getPosts,TResult Function( int? categoryId)?  loadMorePosts,TResult Function( String query)?  searchPosts,TResult Function()?  loadMoreSearchResults,TResult Function()?  clearSearch,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( bool forceRefresh,  int? categoryId,  bool useNewsPageLimit)?  getPosts,TResult Function( int? categoryId)?  loadMorePosts,TResult Function( String query)?  searchPosts,TResult Function()?  loadMoreSearchResults,TResult Function()?  clearSearch,TResult Function()?  loadCachedData,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case GetPostsEvent() when getPosts != null:
 return getPosts(_that.forceRefresh,_that.categoryId,_that.useNewsPageLimit);case LoadMorePostsEvent() when loadMorePosts != null:
 return loadMorePosts(_that.categoryId);case SearchPostsEvent() when searchPosts != null:
 return searchPosts(_that.query);case LoadMoreSearchResultsEvent() when loadMoreSearchResults != null:
 return loadMoreSearchResults();case ClearSearchEvent() when clearSearch != null:
-return clearSearch();case _:
+return clearSearch();case LoadCachedDataEvent() when loadCachedData != null:
+return loadCachedData();case _:
   return orElse();
 
 }
@@ -156,14 +160,15 @@ return clearSearch();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( bool forceRefresh,  int? categoryId,  bool useNewsPageLimit)  getPosts,required TResult Function( int? categoryId)  loadMorePosts,required TResult Function( String query)  searchPosts,required TResult Function()  loadMoreSearchResults,required TResult Function()  clearSearch,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( bool forceRefresh,  int? categoryId,  bool useNewsPageLimit)  getPosts,required TResult Function( int? categoryId)  loadMorePosts,required TResult Function( String query)  searchPosts,required TResult Function()  loadMoreSearchResults,required TResult Function()  clearSearch,required TResult Function()  loadCachedData,}) {final _that = this;
 switch (_that) {
 case GetPostsEvent():
 return getPosts(_that.forceRefresh,_that.categoryId,_that.useNewsPageLimit);case LoadMorePostsEvent():
 return loadMorePosts(_that.categoryId);case SearchPostsEvent():
 return searchPosts(_that.query);case LoadMoreSearchResultsEvent():
 return loadMoreSearchResults();case ClearSearchEvent():
-return clearSearch();case _:
+return clearSearch();case LoadCachedDataEvent():
+return loadCachedData();case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -180,14 +185,15 @@ return clearSearch();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( bool forceRefresh,  int? categoryId,  bool useNewsPageLimit)?  getPosts,TResult? Function( int? categoryId)?  loadMorePosts,TResult? Function( String query)?  searchPosts,TResult? Function()?  loadMoreSearchResults,TResult? Function()?  clearSearch,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( bool forceRefresh,  int? categoryId,  bool useNewsPageLimit)?  getPosts,TResult? Function( int? categoryId)?  loadMorePosts,TResult? Function( String query)?  searchPosts,TResult? Function()?  loadMoreSearchResults,TResult? Function()?  clearSearch,TResult? Function()?  loadCachedData,}) {final _that = this;
 switch (_that) {
 case GetPostsEvent() when getPosts != null:
 return getPosts(_that.forceRefresh,_that.categoryId,_that.useNewsPageLimit);case LoadMorePostsEvent() when loadMorePosts != null:
 return loadMorePosts(_that.categoryId);case SearchPostsEvent() when searchPosts != null:
 return searchPosts(_that.query);case LoadMoreSearchResultsEvent() when loadMoreSearchResults != null:
 return loadMoreSearchResults();case ClearSearchEvent() when clearSearch != null:
-return clearSearch();case _:
+return clearSearch();case LoadCachedDataEvent() when loadCachedData != null:
+return loadCachedData();case _:
   return null;
 
 }
@@ -453,6 +459,38 @@ int get hashCode => runtimeType.hashCode;
 @override
 String toString() {
   return 'WordPressEvent.clearSearch()';
+}
+
+
+}
+
+
+
+
+/// @nodoc
+
+
+class LoadCachedDataEvent extends WordPressEvent {
+  const LoadCachedDataEvent(): super._();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LoadCachedDataEvent);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'WordPressEvent.loadCachedData()';
 }
 
 

@@ -11,6 +11,7 @@ part 'wordpress_state.dart';
 
 class WordPressBloc extends Bloc<WordPressEvent, WordPressState> {
   final GetPosts getPosts;
+  bool _hasLoadedCache = false;
 
   WordPressBloc({required this.getPosts})
     : super(const WordPressState.initial()) {
@@ -19,6 +20,51 @@ class WordPressBloc extends Bloc<WordPressEvent, WordPressState> {
     on<SearchPostsEvent>(_onSearchPosts);
     on<LoadMoreSearchResultsEvent>(_onLoadMoreSearchResults);
     on<ClearSearchEvent>(_onClearSearch);
+    on<LoadCachedDataEvent>(_onLoadCachedData);
+  }
+
+  Future<void> _loadCachedDataIfNeeded(Emitter<WordPressState> emit) async {
+    if (_hasLoadedCache) return;
+    _hasLoadedCache = true;
+    
+    try {
+      final cachedPosts = await getPosts.getCachedPosts(categoryId: null, page: 1);
+      if (cachedPosts != null && cachedPosts.isNotEmpty) {
+        final cacheTimestamp = await getPosts.getCacheTimestamp(categoryId: null, page: 1);
+        final isCacheFresh = _isCacheFresh(cacheTimestamp);
+        
+        emit(WordPressState.loaded(
+          posts: cachedPosts,
+          postsByCategory: {null: cachedPosts},
+          selectedCategoryId: null,
+          hasMoreByCategory: {null: cachedPosts.length >= NewsConfig.homeNewsListLimit},
+          isLoadingByCategory: {},
+          errorsByCategory: {},
+          currentPageByCategory: {null: 1},
+          searchResults: null,
+          searchQuery: null,
+          searchPage: 1,
+          hasMoreSearchResults: false,
+          isLoadingSearch: false,
+          searchError: null,
+        ));
+        
+        if (!isCacheFresh) {
+          add(const GetPostsEvent(forceRefresh: true));
+        } else {
+          _fetchAndUpdateCacheInBackground(categoryId: null, page: 1);
+        }
+      }
+    } catch (e) {
+      // Silently fail cache load, will fetch from network
+    }
+  }
+
+  Future<void> _onLoadCachedData(
+    LoadCachedDataEvent event,
+    Emitter<WordPressState> emit,
+  ) async {
+    await _loadCachedDataIfNeeded(emit);
   }
 
   Future<void> _onGetPosts(
@@ -63,23 +109,65 @@ class WordPressBloc extends Bloc<WordPressEvent, WordPressState> {
         );
       },
       orElse: () async {
-        await _handleGetPostsForCategory(
-          event,
-          emit,
-          categoryId,
-          [],
-          {},
-          null,
-          {},
-          {},
-          {},
-          {},
-          null,
-          null,
-          1,
-          false,
-          false,
-          null,
+        if (!_hasLoadedCache) {
+          await _loadCachedDataIfNeeded(emit);
+        }
+        
+        await state.maybeWhen(
+          loaded: (
+            posts,
+            postsByCategory,
+            selectedCategoryId,
+            hasMoreByCategory,
+            isLoadingByCategory,
+            errorsByCategory,
+            currentPageByCategory,
+            searchResults,
+            searchQuery,
+            searchPage,
+            hasMoreSearchResults,
+            isLoadingSearch,
+            searchError,
+          ) async {
+            await _handleGetPostsForCategory(
+              event,
+              emit,
+              categoryId,
+              posts,
+              postsByCategory,
+              selectedCategoryId,
+              hasMoreByCategory,
+              isLoadingByCategory,
+              errorsByCategory,
+              currentPageByCategory,
+              searchResults,
+              searchQuery,
+              searchPage,
+              hasMoreSearchResults,
+              isLoadingSearch,
+              searchError,
+            );
+          },
+          orElse: () async {
+            await _handleGetPostsForCategory(
+              event,
+              emit,
+              categoryId,
+              [],
+              {},
+              null,
+              {},
+              {},
+              {},
+              {},
+              null,
+              null,
+              1,
+              false,
+              false,
+              null,
+            );
+          },
         );
       },
     );
@@ -323,12 +411,34 @@ class WordPressBloc extends Bloc<WordPressEvent, WordPressState> {
           searchError: searchError,
         ));
       }, (posts) {
+        final updatedLoading2 = Map<int?, bool>.from(isLoadingByCategory);
+        updatedLoading2[categoryId] = false;
+        
+        if (_arePostsEqual(cachedPosts, posts)) {
+          if (isLoadingByCategory[categoryId] == true) {
+            emit(WordPressState.loaded(
+              posts: cachedPosts,
+              postsByCategory: updatedPostsByCategory,
+              selectedCategoryId: categoryId,
+              hasMoreByCategory: updatedHasMore,
+              isLoadingByCategory: updatedLoading2,
+              errorsByCategory: errorsByCategory,
+              currentPageByCategory: updatedPages,
+              searchResults: searchResults,
+              searchQuery: searchQuery,
+              searchPage: searchPage,
+              hasMoreSearchResults: hasMoreSearchResults,
+              isLoadingSearch: isLoadingSearch,
+              searchError: searchError,
+            ));
+          }
+          return;
+        }
+        
         final updatedPostsByCategory2 = Map<int?, List<PostEntity>>.from(updatedPostsByCategory);
         updatedPostsByCategory2[categoryId] = posts;
         final updatedHasMore2 = Map<int?, bool>.from(updatedHasMore);
         updatedHasMore2[categoryId] = posts.length >= NewsConfig.newsPageListLimit;
-        final updatedLoading2 = Map<int?, bool>.from(isLoadingByCategory);
-        updatedLoading2[categoryId] = false;
         emit(WordPressState.loaded(
           posts: posts,
           postsByCategory: updatedPostsByCategory2,
@@ -868,5 +978,13 @@ class WordPressBloc extends Bloc<WordPressEvent, WordPressState> {
   bool _isCacheFresh(DateTime? timestamp) {
     if (timestamp == null) return false;
     return DateTime.now().difference(timestamp) < NewsConfig.newsCacheTTL;
+  }
+
+  bool _arePostsEqual(List<PostEntity> list1, List<PostEntity> list2) {
+    if (list1.length != list2.length) return false;
+    for (int i = 0; i < list1.length; i++) {
+      if (list1[i] != list2[i]) return false;
+    }
+    return true;
   }
 }
