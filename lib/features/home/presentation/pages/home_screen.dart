@@ -7,17 +7,19 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 
 import '../../../../core/themes/app_color_system.dart';
 import '../../../../core/themes/design_tokens.dart';
+import '../../../../core/utils/debug_logger.dart';
 import '../../../../core/widgets/confirmation_dialog.dart';
 import '../../../../core/widgets/floating_bottom_nav_bar.dart';
 import '../../../../core/widgets/floating_play_fab.dart';
+import '../../../../core/widgets/home_news_card_skeleton.dart';
 import '../../../tamtama/presentation/widgets/tamtama_section.dart';
 import '../bloc/home_bloc.dart';
 import '../widgets/header_section.dart';
-import '../widgets/latest_news_carousel.dart';
 import '../widgets/home_news_list_section.dart';
+import '../widgets/home_sticky_player.dart';
+import '../widgets/latest_news_carousel.dart';
 import '../widgets/mode_tabs.dart';
 import '../widgets/swipeable_card_container.dart';
-import '../widgets/home_sticky_player.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -39,8 +41,12 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _scrollController = ScrollController();
     _scrollController.addListener(_onScroll);
-    context.read<HomeBloc>().add(const LoadFeaturedContentEvent());
-    context.read<HomeBloc>().add(const LoadCategoriesEvent());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final bloc = context.read<HomeBloc>();
+      bloc.add(const LoadFeaturedContentEvent());
+      bloc.add(const LoadCategoriesEvent());
+    });
   }
 
   @override
@@ -86,6 +92,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final buildStart = DateTime.now();
     final double statusBarHeight = MediaQuery.of(context).padding.top;
     const double cardOverlap = DesignTokens.spacingXl * 1.7;
     final double headerHeight = 180 + statusBarHeight;
@@ -95,7 +102,14 @@ class _HomeScreenState extends State<HomeScreen> {
     final safeAreaBottom = MediaQuery.of(context).padding.bottom;
     final bottomSpacing = DesignTokens.spacingS;
     final extraSpacing = DesignTokens.spacingXl;
-    final totalBottomSpacing = FloatingBottomNavBar.totalHeight + bottomSpacing + safeAreaBottom + extraSpacing;
+    final totalBottomSpacing =
+        FloatingBottomNavBar.totalHeight + bottomSpacing + safeAreaBottom + extraSpacing;
+
+    final buildDuration = DateTime.now().difference(buildStart);
+    DebugLogger.log(
+      'HomeScreen.build took ${buildDuration.inMicroseconds}µs',
+      tag: 'PERF_HOME',
+    );
 
     return PopScope(
       canPop: false,
@@ -176,19 +190,29 @@ class _HomeScreenState extends State<HomeScreen> {
                       SliverToBoxAdapter(
                         child: Column(
                           children: [
-                            const TamtamaSection(),
+                            _DeferredSection(
+                              placeholderBuilder: (context) => const _TamtamaPlaceholder(),
+                              builder: (context) => const TamtamaSection(),
+                            ),
                             SizedBox(height: DesignTokens.spacingXl),
                           ],
                         ),
                       ),
-                    const SliverToBoxAdapter(
-                      child: LatestNewsCarousel(),
+                    SliverToBoxAdapter(
+                      child: _DeferredSection(
+                        placeholderBuilder: (context) => const _CarouselPlaceholder(),
+                        builder: (context) => const LatestNewsCarousel(),
+                      ),
                     ),
                     SliverToBoxAdapter(
                       child: SizedBox(height: DesignTokens.spacingXl),
                     ),
-                    const SliverToBoxAdapter(
-                      child: HomeNewsListSection(),
+                    SliverToBoxAdapter(
+                      child: _DeferredSection(
+                        placeholderBuilder: (context) => const _NewsListPlaceholder(),
+                        builder: (context) => const HomeNewsListSection(),
+                        delay: const Duration(milliseconds: 48),
+                      ),
                     ),
                     SliverToBoxAdapter(
                       child: Column(
@@ -259,5 +283,89 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
+  }
+}
+
+class _DeferredSection extends StatefulWidget {
+  const _DeferredSection({
+    required this.builder,
+    required this.placeholderBuilder,
+    this.delay,
+  });
+
+  final WidgetBuilder builder;
+  final WidgetBuilder placeholderBuilder;
+  final Duration? delay;
+
+  @override
+  State<_DeferredSection> createState() => _DeferredSectionState();
+}
+
+class _DeferredSectionState extends State<_DeferredSection> {
+  bool _ready = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final delay = widget.delay;
+    if (delay != null) {
+      Future.delayed(delay, _markReady);
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _markReady());
+    }
+  }
+
+  void _markReady() {
+    if (!mounted || _ready) {
+      return;
+    }
+    setState(() {
+      _ready = true;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_ready) {
+      return widget.placeholderBuilder(context);
+    }
+    return widget.builder(context);
+  }
+}
+
+class _TamtamaPlaceholder extends StatelessWidget {
+  const _TamtamaPlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
+      child: Container(
+        height: 200,
+        decoration: BoxDecoration(
+          color: colors.cardBackground,
+          borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
+        ),
+      ),
+    );
+  }
+}
+
+class _CarouselPlaceholder extends StatelessWidget {
+  const _CarouselPlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    return HomeNewsCardSkeleton(itemCount: 1);
+  }
+}
+
+class _NewsListPlaceholder extends StatelessWidget {
+  const _NewsListPlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    return const HomeNewsCardSkeleton(itemCount: 3);
   }
 }
