@@ -63,8 +63,8 @@ import '../../features/wordpress/data/datasources/wordpress_local_data_source.da
 import '../../features/wordpress/data/repositories/wordpress_repository_impl.dart';
 import '../../features/wordpress/domain/repositories/wordpress_repository.dart';
 import '../../features/wordpress/domain/usecases/get_posts.dart';
-import '../../features/wordpress/presentation/bloc/wordpress_bloc.dart';
-import '../../features/wordpress/presentation/bloc/news_bloc.dart';
+import '../../features/wordpress/presentation/bloc/news_feed_bloc.dart';
+import '../../features/wordpress/presentation/bloc/news_search_bloc.dart';
 
 // Home feature imports
 import '../../features/gamification/data/datasources/listening_stats_local_data_source.dart';
@@ -360,9 +360,8 @@ void _initWordPress() {
 
   getIt.registerLazySingleton(() => GetPosts(getIt()));
 
-  getIt.registerLazySingleton(() => WordPressBloc(getPosts: getIt()));
-
-  getIt.registerLazySingleton(() => NewsBloc(getPosts: getIt()));
+  getIt.registerLazySingleton(() => NewsFeedBloc(getPosts: getIt()));
+  getIt.registerLazySingleton(() => NewsSearchBloc(getPosts: getIt()));
 }
 
 void _initHome() {

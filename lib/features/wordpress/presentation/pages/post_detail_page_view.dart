@@ -17,7 +17,7 @@ import '../../../../core/themes/design_tokens.dart';
 import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/widgets/glass_app_bar_background.dart';
 import '../../domain/entities/post_entity.dart';
-import '../bloc/wordpress_bloc.dart';
+import '../bloc/news_feed_bloc.dart';
 import '../widgets/news_share_card.dart';
 
 class PostDetailPageView extends StatefulWidget {
@@ -70,7 +70,7 @@ class _PostDetailPageViewState extends State<PostDetailPageView> {
   }
 
   void _requestBackgroundRefresh() {
-    final bloc = context.read<WordPressBloc>();
+    final bloc = context.read<NewsFeedBloc>();
     final now = DateTime.now();
     final categoryId = _trackedCategoryId;
     final lastRefresh = _categoryRefreshTimestamps[categoryId];
@@ -83,12 +83,6 @@ class _PostDetailPageViewState extends State<PostDetailPageView> {
         _,
         _,
         isLoadingByCategory,
-        _,
-        _,
-        _,
-        _,
-        _,
-        _,
         _,
         _,
       ) =>
@@ -106,13 +100,13 @@ class _PostDetailPageViewState extends State<PostDetailPageView> {
     }
 
     _categoryRefreshTimestamps[categoryId] = now;
-    bloc.add(WordPressEvent.getPosts(
+    bloc.add(NewsFeedEvent.getPosts(
       categoryId: categoryId,
       forceRefresh: true,
     ));
   }
 
-  void _syncPostFromState(WordPressState state) {
+  void _syncPostFromState(NewsFeedState state) {
     state.maybeWhen(
       loaded: (
         posts,
@@ -122,12 +116,6 @@ class _PostDetailPageViewState extends State<PostDetailPageView> {
         isLoadingByCategory,
         errorsByCategory,
         currentPageByCategory,
-        searchResults,
-        searchQuery,
-        searchPage,
-        hasMoreSearchResults,
-        isLoadingSearch,
-        searchError,
       ) {
         final updated = _findMatchingPost(postsByCategory[_trackedCategoryId]) ??
             _findMatchingPost(posts);
@@ -341,7 +329,7 @@ class _PostDetailPageViewState extends State<PostDetailPageView> {
     final hasImage =
         _currentPost.featuredImageUrl != null && _currentPost.featuredImageUrl!.isNotEmpty;
 
-    return BlocListener<WordPressBloc, WordPressState>(
+    return BlocListener<NewsFeedBloc, NewsFeedState>(
       listenWhen: (previous, current) => previous != current,
       listener: (context, state) => _syncPostFromState(state),
       child: Scaffold(

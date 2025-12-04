@@ -13,7 +13,7 @@ import '../../features/gamification/presentation/bloc/gamification_bloc.dart';
 import '../../features/gamification/presentation/pages/level_details_page.dart';
 import '../../features/home/presentation/pages/home_screen.dart';
 import '../../features/home/presentation/bloc/home_bloc.dart';
-import '../../features/wordpress/presentation/bloc/wordpress_bloc.dart';
+import '../../features/wordpress/presentation/bloc/news_feed_bloc.dart';
 import '../../features/wordpress/presentation/pages/news_page.dart';
 import '../../features/wordpress/presentation/pages/post_detail_page_view.dart';
 import '../../features/wordpress/domain/entities/post_entity.dart';
@@ -36,7 +36,7 @@ class RouteGenerator {
             providers: [
               BlocProvider.value(value: getIt<RadioBloc>()),
               BlocProvider.value(value: getIt<RadioPlayerBloc>()),
-              BlocProvider.value(value: getIt<WordPressBloc>()),
+              BlocProvider.value(value: getIt<NewsFeedBloc>()),
               BlocProvider.value(value: getIt<HomeBloc>()),
               BlocProvider.value(value: getIt<GamificationBloc>()),
               BlocProvider.value(value: getIt<AuthBloc>()),
@@ -207,7 +207,7 @@ class RouteGenerator {
       reverseTransitionDuration: const Duration(milliseconds: 250),
       pageBuilder: (context, animation, secondaryAnimation) {
         return BlocProvider.value(
-          value: getIt<WordPressBloc>(),
+          value: getIt<NewsFeedBloc>(),
           child: PostDetailPageView(
             post: post,
           ),

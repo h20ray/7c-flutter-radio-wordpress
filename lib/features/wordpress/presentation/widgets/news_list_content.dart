@@ -3,7 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/themes/design_tokens.dart';
 import '../../../../core/widgets/news_list_skeleton.dart';
-import '../bloc/news_bloc.dart';
+import '../bloc/news_feed_bloc.dart';
+import '../bloc/news_search_bloc.dart';
 import '../widgets/news_card.dart';
 import '../widgets/news_empty_states.dart';
 import '../widgets/news_search_results_header.dart';
@@ -15,25 +16,55 @@ class NewsListContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<NewsBloc, NewsState>(
-      buildWhen: (previous, current) {
-        final prevData = _extractData(previous);
-        final currData = _extractData(current);
-
-        if (prevData.$4 != currData.$4) return true;
-        if (prevData.$2 != currData.$2 || prevData.$3 != currData.$3) return true;
-
-        final prevPosts = prevData.$1;
-        final currPosts = currData.$1;
-
-        if (prevPosts.length != currPosts.length) return true;
-
-        for (int i = 0; i < prevPosts.length; i++) {
-          if (prevPosts[i].id != currPosts[i].id) return true;
-        }
-
-        return false;
+    return BlocBuilder<NewsSearchBloc, NewsSearchState>(
+      builder: (context, searchState) {
+        return searchState.maybeWhen(
+          loaded: (results, query, page, hasMore, isLoadingMore, error) {
+            if (query.isNotEmpty) {
+              return _buildSearchContent(
+                context: context,
+                isLoadingSearch: false, // Loaded means not initial loading
+                searchResults: results,
+                searchQuery: query,
+                hasMoreSearchResults: hasMore,
+                isLoadingMore: isLoadingMore,
+                onClear: () {
+                  context.read<NewsSearchBloc>().add(const NewsSearchEvent.clearSearch());
+                },
+              );
+            }
+            return _buildFeedContent(context);
+          },
+          loading: () => _buildSearchContent(
+            context: context,
+            isLoadingSearch: true,
+            searchResults: null,
+            searchQuery: '', // Query is not available in loading state? Actually we can pass it if we want, but loading state is simple.
+            hasMoreSearchResults: false,
+            isLoadingMore: false,
+            onClear: () {
+               context.read<NewsSearchBloc>().add(const NewsSearchEvent.clearSearch());
+            },
+          ),
+          error: (failure) => _buildSearchContent(
+            context: context,
+            isLoadingSearch: false,
+            searchResults: [], // Error state, show empty or error?
+            searchQuery: '', // We should probably preserve query in error state too
+            hasMoreSearchResults: false,
+            isLoadingMore: false,
+            onClear: () {
+               context.read<NewsSearchBloc>().add(const NewsSearchEvent.clearSearch());
+            },
+          ), // TODO: Show error properly
+          orElse: () => _buildFeedContent(context),
+        );
       },
+    );
+  }
+
+  Widget _buildFeedContent(BuildContext context) {
+    return BlocBuilder<NewsFeedBloc, NewsFeedState>(
       builder: (context, state) {
         return state.maybeWhen(
           loaded: (
@@ -44,29 +75,20 @@ class NewsListContent extends StatelessWidget {
             isLoadingByCategory,
             errorsByCategory,
             currentPageByCategory,
-            searchResults,
-            searchQuery,
-            searchPage,
-            hasMoreSearchResults,
-            isLoadingSearch,
-            searchError,
           ) {
-            final hasActiveSearch = searchQuery != null && searchQuery.isNotEmpty;
-            final regularPosts = selectedCategoryId != null
-                ? postsByCategory[selectedCategoryId] ?? posts
-                : posts;
+            // Always prefer the category-specific list (including the "all" category with null key)
+            final regularPosts =
+                postsByCategory[selectedCategoryId] ?? posts;
             final isLoadingMore = isLoadingByCategory[selectedCategoryId] ?? false;
-
-            if (hasActiveSearch) {
-              return _buildSearchContent(
-                context: context,
-                isLoadingSearch: isLoadingSearch,
-                searchResults: searchResults,
-                searchQuery: searchQuery,
-                hasMoreSearchResults: hasMoreSearchResults,
-                onClear: () {
-                  context.read<NewsBloc>().add(const NewsEvent.clearSearch());
-                },
+            // We need to distinguish between initial loading and loading more.
+            // If posts are empty and loading, it's initial loading.
+            
+            if (regularPosts.isEmpty && isLoadingMore) {
+               return SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
+                  child: const NewsListSkeleton(),
+                ),
               );
             }
 
@@ -74,7 +96,7 @@ class NewsListContent extends StatelessWidget {
               context: context,
               posts: regularPosts,
               isLoadingMore: isLoadingMore,
-              hasActiveSearch: hasActiveSearch,
+              hasActiveSearch: false,
             );
           },
           loading: (categoryId) => SliverToBoxAdapter(
@@ -83,8 +105,8 @@ class NewsListContent extends StatelessWidget {
               child: const NewsListSkeleton(),
             ),
           ),
-          error: (failure, categoryId) => SliverToBoxAdapter(
-            child: const NewsErrorState(),
+          error: (failure, categoryId) => const SliverToBoxAdapter(
+            child: NewsErrorState(),
           ),
           orElse: () => SliverToBoxAdapter(
             child: Padding(
@@ -103,6 +125,7 @@ class NewsListContent extends StatelessWidget {
     required List<PostEntity>? searchResults,
     required String searchQuery,
     required bool hasMoreSearchResults,
+    required bool isLoadingMore,
     required VoidCallback onClear,
   }) {
     // Show skeleton when loading and no results (or when starting a new search)
@@ -148,13 +171,13 @@ class NewsListContent extends StatelessWidget {
                 );
               }
 
-              if (isLoadingSearch && hasMoreSearchResults) {
+              if (isLoadingMore) { // Use isLoadingMore from arguments
                 return const NewsLoadMoreFooter();
               }
 
               return const SizedBox.shrink();
             },
-            childCount: searchResults.length + 1 + (isLoadingSearch && hasMoreSearchResults ? 1 : 0),
+            childCount: searchResults.length + 1 + (isLoadingMore ? 1 : 0),
           ),
         ),
       );
@@ -217,40 +240,6 @@ class NewsListContent extends StatelessWidget {
       ),
     );
   }
-
-  (List<PostEntity>, bool, bool, String?) _extractData(NewsState state) {
-    return state.maybeWhen(
-      loaded: (
-        posts,
-        postsByCategory,
-        selectedCategoryId,
-        hasMoreByCategory,
-        isLoadingByCategory,
-        errorsByCategory,
-        currentPageByCategory,
-        searchResults,
-        searchQuery,
-        searchPage,
-        hasMoreSearchResults,
-        isLoadingSearch,
-        searchError,
-      ) {
-        final isShowingSearchResults = searchQuery != null && searchQuery.isNotEmpty;
-        final displayPosts = isShowingSearchResults
-            ? (searchResults ?? [])
-            : (selectedCategoryId != null
-                ? postsByCategory[selectedCategoryId] ?? posts
-                : posts);
-        final isLoadingMore = isShowingSearchResults
-            ? isLoadingSearch
-            : (isLoadingByCategory[selectedCategoryId] ?? false);
-        final hasError = isShowingSearchResults
-            ? searchError != null
-            : errorsByCategory[selectedCategoryId] != null;
-        return (displayPosts, isLoadingMore, hasError, searchQuery);
-      },
-      orElse: () => (<PostEntity>[], false, false, null),
-    );
-  }
 }
+
 

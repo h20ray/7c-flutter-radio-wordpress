@@ -11,7 +11,7 @@ import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/widgets/haptic_widgets.dart';
 import '../../../../core/widgets/news_card_skeleton.dart';
 import '../../../wordpress/domain/entities/post_entity.dart';
-import '../../../wordpress/presentation/bloc/wordpress_bloc.dart';
+import '../../../wordpress/presentation/bloc/news_feed_bloc.dart';
 
 class LatestNewsCarousel extends StatefulWidget {
   const LatestNewsCarousel({super.key});
@@ -29,7 +29,7 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
   void initState() {
     super.initState();
     _pageController = PageController();
-    final bloc = context.read<WordPressBloc>();
+    final bloc = context.read<NewsFeedBloc>();
     final state = bloc.state;
     state.maybeWhen(
       loaded:
@@ -41,19 +41,13 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
             isLoadingByCategory,
             errorsByCategory,
             currentPageByCategory,
-            searchResults,
-            searchQuery,
-            searchPage,
-            hasMoreSearchResults,
-            isLoadingSearch,
-            searchError,
           ) {
             _previousPosts = postsByCategory[null] ?? posts;
           },
       loading: (categoryId) {},
       orElse: () {
-        bloc.add(const WordPressEvent.loadCachedData());
-        bloc.add(const GetPostsEvent());
+        bloc.add(const NewsFeedEvent.loadCachedData());
+        bloc.add(const NewsFeedEvent.getPosts());
       },
     );
 
@@ -192,17 +186,17 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
           ),
         ),
         SizedBox(height: DesignTokens.spacingM),
-        BlocBuilder<WordPressBloc, WordPressState>(
+        BlocBuilder<NewsFeedBloc, NewsFeedState>(
           buildWhen: (previous, current) {
             final previousPosts = previous.maybeWhen(
               loaded:
-                  (posts, postsByCategory, _, _, _, _, _, _, _, _, _, _, _) =>
+                  (posts, postsByCategory, _, _, _, _, _) =>
                       postsByCategory[null] ?? posts,
               orElse: () => const <PostEntity>[],
             );
             final currentPosts = current.maybeWhen(
               loaded:
-                  (posts, postsByCategory, _, _, _, _, _, _, _, _, _, _, _) =>
+                  (posts, postsByCategory, _, _, _, _, _) =>
                       postsByCategory[null] ?? posts,
               orElse: () => const <PostEntity>[],
             );
@@ -221,12 +215,6 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                     isLoadingByCategory,
                     errorsByCategory,
                     currentPageByCategory,
-                    searchResults,
-                    searchQuery,
-                    searchPage,
-                    hasMoreSearchResults,
-                    isLoadingSearch,
-                    searchError,
                   ) {
                     final allPosts = postsByCategory[null] ?? posts;
                     final cardSize = _computeCardSize(context);

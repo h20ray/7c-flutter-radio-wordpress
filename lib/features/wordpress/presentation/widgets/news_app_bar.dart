@@ -5,7 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/themes/design_tokens.dart';
 import '../../../../core/widgets/glass_app_bar_background.dart';
 import '../../../../core/widgets/haptic_widgets.dart';
-import '../bloc/news_bloc.dart';
+import '../bloc/news_search_bloc.dart';
 import 'news_search_box.dart';
 import 'news_theme_switcher.dart';
 
@@ -51,24 +51,18 @@ class NewsAppBarState extends State<NewsAppBar> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<NewsBloc, NewsState>(
+    return BlocBuilder<NewsSearchBloc, NewsSearchState>(
       builder: (context, state) {
         final isLoadingSearch = state.maybeWhen(
           loaded: (
-            posts,
-            postsByCategory,
-            selectedCategoryId,
-            hasMoreByCategory,
-            isLoadingByCategory,
-            errorsByCategory,
-            currentPageByCategory,
-            searchResults,
-            searchQuery,
-            searchPage,
-            hasMoreSearchResults,
-            isLoadingSearch,
-            searchError,
-          ) => isLoadingSearch,
+            results,
+            query,
+            page,
+            hasMore,
+            isLoading,
+            error,
+          ) => isLoading,
+          loading: () => true,
           orElse: () => false,
         );
 

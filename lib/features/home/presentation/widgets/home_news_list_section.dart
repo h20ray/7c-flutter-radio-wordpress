@@ -13,7 +13,7 @@ import '../../../../core/widgets/haptic_widgets.dart';
 import '../../../../core/widgets/home_news_card_skeleton.dart';
 import '../../../categories/domain/entities/category_entity.dart';
 import '../../../wordpress/domain/entities/post_entity.dart';
-import '../../../wordpress/presentation/bloc/wordpress_bloc.dart';
+import '../../../wordpress/presentation/bloc/news_feed_bloc.dart';
 import '../bloc/home_bloc.dart';
 
 class HomeNewsListSection extends StatefulWidget {
@@ -265,7 +265,7 @@ class _HomeNewsListSectionState extends State<HomeNewsListSection> {
                 ),
               ),
             SizedBox(height: DesignTokens.spacingM),
-            BlocBuilder<WordPressBloc, WordPressState>(
+            BlocBuilder<NewsFeedBloc, NewsFeedState>(
               builder: (context, state) {
                 return state.maybeWhen(
                   loaded: (
@@ -276,12 +276,6 @@ class _HomeNewsListSectionState extends State<HomeNewsListSection> {
                     isLoadingByCategory,
                     errorsByCategory,
                     currentPageByCategory,
-                    searchResults,
-                    searchQuery,
-                    searchPage,
-                    hasMoreSearchResults,
-                    isLoadingSearch,
-                    searchError,
                   ) {
                     final categoryId = data.selectedCategoryId;
                     final categoryPosts = categoryId != null
@@ -405,7 +399,7 @@ class _HomeNewsListSectionState extends State<HomeNewsListSection> {
     int? categoryId,
     bool forceRefresh = false,
   }) {
-    final bloc = context.read<WordPressBloc>();
+    final bloc = context.read<NewsFeedBloc>();
     
     final blocState = bloc.state;
     final isAlreadyLoading = blocState.maybeWhen(
@@ -418,12 +412,6 @@ class _HomeNewsListSectionState extends State<HomeNewsListSection> {
         isLoadingByCategory,
         _,
         _,
-        _,
-        _,
-        _,
-        _,
-        _,
-        _,
       ) =>
           isLoadingByCategory[categoryId] ?? false,
       orElse: () => false,
@@ -434,7 +422,7 @@ class _HomeNewsListSectionState extends State<HomeNewsListSection> {
     }
 
     bloc.add(
-      WordPressEvent.getPosts(
+      NewsFeedEvent.getPosts(
         categoryId: categoryId,
         forceRefresh: forceRefresh,
       ),

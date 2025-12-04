@@ -59,22 +59,20 @@ class WordPressRepositoryImpl implements WordPressRepository {
     String? search,
     bool useNewsPageLimit = false,
   }) async {
-    final cachedPosts = await localDataSource.getCachedPosts(
-      categoryId: categoryId,
-      page: page,
-      search: search,
-    );
-
-    if (!forceRefresh && cachedPosts != null && cachedPosts.isNotEmpty) {
-      _fetchAndUpdateCacheInBackground(
+    // 1. If not forcing refresh, try to get from cache first
+    if (!forceRefresh) {
+      final cachedPosts = await localDataSource.getCachedPosts(
         categoryId: categoryId,
         page: page,
         search: search,
-        useNewsPageLimit: useNewsPageLimit,
       );
-      return Right(cachedPosts);
+
+      if (cachedPosts != null && cachedPosts.isNotEmpty) {
+        return Right(cachedPosts);
+      }
     }
 
+    // 2. Fetch from network
     try {
       final perPage = search != null && search.isNotEmpty
           ? NewsConfig.newsPageListLimit
@@ -91,6 +89,7 @@ class WordPressRepositoryImpl implements WordPressRepository {
 
       final enrichedPosts = await _enrichPosts(posts);
       
+      // 3. Save to cache (only for first page or search results)
       if (page == 1 || search != null) {
         await localDataSource.cachePosts(
           enrichedPosts,
@@ -102,60 +101,13 @@ class WordPressRepositoryImpl implements WordPressRepository {
       
       return Right(enrichedPosts.cast<PostEntity>());
     } on ServerException catch (e) {
-      if (cachedPosts != null && cachedPosts.isNotEmpty) {
-        return Right(cachedPosts);
-      }
       return Left(ServerFailure(e.message));
     } on NetworkException catch (e) {
-      if (cachedPosts != null && cachedPosts.isNotEmpty) {
-        return Right(cachedPosts);
-      }
       return Left(NetworkFailure(e.message));
     } on TimeoutException catch (e) {
-      if (cachedPosts != null && cachedPosts.isNotEmpty) {
-        return Right(cachedPosts);
-      }
       return Left(TimeoutFailure(e.message));
     } catch (e) {
-      if (cachedPosts != null && cachedPosts.isNotEmpty) {
-        return Right(cachedPosts);
-      }
       return Left(ServerFailure(e.toString()));
-    }
-  }
-
-  void _fetchAndUpdateCacheInBackground({
-    int? categoryId,
-    int page = 1,
-    String? search,
-    bool useNewsPageLimit = false,
-  }) async {
-    try {
-      final perPage = search != null && search.isNotEmpty
-          ? NewsConfig.newsPageListLimit
-          : (useNewsPageLimit || page > 1
-              ? NewsConfig.newsPageListLimit
-              : NewsConfig.homeNewsListLimit);
-      
-      final posts = await remoteDataSource.getPosts(
-        categoryId: categoryId,
-        page: page,
-        perPage: perPage,
-        search: search,
-      );
-
-      final enrichedPosts = await _enrichPosts(posts);
-      
-      if (page == 1 || search != null) {
-        await localDataSource.cachePosts(
-          enrichedPosts,
-          categoryId: categoryId,
-          page: page,
-          search: search,
-        );
-      }
-    } catch (e) {
-      // Silently fail background cache update - cached data already returned
     }
   }
 

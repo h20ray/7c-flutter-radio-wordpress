@@ -8,7 +8,7 @@ import '../../../../core/error/failures.dart';
 import '../../../../core/themes/app_color_system.dart';
 import '../../../../core/themes/design_tokens.dart';
 import '../../domain/entities/post_entity.dart';
-import '../bloc/news_bloc.dart';
+import '../bloc/news_search_bloc.dart';
 import 'news_card.dart';
 
 class NewsSearchBottomSheet extends StatefulWidget {
@@ -47,12 +47,12 @@ class _NewsSearchBottomSheetState extends State<NewsSearchBottomSheet> {
     _searchDebounce = Timer(const Duration(milliseconds: 500), () {
       final query = _searchController.text.trim();
       if (query.isNotEmpty) {
-        context.read<NewsBloc>().add(
-              NewsEvent.searchPosts(query: query),
+        context.read<NewsSearchBloc>().add(
+              NewsSearchEvent.searchPosts(query: query),
             );
       } else {
-        context.read<NewsBloc>().add(
-              const NewsEvent.clearSearch(),
+        context.read<NewsSearchBloc>().add(
+              const NewsSearchEvent.clearSearch(),
             );
       }
     });
@@ -91,8 +91,8 @@ class _NewsSearchBottomSheetState extends State<NewsSearchBottomSheet> {
                             icon: const Icon(Icons.clear),
                             onPressed: () {
                               _searchController.clear();
-                              context.read<NewsBloc>().add(
-                                    const NewsEvent.clearSearch(),
+                              context.read<NewsSearchBloc>().add(
+                                    const NewsSearchEvent.clearSearch(),
                                   );
                             },
                           );
@@ -117,19 +117,12 @@ class _NewsSearchBottomSheetState extends State<NewsSearchBottomSheet> {
             ),
           ),
           Expanded(
-            child: BlocBuilder<NewsBloc, NewsState>(
+            child: BlocBuilder<NewsSearchBloc, NewsSearchState>(
               builder: (context, state) {
                 final colors = widget.colors;
                 return state.maybeWhen(
                   loaded: (
-                    List<PostEntity> posts,
-                    Map<int?, List<PostEntity>> postsByCategory,
-                    int? selectedCategoryId,
-                    Map<int?, bool> hasMoreByCategory,
-                    Map<int?, bool> isLoadingByCategory,
-                    Map<int?, Failure?> errorsByCategory,
-                    Map<int?, int> currentPageByCategory,
-                    List<PostEntity>? searchResults,
+                    List<PostEntity> searchResults,
                     String? searchQuery,
                     int searchPage,
                     bool hasMoreSearchResults,
@@ -148,8 +141,7 @@ class _NewsSearchBottomSheetState extends State<NewsSearchBottomSheet> {
                       );
                     }
 
-                    if (isLoadingSearch &&
-                        (searchResults == null || searchResults.isEmpty)) {
+                    if (isLoadingSearch && searchResults.isEmpty) {
                       return const Center(child: CircularProgressIndicator());
                     }
 
@@ -176,7 +168,7 @@ class _NewsSearchBottomSheetState extends State<NewsSearchBottomSheet> {
                       );
                     }
 
-                    final results = searchResults ?? [];
+                    final results = searchResults;
                     if (results.isEmpty) {
                       return Center(
                         child: Column(
@@ -205,8 +197,8 @@ class _NewsSearchBottomSheetState extends State<NewsSearchBottomSheet> {
                         final metrics = scrollInfo.metrics;
                         if (metrics.pixels == metrics.maxScrollExtent) {
                           if (hasMoreSearchResults && !isLoadingSearch) {
-                            context.read<NewsBloc>().add(
-                                  const NewsEvent.loadMoreSearchResults(),
+                            context.read<NewsSearchBloc>().add(
+                                  const NewsSearchEvent.loadMoreSearchResults(),
                                 );
                           }
                         }
@@ -246,13 +238,13 @@ class _NewsSearchBottomSheetState extends State<NewsSearchBottomSheet> {
 Future<void> showNewsSearchBottomSheet(
   BuildContext context, {
   required AppSemanticColors colors,
-  required NewsBloc newsBloc,
+  required NewsSearchBloc newsBloc,
 }) {
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (bottomSheetContext) => BlocProvider<NewsBloc>.value(
+    builder: (bottomSheetContext) => BlocProvider<NewsSearchBloc>.value(
       value: newsBloc,
       child: NewsSearchBottomSheet(colors: colors),
     ),

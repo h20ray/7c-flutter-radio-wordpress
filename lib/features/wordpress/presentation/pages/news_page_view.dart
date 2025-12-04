@@ -7,11 +7,12 @@ import '../../../../core/themes/app_color_system.dart';
 import '../../../../core/themes/design_tokens.dart';
 import '../../../../core/utils/search_query_helper.dart';
 import '../../../../core/routes/app_routes.dart';
-import '../../../../core/di/injection_container.dart';
+
 import '../../../../core/widgets/floating_bottom_nav_bar.dart';
 import '../../../../core/widgets/floating_play_fab.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
-import '../bloc/news_bloc.dart';
+import '../bloc/news_feed_bloc.dart';
+import '../bloc/news_search_bloc.dart';
 import '../widgets/news_app_bar.dart';
 import '../widgets/news_list_content.dart';
 import '../widgets/news_search_overlay.dart';
@@ -29,21 +30,17 @@ class _NewsPageViewState extends State<NewsPageView> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      final bloc = getIt<NewsBloc>();
-      if (bloc.state == const NewsState.initial()) {
-        bloc.add(const NewsEvent.getPosts(useNewsPageLimit: true));
+      final feedBloc = context.read<NewsFeedBloc>();
+      if (feedBloc.state == const NewsFeedState.initial()) {
+        feedBloc.add(const NewsFeedEvent.getPosts(useNewsPageLimit: true));
       }
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final bloc = getIt<NewsBloc>();
-    
-    return BlocProvider.value(
-      value: bloc,
-      child: const _NewsPageViewContent(),
-    );
+    // Blocs are already provided by NewsPage
+    return const _NewsPageViewContent();
   }
 }
 
@@ -88,45 +85,29 @@ class _NewsPageViewContentState extends State<_NewsPageViewContent> {
     
     final rawQuery = _searchController.text.trim();
     final sanitizedQuery = SearchQueryHelper.sanitize(rawQuery);
-    final bloc = context.read<NewsBloc>();
-    final state = bloc.state;
+    final searchBloc = context.read<NewsSearchBloc>();
+    final state = searchBloc.state;
     
     state.maybeWhen(
-      loaded: (
-        posts,
-        postsByCategory,
-        selectedCategoryId,
-        hasMoreByCategory,
-        isLoadingByCategory,
-        errorsByCategory,
-        currentPageByCategory,
-        searchResults,
-        currentSearchQuery,
-        searchPage,
-        hasMoreSearchResults,
-        isLoadingSearch,
-        searchError,
-      ) {
-        if (isLoadingSearch) return;
+      loaded: (results, query, page, hasMore, isLoadingMore, error) {
+        // If loading (initial search), we might want to wait? No, user can update query.
         
         if (sanitizedQuery.isNotEmpty) {
-          if (sanitizedQuery != _lastSearchQuery && sanitizedQuery != currentSearchQuery) {
+          if (sanitizedQuery != _lastSearchQuery && sanitizedQuery != query) {
             _lastSearchQuery = sanitizedQuery;
-            bloc.add(NewsEvent.searchPosts(query: sanitizedQuery));
+            searchBloc.add(NewsSearchEvent.searchPosts(query: sanitizedQuery));
           }
         } else {
-          if (currentSearchQuery != null && currentSearchQuery.isNotEmpty) {
+          if (query.isNotEmpty) {
             _lastSearchQuery = null;
-            bloc.add(const NewsEvent.clearSearch());
+            searchBloc.add(const NewsSearchEvent.clearSearch());
           }
         }
       },
       orElse: () {
-        // Even if state is not loaded yet, we can still trigger search
-        // The search will be preserved when news list finishes loading
         if (sanitizedQuery.isNotEmpty && sanitizedQuery != _lastSearchQuery) {
           _lastSearchQuery = sanitizedQuery;
-          bloc.add(NewsEvent.searchPosts(query: sanitizedQuery));
+          searchBloc.add(NewsSearchEvent.searchPosts(query: sanitizedQuery));
         }
       },
     );
@@ -136,7 +117,7 @@ class _NewsPageViewContentState extends State<_NewsPageViewContent> {
     _searchController.clear();
     _lastSearchQuery = null;
     if (mounted) {
-      context.read<NewsBloc>().add(const NewsEvent.clearSearch());
+      context.read<NewsSearchBloc>().add(const NewsSearchEvent.clearSearch());
     }
   }
 
@@ -170,9 +151,30 @@ class _NewsPageViewContentState extends State<_NewsPageViewContent> {
     
     if (currentScroll < maxScroll - 200) return;
 
-    final bloc = context.read<NewsBloc>();
-    final state = bloc.state;
-    state.maybeWhen(
+    final searchBloc = context.read<NewsSearchBloc>();
+    final searchState = searchBloc.state;
+    
+    // Check search first
+    bool isSearchActive = false;
+    searchState.maybeWhen(
+      loaded: (results, query, page, hasMore, isLoadingMore, error) {
+        if (query.isNotEmpty) {
+          isSearchActive = true;
+          if (hasMore && !isLoadingMore) {
+            searchBloc.add(const NewsSearchEvent.loadMoreSearchResults());
+          }
+        }
+      },
+      orElse: () {},
+    );
+    
+    if (isSearchActive) return;
+
+    // Check feed
+    final feedBloc = context.read<NewsFeedBloc>();
+    final feedState = feedBloc.state;
+    
+    feedState.maybeWhen(
       loaded: (
         posts,
         postsByCategory,
@@ -181,30 +183,13 @@ class _NewsPageViewContentState extends State<_NewsPageViewContent> {
         isLoadingByCategory,
         errorsByCategory,
         currentPageByCategory,
-        searchResults,
-        searchQuery,
-        searchPage,
-        hasMoreSearchResults,
-        isLoadingSearch,
-        searchError,
       ) {
-        final isShowingSearchResults = searchQuery != null && searchQuery.isNotEmpty;
-
-        if (isShowingSearchResults) {
-          if (hasMoreSearchResults && !isLoadingSearch) {
-            bloc.add(const NewsEvent.loadMoreSearchResults());
-          }
-          return;
-        }
-
-
-
         final hasMore = hasMoreByCategory[selectedCategoryId] ?? false;
         final isLoading = isLoadingByCategory[selectedCategoryId] ?? false;
 
         if (hasMore && !isLoading) {
-          bloc.add(
-            NewsEvent.loadMorePosts(categoryId: selectedCategoryId),
+          feedBloc.add(
+            NewsFeedEvent.loadMorePosts(categoryId: selectedCategoryId),
           );
         }
       },
@@ -212,12 +197,38 @@ class _NewsPageViewContentState extends State<_NewsPageViewContent> {
     );
   }
 
-  void _checkFillViewportIfNeeded(NewsState state) {
+  void _checkFillViewportIfNeeded() {
     if (_didInitialAutoLoadCheck) return;
     if (!mounted) return;
     if (!_scrollController.hasClients) return;
 
-    state.maybeWhen(
+    final position = _scrollController.position;
+    final canScroll = position.maxScrollExtent > 0;
+    if (canScroll) return;
+
+    final searchBloc = context.read<NewsSearchBloc>();
+    final searchState = searchBloc.state;
+    
+    bool isSearchActive = false;
+    searchState.maybeWhen(
+      loaded: (results, query, page, hasMore, isLoadingMore, error) {
+        if (query.isNotEmpty) {
+          isSearchActive = true;
+          if (hasMore && !isLoadingMore) {
+            _didInitialAutoLoadCheck = true;
+            searchBloc.add(const NewsSearchEvent.loadMoreSearchResults());
+          }
+        }
+      },
+      orElse: () {},
+    );
+    
+    if (isSearchActive) return;
+
+    final feedBloc = context.read<NewsFeedBloc>();
+    final feedState = feedBloc.state;
+
+    feedState.maybeWhen(
       loaded: (
         posts,
         postsByCategory,
@@ -226,37 +237,14 @@ class _NewsPageViewContentState extends State<_NewsPageViewContent> {
         isLoadingByCategory,
         errorsByCategory,
         currentPageByCategory,
-        searchResults,
-        searchQuery,
-        searchPage,
-        hasMoreSearchResults,
-        isLoadingSearch,
-        searchError,
       ) {
-        final position = _scrollController.position;
-        final canScroll = position.maxScrollExtent > 0;
-        if (canScroll) return;
-
-        final bloc = context.read<NewsBloc>();
-        final isShowingSearchResults = searchQuery != null && searchQuery.isNotEmpty;
-
-        if (isShowingSearchResults) {
-          if (hasMoreSearchResults && !isLoadingSearch) {
-            _didInitialAutoLoadCheck = true;
-            bloc.add(const NewsEvent.loadMoreSearchResults());
-          }
-          return;
-        }
-
-
-
         final hasMore = hasMoreByCategory[selectedCategoryId] ?? false;
         final isLoading = isLoadingByCategory[selectedCategoryId] ?? false;
 
         if (hasMore && !isLoading) {
           _didInitialAutoLoadCheck = true;
-          bloc.add(
-            NewsEvent.loadMorePosts(categoryId: selectedCategoryId),
+          feedBloc.add(
+            NewsFeedEvent.loadMorePosts(categoryId: selectedCategoryId),
           );
         }
       },
@@ -313,10 +301,10 @@ class _NewsPageViewContentState extends State<_NewsPageViewContent> {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   if (!mounted) return;
                   
-                  final newsBloc = context.read<NewsBloc>();
-                  final newsState = newsBloc.state;
+                  final feedBloc = context.read<NewsFeedBloc>();
+                  final feedState = feedBloc.state;
                   
-                  final shouldRefresh = newsState.maybeWhen(
+                  final shouldRefresh = feedState.maybeWhen(
                     loaded: (
                       posts,
                       postsByCategory,
@@ -325,12 +313,6 @@ class _NewsPageViewContentState extends State<_NewsPageViewContent> {
                       isLoadingByCategory,
                       errorsByCategory,
                       currentPageByCategory,
-                      searchResults,
-                      searchQuery,
-                      searchPage,
-                      hasMoreSearchResults,
-                      isLoadingSearch,
-                      searchError,
                     ) {
                       if (isLoadingByCategory[selectedCategoryId] == true) return false;
                       final currentPosts = selectedCategoryId != null
@@ -344,57 +326,50 @@ class _NewsPageViewContentState extends State<_NewsPageViewContent> {
                   );
                   
                   if (shouldRefresh) {
-                    newsBloc.add(const NewsEvent.getPosts(useNewsPageLimit: true, forceRefresh: true));
+                    feedBloc.add(const NewsFeedEvent.getPosts(useNewsPageLimit: true, forceRefresh: true));
                   }
                 });
               },
-              child: BlocListener<NewsBloc, NewsState>(
-                listener: (context, state) {
-                  WidgetsBinding.instance.addPostFrameCallback((duration) {
-                    _checkFillViewportIfNeeded(state);
-                  });
-                  
-                  state.maybeWhen(
-                    loaded: (
-                      posts,
-                      postsByCategory,
-                      selectedCategoryId,
-                      hasMoreByCategory,
-                      isLoadingByCategory,
-                      errorsByCategory,
-                      currentPageByCategory,
-                      searchResults,
-                      searchQuery,
-                      searchPage,
-                      hasMoreSearchResults,
-                      isLoadingSearch,
-                      searchError,
-                    ) {
-                      // Don't sync if user is actively typing (prevents text reset while typing)
-                      if (_isUserTyping) return;
-                      
-                      // Sync search controller with bloc state only when user is not typing
-                      if (searchQuery == null || searchQuery.isEmpty) {
-                        // Clear controller if bloc has no search query
-                        if (_searchController.text.isNotEmpty) {
-                          _searchController.clear();
-                          _lastSearchQuery = null;
-                        }
-                      } else {
-                        // Update controller if bloc search query differs from controller text
-                        final sanitizedControllerText = SearchQueryHelper.sanitize(_searchController.text.trim());
-                        if (sanitizedControllerText != searchQuery) {
-                          _searchController.value = TextEditingValue(
-                            text: searchQuery,
-                            selection: TextSelection.collapsed(offset: searchQuery.length),
-                          );
-                          _lastSearchQuery = searchQuery;
-                        }
-                      }
+              child: MultiBlocListener(
+                listeners: [
+                  BlocListener<NewsFeedBloc, NewsFeedState>(
+                    listener: (context, state) {
+                      WidgetsBinding.instance.addPostFrameCallback((duration) {
+                        _checkFillViewportIfNeeded();
+                      });
                     },
-                    orElse: () {},
-                  );
-                },
+                  ),
+                  BlocListener<NewsSearchBloc, NewsSearchState>(
+                    listener: (context, state) {
+                      state.maybeWhen(
+                        loaded: (results, query, page, hasMore, isLoadingMore, error) {
+                          // Don't sync if user is actively typing (prevents text reset while typing)
+                          if (_isUserTyping) return;
+                          
+                          // Sync search controller with bloc state only when user is not typing
+                          if (query.isEmpty) {
+                            // Clear controller if bloc has no search query
+                            if (_searchController.text.isNotEmpty) {
+                              _searchController.clear();
+                              _lastSearchQuery = null;
+                            }
+                          } else {
+                            // Update controller if bloc search query differs from controller text
+                            final sanitizedControllerText = SearchQueryHelper.sanitize(_searchController.text.trim());
+                            if (sanitizedControllerText != query) {
+                              _searchController.value = TextEditingValue(
+                                text: query,
+                                selection: TextSelection.collapsed(offset: query.length),
+                              );
+                              _lastSearchQuery = query;
+                            }
+                          }
+                        },
+                        orElse: () {},
+                      );
+                    },
+                  ),
+                ],
                 child: Stack(
                 children: [
                   const NewsSearchOverlay(),

@@ -1,12 +1,14 @@
-part of 'news_bloc.dart';
+part of 'news_feed_bloc.dart';
 
 @freezed
-class NewsState with _$NewsState {
-  const factory NewsState.initial() = _Initial;
-  const factory NewsState.loading({
+class NewsFeedState with _$NewsFeedState {
+  const factory NewsFeedState.initial() = _Initial;
+  
+  const factory NewsFeedState.loading({
     int? categoryId,
   }) = _Loading;
-  const factory NewsState.loaded({
+  
+  const factory NewsFeedState.loaded({
     required List<PostEntity> posts,
     required Map<int?, List<PostEntity>> postsByCategory,
     int? selectedCategoryId,
@@ -14,14 +16,9 @@ class NewsState with _$NewsState {
     @Default({}) Map<int?, bool> isLoadingByCategory,
     @Default({}) Map<int?, Failure?> errorsByCategory,
     @Default({}) Map<int?, int> currentPageByCategory,
-    List<PostEntity>? searchResults,
-    String? searchQuery,
-    @Default(1) int searchPage,
-    @Default(false) bool hasMoreSearchResults,
-    @Default(false) bool isLoadingSearch,
-    Failure? searchError,
   }) = _Loaded;
-  const factory NewsState.error({
+  
+  const factory NewsFeedState.error({
     required Failure failure,
     int? categoryId,
   }) = _Error;
