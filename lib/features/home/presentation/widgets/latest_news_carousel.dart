@@ -1,14 +1,11 @@
-import 'dart:io';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../core/cache/image_cache_manager.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/themes/app_color_system.dart';
 import '../../../../core/themes/component_tokens.dart';
 import '../../../../core/themes/design_tokens.dart';
-import '../../../../core/widgets/avif_cached_image_provider.dart';
+import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/widgets/haptic_widgets.dart';
 import '../../../../core/widgets/news_card_skeleton.dart';
 import '../../../wordpress/domain/entities/post_entity.dart';
@@ -25,7 +22,6 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
   late PageController _pageController;
   final ValueNotifier<int> _currentPageNotifier = ValueNotifier(0);
   List<PostEntity>? _previousPosts;
-  final Map<String, ImageProvider> _imageProviderCache = {};
 
   @override
   void initState() {
@@ -78,8 +74,6 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
   void _preloadImages(List<PostEntity> posts) {
     if (posts.isEmpty) return;
 
-    final cacheManager = ImageCacheManager();
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
 
@@ -91,30 +85,9 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
         final delay = i == 0 ? 0 : (i * 50);
         Future.delayed(Duration(milliseconds: delay), () {
           if (!mounted) return;
-
-          final isAvif = imageUrl.toLowerCase().endsWith('.avif');
-
-          if (isAvif) {
-            // Precache AVIF images to disk cache
-            cacheManager.getCachedFile(imageUrl).catchError((_) {
-              // Silently ignore precache errors - return a dummy file to satisfy type
-              return File('');
-            });
-          } else {
-            // Precache regular images to memory cache
-            try {
-              final imageProvider = ResizeImage(
-                CachedNetworkImageProvider(imageUrl),
-                width: 800,
-                height: 450,
-              );
-              precacheImage(imageProvider, context).catchError((_) {
-                // Silently ignore precache errors
-              });
-            } catch (e) {
-              // Ignore errors
-            }
-          }
+          final provider = _buildCarouselProvider(imageUrl);
+          if (provider == null) return;
+          precacheImage(provider, context).catchError((_) {});
         });
       }
     });
@@ -127,7 +100,6 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
         ? _previousPosts!.take(5).toList()
         : _previousPosts!;
 
-    final cacheManager = ImageCacheManager();
     final indicesToPreload = <int>[];
     if (currentIndex > 0) {
       indicesToPreload.add(currentIndex - 1);
@@ -142,29 +114,20 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
         final imageUrl = post.featuredImageUrl;
         if (imageUrl == null || imageUrl.isEmpty) continue;
 
-        final isAvif = imageUrl.toLowerCase().endsWith('.avif');
-
-        if (isAvif) {
-          // Precache AVIF images to disk cache
-          cacheManager.getCachedFile(imageUrl).catchError((_) {
-            // Silently ignore precache errors - return a dummy file to satisfy type
-            return File('');
-          });
-        } else {
-          // Precache regular images to memory cache
-          try {
-            final imageProvider = ResizeImage(
-              CachedNetworkImageProvider(imageUrl),
-              width: 800,
-              height: 450,
-            );
-            precacheImage(imageProvider, context).catchError((_) {});
-          } catch (e) {
-            // Ignore errors
-          }
-        }
+        final provider = _buildCarouselProvider(imageUrl);
+        if (provider == null) continue;
+        precacheImage(provider, context).catchError((_) {});
       }
     }
+  }
+
+  ImageProvider<Object>? _buildCarouselProvider(String? imageUrl) {
+    if (imageUrl == null || imageUrl.isEmpty) return null;
+    return buildAppNetworkImageProvider(
+      imageUrl,
+      memCacheWidth: 800,
+      memCacheHeight: 450,
+    );
   }
 
   Size _computeCardSize(BuildContext context) {
@@ -531,8 +494,6 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                       Positioned.fill(
                         child: _CarouselImage(
                           imageUrl: post.featuredImageUrl!,
-                          gradientStart: tokens.gradientStart,
-                          gradientEnd: tokens.gradientEnd,
                         ),
                       ),
                     Positioned.fill(
@@ -693,13 +654,9 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
 
 class _CarouselImage extends StatefulWidget {
   final String imageUrl;
-  final Color gradientStart;
-  final Color gradientEnd;
 
   const _CarouselImage({
     required this.imageUrl,
-    required this.gradientStart,
-    required this.gradientEnd,
   });
 
   @override
@@ -715,61 +672,14 @@ class _CarouselImageState extends State<_CarouselImage>
   Widget build(BuildContext context) {
     super.build(context);
 
-    final carouselState = context
-        .findAncestorStateOfType<_LatestNewsCarouselState>();
-
-    if (carouselState == null) {
-      // Fallback if state not found
-      return Image(
-        image: ResizeImage(
-          CachedNetworkImageProvider(widget.imageUrl),
-          width: 800,
-          height: 450,
-        ),
-        fit: BoxFit.cover,
-        gaplessPlayback: true,
-        errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
-      );
-    }
-
-    final cache = carouselState._imageProviderCache;
-    final url = widget.imageUrl;
-    final isAvif = url.toLowerCase().endsWith('.avif');
-
-    // 1. If cached — return immediately (ZERO blink)
-    if (cache.containsKey(url)) {
-      return Image(
-        image: cache[url]!,
-        fit: BoxFit.cover,
-        gaplessPlayback: true,
-        errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
-      );
-    }
-
-    // 2. Create provider ONCE depending on type
-    late final ImageProvider provider;
-
-    if (isAvif) {
-      // AVIF uses custom provider
-      provider = AvifCachedImageProvider(url);
-    } else {
-      // Standard images use ResizeImage + CachedNetworkImageProvider
-      provider = ResizeImage(
-        CachedNetworkImageProvider(url),
-        width: 800,
-        height: 450,
-      );
-    }
-
-    // 3. Store provider in cache
-    cache[url] = provider;
-
-    // 4. Render
-    return Image(
-      image: provider,
+    return AppNetworkImage(
+      imageUrl: widget.imageUrl,
       fit: BoxFit.cover,
-      gaplessPlayback: true,
-      errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+      memCacheWidth: 800,
+      memCacheHeight: 450,
+      fadeInDuration: Duration.zero,
+      placeholder: (context, url) => const SizedBox.shrink(),
+      errorWidget: (context, url, error) => const SizedBox.shrink(),
     );
   }
 }

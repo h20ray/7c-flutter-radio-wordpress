@@ -1,8 +1,6 @@
-import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_avif/flutter_avif.dart';
-import '../cache/image_cache_manager.dart';
+import 'avif_cached_image_provider.dart';
 
 class AppNetworkImage extends StatelessWidget {
   final String imageUrl;
@@ -116,7 +114,6 @@ class _AvifCachedImage extends StatefulWidget {
 }
 
 class _AvifCachedImageState extends State<_AvifCachedImage> {
-  final _cacheManager = ImageCacheManager();
   String? _currentUrl;
   int _fallbackIndex = 0;
   bool _avifDecodeFailed = false;
@@ -135,45 +132,28 @@ class _AvifCachedImageState extends State<_AvifCachedImage> {
     return url.toLowerCase().endsWith('.avif');
   }
 
-  Future<File?> _loadCachedFile(String url) async {
-    try {
-      return await _cacheManager.getCachedFile(url);
-    } catch (e) {
-      return null;
-    }
+  ImageProvider<Object> _buildAvifProvider(String url) {
+    return buildAppNetworkImageProvider(
+      url,
+      memCacheWidth: widget.memCacheWidth,
+      memCacheHeight: widget.memCacheHeight,
+    );
   }
 
-  Widget _buildAvifImageFromFile(File file) {
-    final avifWidget = AvifImage.file(
-      file,
-      fit: widget.fit,
-      width: widget.width,
-      height: widget.height,
-      errorBuilder: (context, error, stackTrace) {
-        if (!_avifDecodeFailed && _fallbackIndex < _fallbackExtensions.length) {
-          _avifDecodeFailed = true;
-          WidgetsBinding.instance.addPostFrameCallback((duration) {
-            if (mounted) {
-              setState(() {
-                _fallbackIndex++;
-                _currentUrl = _getFallbackUrl(widget.imageUrl, _fallbackIndex);
-                _avifDecodeFailed = false;
-              });
-            }
-          });
-          return widget.placeholder?.call(context, _currentUrl!) ??
-              const SizedBox.shrink();
-        }
-        return _buildErrorWidget(error);
-      },
-    );
-
-    if (widget.imageBuilder != null) {
-      final fileImage = FileImage(file);
-      return widget.imageBuilder!(context, fileImage);
+  void _scheduleFallback() {
+    if (_avifDecodeFailed || _fallbackIndex >= _fallbackExtensions.length) {
+      return;
     }
 
-    return avifWidget;
+    _avifDecodeFailed = true;
+    WidgetsBinding.instance.addPostFrameCallback((duration) {
+      if (!mounted) return;
+      setState(() {
+        _fallbackIndex++;
+        _currentUrl = _getFallbackUrl(widget.imageUrl, _fallbackIndex);
+        _avifDecodeFailed = false;
+      });
+    });
   }
 
   Widget _buildErrorWidget(dynamic error) {
@@ -237,32 +217,56 @@ class _AvifCachedImageState extends State<_AvifCachedImage> {
       );
     }
 
-    return FutureBuilder<File?>(
-      future: _loadCachedFile(_currentUrl!),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
+    final provider = _buildAvifProvider(_currentUrl!);
+
+    return Image(
+      image: provider,
+      fit: widget.fit,
+      width: widget.width,
+      height: widget.height,
+      filterQuality: widget.filterQuality,
+      gaplessPlayback: true,
+      frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+        if (!wasSynchronouslyLoaded && frame == null) {
           return widget.placeholder?.call(context, _currentUrl!) ??
               const SizedBox.shrink();
         }
-
-        if (snapshot.hasError || !snapshot.hasData) {
-          if (_fallbackIndex < _fallbackExtensions.length) {
-            WidgetsBinding.instance.addPostFrameCallback((duration) {
-              if (mounted) {
-                setState(() {
-                  _fallbackIndex++;
-                  _currentUrl = _getFallbackUrl(widget.imageUrl, _fallbackIndex);
-                });
-              }
-            });
-            return widget.placeholder?.call(context, _currentUrl!) ??
-                const SizedBox.shrink();
-          }
-          return _buildErrorWidget(snapshot.error ?? 'Failed to load image');
+        if (widget.imageBuilder != null) {
+          return widget.imageBuilder!(context, provider);
         }
-
-        return _buildAvifImageFromFile(snapshot.data!);
+        return child;
+      },
+      errorBuilder: (context, error, stackTrace) {
+        if (_fallbackIndex < _fallbackExtensions.length) {
+          _scheduleFallback();
+          return widget.placeholder?.call(context, _currentUrl!) ??
+              const SizedBox.shrink();
+        }
+        return _buildErrorWidget(error);
       },
     );
   }
+}
+
+ImageProvider<Object> buildAppNetworkImageProvider(
+  String imageUrl, {
+  int? memCacheWidth,
+  int? memCacheHeight,
+}) {
+  ImageProvider<Object> provider;
+  if (imageUrl.toLowerCase().endsWith('.avif')) {
+    provider = AvifCachedImageProvider(imageUrl);
+  } else {
+    provider = CachedNetworkImageProvider(imageUrl, cacheKey: imageUrl);
+  }
+
+  if (memCacheWidth != null || memCacheHeight != null) {
+    provider = ResizeImage(
+      provider,
+      width: memCacheWidth,
+      height: memCacheHeight,
+    );
+  }
+
+  return provider;
 }

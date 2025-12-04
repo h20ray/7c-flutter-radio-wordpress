@@ -35,7 +35,7 @@ class NewsPostImage extends StatelessWidget {
               fit: BoxFit.cover,
               memCacheWidth: 800,
               memCacheHeight: 450,
-              fadeInDuration: const Duration(milliseconds: 300),
+              fadeInDuration: Duration.zero,
               placeholder: (context, url) => Container(
                 color: skeletonColor,
               ),
