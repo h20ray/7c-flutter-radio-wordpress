@@ -7,7 +7,7 @@ class AppConfig {
 
   static const String oneSignalId = '';
 
-  static const Color primaryColor = Color.fromRGBO(255, 193, 7, 1);
+  static const Color primaryColor = Color(0xFFFFD600);
 
   static const bool usingPlainFormatLink = true;
 

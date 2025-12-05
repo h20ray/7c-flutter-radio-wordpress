@@ -69,14 +69,18 @@ class _ShoutboxPageViewState extends State<ShoutboxPageView> {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-    final safeAreaBottom = MediaQuery.of(context).padding.bottom;
-    final bottomSpacing = DesignTokens.spacingS;
-    final extraSpacing = DesignTokens.spacingXl;
-    final totalBottomSpacing =
-        FloatingBottomNavBar.totalHeight +
-        bottomSpacing +
+    final mediaQuery = MediaQuery.of(context);
+    final safeAreaBottom = mediaQuery.padding.bottom;
+    final viewInsets = mediaQuery.viewInsets.bottom;
+    final navBarHeight = FloatingBottomNavBar.totalHeight;
+    final composerSpacing = DesignTokens.spacingM;
+    final composerEstimatedHeight = 200.0;
+    final keyboardHeight = viewInsets > 0 ? viewInsets.toDouble() : 0.0;
+    final totalBottomSpacing = navBarHeight +
+        composerEstimatedHeight +
+        composerSpacing +
         safeAreaBottom +
-        extraSpacing;
+        keyboardHeight;
 
     return PopScope(
       canPop: false,
@@ -85,6 +89,7 @@ class _ShoutboxPageViewState extends State<ShoutboxPageView> {
         Navigator.pushReplacementNamed(context, AppRoutes.home);
       },
       child: Scaffold(
+        resizeToAvoidBottomInset: true,
         backgroundColor: colors.primaryBackground,
         body: Stack(
           children: [
@@ -136,63 +141,6 @@ class _ShoutboxPageViewState extends State<ShoutboxPageView> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          BlocBuilder<AuthBloc, AuthState>(
-                            builder: (context, authState) {
-                              return authState.maybeWhen(
-                                authenticated: (_) =>
-                                    ShoutboxComposer(onSend: _onSend),
-                                orElse: () => Container(
-                                  padding: EdgeInsets.all(
-                                    DesignTokens.spacingL,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: colors.cardBackground,
-                                    borderRadius: BorderRadius.circular(
-                                      DesignTokens.cornerRadiusCard,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withValues(
-                                          alpha: 0.08,
-                                        ),
-                                        blurRadius: 16,
-                                        offset: const Offset(0, 8),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Column(
-                                    children: [
-                                      Icon(
-                                        LucideIcons.lock,
-                                        size: 32,
-                                        color: colors.textSecondary,
-                                      ),
-                                      SizedBox(height: DesignTokens.spacingS),
-                                      Text(
-                                        'shoutbox_login_to_chat'.tr(),
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium
-                                            ?.copyWith(
-                                              color: colors.textSecondary,
-                                            ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                      SizedBox(height: DesignTokens.spacingM),
-                                      ElevatedButton.icon(
-                                        onPressed: () {
-                                          LoginDialog.show(context);
-                                        },
-                                        icon: const Icon(LucideIcons.log_in),
-                                        label: Text('auth_login_button'.tr()),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                          SizedBox(height: DesignTokens.spacingL),
                           BlocBuilder<ShoutboxBloc, ShoutboxState>(
                             builder: (context, state) {
                               return state.when(
@@ -347,6 +295,42 @@ class _ShoutboxPageViewState extends State<ShoutboxPageView> {
             Positioned(
               left: 0,
               right: 0,
+              bottom: navBarHeight + safeAreaBottom + DesignTokens.spacingS,
+              child: Builder(
+                builder: (context) {
+                  final currentViewInsets =
+                      MediaQuery.of(context).viewInsets.bottom;
+                  return AnimatedPadding(
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeOut,
+                    padding: EdgeInsets.only(
+                      bottom: currentViewInsets,
+                    ),
+                    child: SafeArea(
+                      top: false,
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: DesignTokens.spacingL,
+                        ),
+                        child: BlocBuilder<AuthBloc, AuthState>(
+                          builder: (context, authState) {
+                            return authState.maybeWhen(
+                              authenticated: (_) => ShoutboxComposer(
+                                onSend: _onSend,
+                              ),
+                              orElse: () => const _ShoutboxLoginCard(),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            Positioned(
+              left: 0,
+              right: 0,
               bottom: 0,
               child: SafeArea(
                 top: false,
@@ -412,6 +396,56 @@ class _ShoutboxPageViewState extends State<ShoutboxPageView> {
       orElse: () {
         LoginDialog.show(context);
       },
+    );
+  }
+}
+
+class _ShoutboxLoginCard extends StatelessWidget {
+  const _ShoutboxLoginCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
+    return Container(
+      padding: EdgeInsets.all(DesignTokens.spacingL),
+      decoration: BoxDecoration(
+        color: colors.cardBackground,
+        borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            LucideIcons.lock,
+            size: 32,
+            color: colors.textSecondary,
+          ),
+          SizedBox(height: DesignTokens.spacingS),
+          Text(
+            'shoutbox_login_to_chat'.tr(),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: colors.textSecondary,
+                ),
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: DesignTokens.spacingM),
+          ElevatedButton.icon(
+            onPressed: () {
+              LoginDialog.show(context);
+            },
+            icon: const Icon(LucideIcons.log_in),
+            label: Text('auth_login_button'.tr()),
+          ),
+        ],
+      ),
     );
   }
 }

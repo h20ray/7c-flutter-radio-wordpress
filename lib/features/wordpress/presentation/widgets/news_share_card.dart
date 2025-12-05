@@ -60,45 +60,49 @@ class NewsShareCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // App Logo / Branding
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                      ),
-                      child: ShareConfig.useLogoAsset
-                          ? Image.asset(
-                              ShareConfig.logoAssetPath,
-                              width: 20,
-                              height: 20,
-                              fit: BoxFit.contain,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  const Icon(
+                // App Logo / Branding - Top Right
+                Align(
+                  alignment: Alignment.topRight,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        child: ShareConfig.useLogoAsset
+                            ? Image.asset(
+                                ShareConfig.logoAssetPath,
+                                width: 20,
+                                height: 20,
+                                fit: BoxFit.contain,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    const Icon(
+                                  Icons.radio,
+                                  color: Colors.black,
+                                  size: 20,
+                                ),
+                              )
+                            : const Icon(
                                 Icons.radio,
                                 color: Colors.black,
                                 size: 20,
                               ),
-                            )
-                          : const Icon(
-                              Icons.radio,
-                              color: Colors.black,
-                              size: 20,
-                            ),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      ShareConfig.appName,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.0,
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 12),
+                      Text(
+                        ShareConfig.appName,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.0,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 
                 Flexible(

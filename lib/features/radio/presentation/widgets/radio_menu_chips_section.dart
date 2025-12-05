@@ -1,13 +1,23 @@
 import 'dart:math' as math;
+import 'dart:io';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../../../config/radio_config.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/themes/component_tokens.dart';
 import '../../../../core/themes/design_tokens.dart';
 import '../../../../core/widgets/haptic_widgets.dart';
 import '../../../../core/utils/haptic_feedback_helper.dart';
+import '../../data/repositories/greeting_repository.dart';
+import '../bloc/radio_player_bloc.dart';
+import '../bloc/radio_player_state.dart';
+import 'quote_share_card.dart';
 
 class RadioMenuChipsSection extends StatelessWidget {
   const RadioMenuChipsSection({super.key});
@@ -143,8 +153,69 @@ class _MenuChip extends StatelessWidget {
   }
 }
 
-class _GreetingChip extends StatelessWidget {
+class _GreetingChip extends StatefulWidget {
   const _GreetingChip();
+
+  @override
+  State<_GreetingChip> createState() => _GreetingChipState();
+}
+
+class _GreetingChipState extends State<_GreetingChip> {
+  final GlobalKey _shareCardKey = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize repository if not already done. 
+    // It's safe to call multiple times as we can check inside or it's idempotent-ish enough for this context.
+    // Ideally this belongs in main.dart or a provider, but for this task scoping:
+    GreetingRepository().initialize();
+  }
+
+  Future<void> _captureAndShareQuote(String quote, String? albumArtUrl) async {
+    try {
+      final boundary = _shareCardKey.currentContext?.findRenderObject()
+          as RenderRepaintBoundary?;
+
+      if (boundary == null) {
+        debugPrint('Could not find render boundary');
+        return;
+      }
+
+      final image = await boundary.toImage(pixelRatio: 3.0);
+      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      final pngBytes = byteData?.buffer.asUint8List();
+
+      if (pngBytes == null) {
+        debugPrint('Could not generate PNG bytes');
+        return;
+      }
+
+      final directory = await getTemporaryDirectory();
+      final fileName = 'quote_share_${DateTime.now().millisecondsSinceEpoch}.png';
+      final file = File('${directory.path}/$fileName');
+      await file.writeAsBytes(pngBytes);
+
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(file.path)],
+          text: quote,
+          subject: 'Daily Quote',
+        ),
+      );
+    } catch (e) {
+      debugPrint('Error capturing quote share card: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to share quote'),
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
 
   double _getContrastRatio(Color foreground, Color background) {
     final fgLuminance = _getLuminance(foreground);
@@ -227,47 +298,175 @@ class _GreetingChip extends StatelessWidget {
     }
   }
 
+  String _getGreetingKey() {
+    final hour = DateTime.now().hour;
+    if (hour >= 4 && hour < 11) {
+      return 'greeting_morning';
+    } else if (hour >= 11 && hour < 15) {
+      return 'greeting_midday';
+    } else if (hour >= 15 && hour < 18) {
+      return 'greeting_evening';
+    } else {
+      return 'greeting_night';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final hour = DateTime.now().hour;
-    String greetingKey;
-    if (hour >= 4 && hour < 11) {
-      greetingKey = 'greeting_morning';
-    } else if (hour >= 11 && hour < 15) {
-      greetingKey = 'greeting_midday';
-    } else if (hour >= 15 && hour < 18) {
-      greetingKey = 'greeting_evening';
-    } else {
-      greetingKey = 'greeting_night';
-    }
+    final greetingKey = _getGreetingKey();
 
     final chipColor = _getGreetingColor(context, greetingKey);
     final textColor = _getGreetingTextColor(context, greetingKey);
 
     final borderColor = textColor.withValues(alpha: 0.15);
 
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: DesignTokens.spacingS,
-        vertical: DesignTokens.spacingS,
-      ),
-      decoration: BoxDecoration(
-        color: chipColor,
-        borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusPill),
-        border: Border.all(
-          color: borderColor,
-          width: 1,
+    return HapticGestureDetector(
+      hapticType: HapticFeedbackType.selectionClick,
+      onTap: () async {
+        // Fetch quote asynchronously
+        final quote = await GreetingRepository().getDailyQuote(
+          greetingKey, 
+          context.locale.languageCode,
+        );
+        
+        if (!context.mounted) return;
+
+        // Get current album art from RadioPlayerBloc
+        String? albumArtUrl;
+        try {
+          final radioPlayerBloc = context.read<RadioPlayerBloc>();
+          final radioState = radioPlayerBloc.state;
+          radioState.maybeWhen(
+            ready: (isPlaying, currentUrl, currentArtist, currentTitle,
+                currentAlbumArtUrl, isDucking, canAutoResume) {
+              albumArtUrl = currentAlbumArtUrl;
+            },
+            orElse: () {},
+          );
+        } catch (e) {
+          debugPrint('Error accessing RadioPlayerBloc: $e');
+        }
+
+        final displayQuote = quote.isNotEmpty ? quote : 'Have a wonderful day!';
+
+        showDialog(
+          context: context,
+          builder: (dialogContext) => Stack(
+            children: [
+              Transform.translate(
+                offset: const Offset(-10000, -10000),
+                child: RepaintBoundary(
+                  key: _shareCardKey,
+                  child: QuoteShareCard(
+                    quote: displayQuote,
+                    albumArtUrl: albumArtUrl,
+                  ),
+                ),
+              ),
+              Dialog(
+                backgroundColor: theme.colorScheme.surfaceContainerHigh,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(28),
+                ),
+                child: Container(
+                  padding: EdgeInsets.all(DesignTokens.spacingL),
+                  constraints: const BoxConstraints(maxWidth: 320),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Icon(
+                          LucideIcons.quote,
+                          size: 32,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                      SizedBox(height: DesignTokens.spacingM),
+                      Text(
+                        displayQuote,
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          height: 1.3,
+                          color: theme.colorScheme.onSurface,
+                        ),
+                      ),
+                      SizedBox(height: DesignTokens.spacingL),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton.icon(
+                            onPressed: () async {
+                              await _captureAndShareQuote(displayQuote, albumArtUrl);
+                            },
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: DesignTokens.spacingM,
+                                vertical: DesignTokens.spacingS,
+                              ),
+                            ),
+                            icon: Icon(
+                              LucideIcons.share_2,
+                              size: 18,
+                              color: theme.colorScheme.primary,
+                            ),
+                            label: Text(
+                              'Share',
+                              style: theme.textTheme.labelLarge?.copyWith(
+                                color: theme.colorScheme.primary,
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: DesignTokens.spacingS),
+                          TextButton(
+                            onPressed: () => Navigator.pop(dialogContext),
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: DesignTokens.spacingM,
+                                vertical: DesignTokens.spacingS,
+                              ),
+                            ),
+                            child: Text(
+                              'Close',
+                              style: theme.textTheme.labelLarge?.copyWith(
+                                color: theme.colorScheme.primary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: DesignTokens.spacingS,
+          vertical: DesignTokens.spacingS,
         ),
-      ),
-      child: Text(
-        greetingKey.tr(),
-        style: theme.textTheme.labelSmall?.copyWith(
-          color: textColor,
-          letterSpacing: DesignTokens.letterSpacingLabelSmall,
+        decoration: BoxDecoration(
+          color: chipColor,
+          borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusPill),
+          border: Border.all(
+            color: borderColor,
+            width: 1,
+          ),
+        ),
+        child: Text(
+          greetingKey.tr(),
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: textColor,
+            letterSpacing: DesignTokens.letterSpacingLabelSmall,
+          ),
         ),
       ),
     );
   }
 }
+// Removed _QuoteTooltipContent as it is no longer used
 

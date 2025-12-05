@@ -129,67 +129,65 @@ class LoginDialog extends StatelessWidget {
                     orElse: () => false,
                   );
 
-                  return Stack(
-                    children: [
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'auth_login_title'.tr(),
-                                style: theme.textTheme.headlineSmall?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  color: colorScheme.onSurface,
-                                ),
-                              ),
-                              IconButton(
-                                icon: Icon(Icons.close),
-                                onPressed: () => Navigator.of(context).pop(),
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: DesignTokens.spacingXl),
-                          if (state.maybeWhen(
-                            error: (failure) => failure,
-                            orElse: () => null,
-                          ) != null)
-                            LoginErrorWidget(
-                              failure: state.maybeWhen(
-                                error: (failure) => failure,
-                                orElse: () => const UnknownFailure('Unknown error'),
-                              )!,
-                            ),
-                          EmailLoginForm(
-                            isLoading: isLoading,
-                            onLogin: (email, password) {
-                              context.read<AuthBloc>().add(
-                                    AuthEvent.loginWithEmail(
-                                      email: email,
-                                      password: password,
-                                    ),
-                                  );
-                            },
-                          ),
-                          SizedBox(height: DesignTokens.spacingL),
-                          Center(
-                            child: Text(
-                              'auth_or'.tr(),
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
+                  return SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'auth_login_title'.tr(),
+                              style: theme.textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: colorScheme.onSurface,
                               ),
                             ),
+                            IconButton(
+                              icon: Icon(Icons.close),
+                              onPressed: () => Navigator.of(context).pop(),
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: DesignTokens.spacingXl),
+                        if (state.maybeWhen(
+                          error: (failure) => failure,
+                          orElse: () => null,
+                        ) != null)
+                          LoginErrorWidget(
+                            failure: state.maybeWhen(
+                              error: (failure) => failure,
+                              orElse: () => const UnknownFailure('Unknown error'),
+                            )!,
                           ),
-                          SizedBox(height: DesignTokens.spacingL),
-                          GoogleLoginButton(
-                            onPressed: () => _handleGoogleLogin(context),
+                        EmailLoginForm(
+                          isLoading: isLoading,
+                          onLogin: (email, password) {
+                            context.read<AuthBloc>().add(
+                                  AuthEvent.loginWithEmail(
+                                    email: email,
+                                    password: password,
+                                  ),
+                                );
+                          },
+                        ),
+                        SizedBox(height: DesignTokens.spacingL),
+                        Center(
+                          child: Text(
+                            'auth_or'.tr(),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
                           ),
-                        ],
-                      ),
-                    ],
+                        ),
+                        SizedBox(height: DesignTokens.spacingL),
+                        GoogleLoginButton(
+                          onPressed: () => _handleGoogleLogin(context),
+                        ),
+                      ],
+                    ),
                   );
                 },
               ),
