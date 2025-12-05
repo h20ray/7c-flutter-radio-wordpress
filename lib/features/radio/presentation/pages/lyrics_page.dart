@@ -404,7 +404,7 @@ class _LyricsErrorState extends StatelessWidget {
                     );
               },
               icon: const Icon(Icons.refresh),
-              label: Text('Retry'.tr()),
+              label: Text('retry'.tr()),
               style: FilledButton.styleFrom(
                 padding: EdgeInsets.symmetric(
                   horizontal: DesignTokens.spacingL,

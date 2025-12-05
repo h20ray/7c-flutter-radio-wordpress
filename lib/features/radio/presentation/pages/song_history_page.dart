@@ -80,7 +80,7 @@ class SongHistoryPage extends StatelessWidget {
                       onPressed: () {
                         context.read<SongHistoryBloc>().add(const SongHistoryEvent.load());
                       },
-                      child: Text('Retry'),
+                      child: Text('retry'.tr()),
                     ),
                   ],
                 ),

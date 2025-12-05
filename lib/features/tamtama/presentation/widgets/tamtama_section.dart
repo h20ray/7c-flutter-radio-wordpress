@@ -310,17 +310,17 @@ class TamtamaSection extends StatelessWidget {
     final difference = now.difference(dateTime);
 
     if (difference.inMinutes < 1) {
-      return 'tamtama_just_now'.tr();
+      return 'time_just_now'.tr();
     } else if (difference.inMinutes < 60) {
-      return 'tamtama_minutes_ago'.tr(
+      return 'time_minutes_ago'.tr(
         namedArgs: {'minutes': '${difference.inMinutes}'},
       );
     } else if (difference.inHours < 24) {
-      return 'tamtama_hours_ago'.tr(
+      return 'time_hours_ago'.tr(
         namedArgs: {'hours': '${difference.inHours}'},
       );
     } else {
-      return 'tamtama_days_ago'.tr(
+      return 'time_days_ago'.tr(
         namedArgs: {'days': '${difference.inDays}'},
       );
     }

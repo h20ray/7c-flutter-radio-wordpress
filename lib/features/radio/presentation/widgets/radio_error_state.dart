@@ -56,7 +56,7 @@ class RadioErrorState extends StatelessWidget {
                 context.read<RadioBloc>().add(RadioEvent.getRadioConfig());
               },
               icon: const Icon(LucideIcons.refresh_cw),
-              label: Text('radio_retry'.tr()),
+              label: Text('retry'.tr()),
             ),
           ],
         ),

@@ -308,7 +308,7 @@ class _HomeNewsListSectionState extends State<HomeNewsListSection> {
                                   forceRefresh: true,
                                 );
                               },
-                              child: Text('Retry'),
+                              child: Text('retry'.tr()),
                             ),
                           ],
                         ),
@@ -373,7 +373,7 @@ class _HomeNewsListSectionState extends State<HomeNewsListSection> {
                                   forceRefresh: true,
                                 );
                               },
-                              child: Text('Retry'),
+                              child: Text('retry'.tr()),
                             ),
                           ],
                         ),
@@ -558,19 +558,19 @@ class _HomeNewsListSectionState extends State<HomeNewsListSection> {
     final difference = now.difference(date);
 
     if (difference.inMinutes < 1) {
-      return 'news_just_now'.tr();
+      return 'time_just_now'.tr();
     }
     if (difference.inMinutes < 60) {
       final minutes = difference.inMinutes;
-      return 'news_minutes_ago'.tr(namedArgs: {'minutes': '$minutes'});
+      return 'time_minutes_ago'.tr(namedArgs: {'minutes': '$minutes'});
     }
     if (difference.inHours < 24) {
-      return 'news_hours_ago'.tr(namedArgs: {'hours': '${difference.inHours}'});
+      return 'time_hours_ago'.tr(namedArgs: {'hours': '${difference.inHours}'});
     }
     if (difference.inDays < 7) {
-      return 'news_days_ago'.tr(namedArgs: {'days': '${difference.inDays}'});
+      return 'time_days_ago'.tr(namedArgs: {'days': '${difference.inDays}'});
     }
-    return 'news_days_ago'.tr(namedArgs: {'days': '${difference.inDays}'});
+    return 'time_days_ago'.tr(namedArgs: {'days': '${difference.inDays}'});
   }
 }
 

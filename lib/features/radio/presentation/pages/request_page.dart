@@ -566,7 +566,7 @@ class _EmptyState extends StatelessWidget {
             FilledButton.icon(
               onPressed: onShuffle,
               icon: Icon(LucideIcons.shuffle),
-              label: Text('Get Random Picks'),
+              label: Text('request_get_random_picks'.tr()),
               style: FilledButton.styleFrom(
                 padding: EdgeInsets.symmetric(
                   horizontal: DesignTokens.spacingL,
@@ -618,7 +618,7 @@ class _SuccessState extends StatelessWidget {
             FilledButton.icon(
               onPressed: onReset,
               icon: Icon(LucideIcons.refresh_cw),
-              label: Text('Request Another'),
+              label: Text('request_another'.tr()),
               style: FilledButton.styleFrom(
                 padding: EdgeInsets.symmetric(
                   horizontal: DesignTokens.spacingL,
@@ -685,7 +685,7 @@ class _ErrorState extends StatelessWidget {
             FilledButton.icon(
               onPressed: onRetry,
               icon: Icon(LucideIcons.refresh_cw),
-              label: Text('Retry'),
+              label: Text('retry'.tr()),
               style: FilledButton.styleFrom(
                 padding: EdgeInsets.symmetric(
                   horizontal: DesignTokens.spacingL,
@@ -749,7 +749,7 @@ class _WebViewRequestPage extends StatelessWidget {
 
           if (snapshot.data == true) {
             launchUrl(Uri.parse(webViewUrl), mode: LaunchMode.inAppWebView);
-            return Center(child: Text('Opening request page...'));
+            return Center(child: Text('request_opening_page'.tr()));
           }
 
           return Center(

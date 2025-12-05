@@ -161,7 +161,7 @@ class HeaderSection extends StatelessWidget {
                               HapticFeedbackHelper.lightImpact();
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: Text('Account settings coming soon'),
+                                  content: Text('account_settings_coming_soon'.tr()),
                                 ),
                               );
                             },

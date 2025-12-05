@@ -184,7 +184,7 @@ class _ShoutboxPageViewState extends State<ShoutboxPageView> {
                                           LoginDialog.show(context);
                                         },
                                         icon: const Icon(LucideIcons.log_in),
-                                        label: Text('auth_login'.tr()),
+                                        label: Text('auth_login_button'.tr()),
                                       ),
                                     ],
                                   ),
@@ -328,7 +328,7 @@ class _ShoutboxPageViewState extends State<ShoutboxPageView> {
                                         icon: const Icon(
                                           LucideIcons.refresh_ccw,
                                         ),
-                                        label: Text('shoutbox_retry'.tr()),
+                                        label: Text('retry'.tr()),
                                       ),
                                     ],
                                   ),

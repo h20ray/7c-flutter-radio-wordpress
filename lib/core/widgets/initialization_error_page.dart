@@ -130,7 +130,7 @@ class InitializationErrorPage extends StatelessWidget {
                   FilledButton.icon(
                     onPressed: onRetry,
                     icon: const Icon(LucideIcons.refresh_cw),
-                    label: Text('init_error_retry'.tr()),
+                    label: Text('retry'.tr()),
                     style: FilledButton.styleFrom(
                       backgroundColor: AppConfig.primaryColor,
                       padding: const EdgeInsets.symmetric(

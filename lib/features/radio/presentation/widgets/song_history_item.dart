@@ -113,17 +113,17 @@ class SongHistoryItem extends StatelessWidget {
     final difference = now.difference(timestamp);
 
     if (difference.inMinutes < 1) {
-      return 'song_history_just_now'.tr();
+      return 'time_just_now'.tr();
     } else if (difference.inHours < 1) {
-      return 'song_history_minutes_ago'.tr(namedArgs: {
+      return 'time_minutes_ago'.tr(namedArgs: {
         'minutes': difference.inMinutes.toString(),
       });
     } else if (difference.inDays < 1) {
-      return 'song_history_hours_ago'.tr(namedArgs: {
+      return 'time_hours_ago'.tr(namedArgs: {
         'hours': difference.inHours.toString(),
       });
     } else if (difference.inDays < 7) {
-      return 'song_history_days_ago'.tr(namedArgs: {
+      return 'time_days_ago'.tr(namedArgs: {
         'days': difference.inDays.toString(),
       });
     } else {

@@ -144,13 +144,13 @@ class _PostDetailPageViewState extends State<PostDetailPageView> {
     final difference = now.difference(date);
 
     if (difference.inMinutes < 1) {
-      return 'news_just_now'.tr();
+      return 'time_just_now'.tr();
     } else if (difference.inMinutes < 60) {
-      return 'news_minutes_ago'.tr(namedArgs: {'minutes': '${difference.inMinutes}'});
+      return 'time_minutes_ago'.tr(namedArgs: {'minutes': '${difference.inMinutes}'});
     } else if (difference.inHours < 24) {
-      return 'news_hours_ago'.tr(namedArgs: {'hours': '${difference.inHours}'});
+      return 'time_hours_ago'.tr(namedArgs: {'hours': '${difference.inHours}'});
     } else if (difference.inDays < 7) {
-      return 'news_days_ago'.tr(namedArgs: {'days': '${difference.inDays}'});
+      return 'time_days_ago'.tr(namedArgs: {'days': '${difference.inDays}'});
     } else {
       final locale = context.locale;
       if (locale.languageCode == 'id') {
