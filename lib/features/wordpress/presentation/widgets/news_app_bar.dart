@@ -1,7 +1,9 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
+import '../../../../core/routes/app_routes.dart';
 import '../../../../core/themes/design_tokens.dart';
 import '../../../../core/widgets/glass_app_bar_background.dart';
 import '../../../../core/widgets/haptic_widgets.dart';
@@ -31,7 +33,8 @@ class NewsAppBar extends StatefulWidget {
 
 class NewsAppBarState extends State<NewsAppBar> {
   bool _isSearchFocused = false;
-  final GlobalKey<NewsSearchBoxState> _searchBoxKey = GlobalKey<NewsSearchBoxState>();
+  final GlobalKey<NewsSearchBoxState> _searchBoxKey =
+      GlobalKey<NewsSearchBoxState>();
 
   bool get isSearchFocused => _isSearchFocused;
 
@@ -54,14 +57,8 @@ class NewsAppBarState extends State<NewsAppBar> {
     return BlocBuilder<NewsSearchBloc, NewsSearchState>(
       builder: (context, state) {
         final isLoadingSearch = state.maybeWhen(
-          loaded: (
-            results,
-            query,
-            page,
-            hasMore,
-            isLoading,
-            error,
-          ) => isLoading,
+          loaded: (results, query, page, hasMore, isLoading, error) =>
+              isLoading,
           loading: () => true,
           orElse: () => false,
         );
@@ -71,6 +68,11 @@ class NewsAppBarState extends State<NewsAppBar> {
           automaticallyImplyLeading: false,
           backgroundColor: Colors.transparent,
           surfaceTintColor: Theme.of(context).colorScheme.surfaceTint,
+          leading: IconButton(
+            icon: const Icon(LucideIcons.arrow_left),
+            onPressed: () =>
+                Navigator.pushReplacementNamed(context, AppRoutes.home),
+          ),
           title: NewsSearchBox(
             key: _searchBoxKey,
             controller: widget.searchController,
@@ -116,12 +118,9 @@ class NewsAppBarState extends State<NewsAppBar> {
             const NewsThemeSwitcher(),
             const SizedBox(width: DesignTokens.spacingS),
           ],
-          flexibleSpace: GlassAppBarBackground(
-            child: Container(),
-          ),
+          flexibleSpace: GlassAppBarBackground(child: Container()),
         );
       },
     );
   }
 }
-

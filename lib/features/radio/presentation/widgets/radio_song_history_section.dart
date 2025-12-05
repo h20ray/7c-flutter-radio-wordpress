@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
-import '../../../../core/themes/design_tokens.dart';
 import '../../../../core/themes/app_color_system.dart';
+import '../../../../core/themes/component_tokens.dart';
+import '../../../../core/themes/design_tokens.dart';
 import '../../../../core/di/injection_container.dart';
 import '../bloc/song_history_bloc.dart';
 import '../bloc/radio_player_bloc.dart';
@@ -38,6 +39,7 @@ class _RadioSongHistorySectionState extends State<RadioSongHistorySection> {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     final theme = Theme.of(context);
+    final shadow = AppShadowTokens.elevation2(context);
 
     return BlocProvider.value(
       value: _bloc,
@@ -114,10 +116,7 @@ class _RadioSongHistorySectionState extends State<RadioSongHistorySection> {
                       decoration: BoxDecoration(
                         color: colors.cardBackground,
                         borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
-                        border: Border.all(
-                          color: colors.borderSubtle,
-                          width: 1,
-                        ),
+                    boxShadow: shadow,
                       ),
                       child: Center(
                         child: Column(

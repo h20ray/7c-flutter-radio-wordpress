@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../../core/routes/app_routes.dart';
 import '../../../../core/widgets/glass_app_bar_background.dart';
 import '../../../../core/widgets/haptic_widgets.dart';
 import '../widgets/volume_dialog.dart';
@@ -9,10 +10,7 @@ import '../widgets/volume_dialog.dart';
 class RadioAppBar extends StatelessWidget {
   final VoidCallback onScrollToTop;
 
-  const RadioAppBar({
-    super.key,
-    required this.onScrollToTop,
-  });
+  const RadioAppBar({super.key, required this.onScrollToTop});
 
   @override
   Widget build(BuildContext context) {
@@ -21,14 +19,19 @@ class RadioAppBar extends StatelessWidget {
       automaticallyImplyLeading: false,
       backgroundColor: Colors.transparent,
       surfaceTintColor: Theme.of(context).colorScheme.surfaceTint,
+      leading: IconButton(
+        icon: const Icon(LucideIcons.arrow_left),
+        onPressed: () =>
+            Navigator.pushReplacementNamed(context, AppRoutes.home),
+      ),
       title: HapticGestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: onScrollToTop,
         child: Text(
           'radio_station_name'.tr(),
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
         ),
       ),
       actions: [
@@ -63,10 +66,7 @@ class RadioAppBar extends StatelessWidget {
         ),
         const SizedBox(width: 8),
       ],
-      flexibleSpace: GlassAppBarBackground(
-        child: Container(),
-      ),
+      flexibleSpace: GlassAppBarBackground(child: Container()),
     );
   }
 }
-

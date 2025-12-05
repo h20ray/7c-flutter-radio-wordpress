@@ -5,8 +5,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../config/radio_config.dart';
-import '../../../../core/themes/design_tokens.dart';
 import '../../../../core/themes/app_color_system.dart';
+import '../../../../core/themes/component_tokens.dart';
+import '../../../../core/themes/design_tokens.dart';
 import '../../../../core/widgets/shimmer_skeleton.dart';
 import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/di/injection_container.dart';
@@ -51,11 +52,11 @@ class _RequestPageState extends State<RequestPage> {
 
   void _onSearchTextChanged() {
     if (!mounted) return;
-    
+
     _searchDebounce?.cancel();
     _searchDebounce = Timer(const Duration(milliseconds: 500), () {
       if (!mounted || _currentBloc == null) return;
-      
+
       final query = _searchController.text.trim();
       if (query.isNotEmpty) {
         // Only load if query is different from last query
@@ -83,7 +84,7 @@ class _RequestPageState extends State<RequestPage> {
     try {
       final radioBloc = getIt<RadioBloc>();
       final radioState = radioBloc.state;
-      
+
       radioState.maybeWhen(
         loaded: (radioEntity) {
           _streamUrl = radioEntity.streamUrl;
@@ -93,7 +94,9 @@ class _RequestPageState extends State<RequestPage> {
 
       if (_streamUrl != null && _streamUrl!.isNotEmpty) {
         final detectionService = AzuraCastDetectionService.instance;
-        _isAzuracastAvailable = detectionService.isLikelyAzuraCastUrl(_streamUrl!);
+        _isAzuracastAvailable = detectionService.isLikelyAzuraCastUrl(
+          _streamUrl!,
+        );
       }
     } catch (e) {
       _isAzuracastAvailable = false;
@@ -104,12 +107,21 @@ class _RequestPageState extends State<RequestPage> {
     }
   }
 
-  void _loadTracks(RequestBloc bloc, {bool random = false, String? query, bool force = false}) {
+  void _loadTracks(
+    RequestBloc bloc, {
+    bool random = false,
+    String? query,
+    bool force = false,
+  }) {
     if (!mounted || _streamUrl == null || _streamUrl!.isEmpty) return;
 
-    final finalQuery = query ?? (random ? null : _searchController.text.trim().isEmpty
-        ? null
-        : _searchController.text.trim());
+    final finalQuery =
+        query ??
+        (random
+            ? null
+            : _searchController.text.trim().isEmpty
+            ? null
+            : _searchController.text.trim());
 
     // Don't reload if query hasn't changed (unless it's random or forced)
     if (!force && !random && finalQuery == _lastQuery) {
@@ -119,13 +131,15 @@ class _RequestPageState extends State<RequestPage> {
     // Update last query before making the call
     _lastQuery = finalQuery;
 
-    bloc.add(RequestEvent.loadTracks(
-      streamUrl: _streamUrl!,
-      query: finalQuery,
-      page: 1,
-      limit: RadioConfig.requestListItemsPerPage,
-      random: random,
-    ));
+    bloc.add(
+      RequestEvent.loadTracks(
+        streamUrl: _streamUrl!,
+        query: finalQuery,
+        page: 1,
+        limit: RadioConfig.requestListItemsPerPage,
+        random: random,
+      ),
+    );
   }
 
   @override
@@ -136,7 +150,7 @@ class _RequestPageState extends State<RequestPage> {
 
     final bloc = getIt<RequestBloc>();
     _currentBloc = bloc;
-    
+
     if (_isInitialLoad && bloc.state == const RequestState.initial()) {
       _isInitialLoad = false;
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -154,37 +168,37 @@ class _RequestPageState extends State<RequestPage> {
         body: BlocBuilder<RequestBloc, RequestState>(
           builder: (context, state) {
             return state.when(
-                    initial: () => const SizedBox.shrink(),
-                    loading: () => const _RequestLoadingState(),
-                    loaded: (tracks, page, hasMore) {
-                      if (tracks.isEmpty) {
-                        return _EmptyState(
-                          onShuffle: () {
-                            _lastQuery = null;
-                            _loadTracks(bloc, random: true, force: true);
-                          },
-                        );
-                      }
-                      return _TrackList(
-                        tracks: tracks,
-                        scrollController: _scrollController,
-                        onRequest: (track) => _submitRequest(bloc, track),
-                      );
+              initial: () => const SizedBox.shrink(),
+              loading: () => const _RequestLoadingState(),
+              loaded: (tracks, page, hasMore) {
+                if (tracks.isEmpty) {
+                  return _EmptyState(
+                    onShuffle: () {
+                      _lastQuery = null;
+                      _loadTracks(bloc, random: true, force: true);
                     },
-                    success: () => _SuccessState(
-                      onReset: () {
-                        bloc.add(const RequestEvent.reset());
-                        _lastQuery = null;
-                        _loadTracks(bloc, random: true, force: true);
-                      },
-                    ),
-                    error: (failure) => _ErrorState(
-                      failure: failure,
-                      onRetry: () {
-                        _lastQuery = null;
-                        _loadTracks(bloc, random: true, force: true);
-                      },
-                    ),
+                  );
+                }
+                return _TrackList(
+                  tracks: tracks,
+                  scrollController: _scrollController,
+                  onRequest: (track) => _submitRequest(bloc, track),
+                );
+              },
+              success: () => _SuccessState(
+                onReset: () {
+                  bloc.add(const RequestEvent.reset());
+                  _lastQuery = null;
+                  _loadTracks(bloc, random: true, force: true);
+                },
+              ),
+              error: (failure) => _ErrorState(
+                failure: failure,
+                onRetry: () {
+                  _lastQuery = null;
+                  _loadTracks(bloc, random: true, force: true);
+                },
+              ),
             );
           },
         ),
@@ -207,8 +221,12 @@ class _RequestPageState extends State<RequestPage> {
           return Container(
             height: 40,
             decoration: BoxDecoration(
-              color: colors.surfaces.surfaceContainerHighest.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusPill),
+              color: colors.surfaces.surfaceContainerHighest.withValues(
+                alpha: 0.3,
+              ),
+              borderRadius: BorderRadius.circular(
+                DesignTokens.cornerRadiusPill,
+              ),
             ),
             child: TextField(
               controller: _searchController,
@@ -253,7 +271,7 @@ class _RequestPageState extends State<RequestPage> {
               ),
               onSubmitted: (_) {
                 if (!mounted) return;
-                
+
                 final query = _searchController.text.trim();
                 if (query.isNotEmpty) {
                   // Only load if query is different from last query
@@ -300,7 +318,6 @@ class _RequestPageState extends State<RequestPage> {
   }
 }
 
-
 class _TrackList extends StatelessWidget {
   final List<RequestableTrackEntity> tracks;
   final ScrollController scrollController;
@@ -323,16 +340,13 @@ class _TrackList extends StatelessWidget {
         SliverPadding(
           padding: EdgeInsets.all(DesignTokens.spacingL),
           sliver: SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                final track = tracks[index];
-                return _TrackItem(
-                  track: track,
-                  onRequest: () => onRequest(track),
-                );
-              },
-              childCount: tracks.length,
-            ),
+            delegate: SliverChildBuilderDelegate((context, index) {
+              final track = tracks[index];
+              return _TrackItem(
+                track: track,
+                onRequest: () => onRequest(track),
+              );
+            }, childCount: tracks.length),
           ),
         ),
       ],
@@ -344,15 +358,13 @@ class _TrackItem extends StatelessWidget {
   final RequestableTrackEntity track;
   final VoidCallback onRequest;
 
-  const _TrackItem({
-    required this.track,
-    required this.onRequest,
-  });
+  const _TrackItem({required this.track, required this.onRequest});
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
     final theme = Theme.of(context);
+    final shadow = AppShadowTokens.elevation4(context);
 
     return Container(
       margin: EdgeInsets.only(bottom: DesignTokens.spacingM),
@@ -360,16 +372,15 @@ class _TrackItem extends StatelessWidget {
       decoration: BoxDecoration(
         color: colors.cardBackground,
         borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
-        border: Border.all(
-          color: colors.borderSubtle,
-          width: 1,
-        ),
+        boxShadow: shadow,
       ),
       child: Row(
         children: [
           if (track.albumArtUrl != null)
             ClipRRect(
-              borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
+              borderRadius: BorderRadius.circular(
+                DesignTokens.cornerRadiusCard,
+              ),
               child: AppNetworkImage(
                 imageUrl: track.albumArtUrl!,
                 width: 60,
@@ -379,10 +390,7 @@ class _TrackItem extends StatelessWidget {
                   width: 60,
                   height: 60,
                   color: colors.surfaces.surfaceContainerHighest,
-                  child: Icon(
-                    LucideIcons.music,
-                    color: colors.textSecondary,
-                  ),
+                  child: Icon(LucideIcons.music, color: colors.textSecondary),
                 ),
               ),
             )
@@ -392,12 +400,11 @@ class _TrackItem extends StatelessWidget {
               height: 60,
               decoration: BoxDecoration(
                 color: colors.surfaces.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
+                borderRadius: BorderRadius.circular(
+                  DesignTokens.cornerRadiusCard,
+                ),
               ),
-              child: Icon(
-                LucideIcons.music,
-                color: colors.textSecondary,
-              ),
+              child: Icon(LucideIcons.music, color: colors.textSecondary),
             ),
           SizedBox(width: DesignTokens.spacingM),
           Expanded(
@@ -428,15 +435,23 @@ class _TrackItem extends StatelessWidget {
           SizedBox(width: DesignTokens.spacingM),
           FilledButton.icon(
             onPressed: onRequest,
-            icon: Icon(LucideIcons.send, size: 16),
-            label: Text('Request'),
-            style: FilledButton.styleFrom(
-              backgroundColor: colors.primaryAccent,
-              foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(
-                horizontal: DesignTokens.spacingM,
-                vertical: DesignTokens.spacingS,
+            icon: Icon(LucideIcons.send, size: 14),
+            label: Text(
+              'Request',
+              style: theme.textTheme.labelMedium?.copyWith(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.onPrimary,
               ),
+            ),
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              foregroundColor: Theme.of(context).colorScheme.onPrimary,
+              padding: EdgeInsets.symmetric(
+                horizontal: DesignTokens.spacingS,
+                vertical: DesignTokens.spacingXs,
+              ),
+              minimumSize: const Size(0, 36),
             ),
           ),
         ],
@@ -452,6 +467,7 @@ class _RequestLoadingState extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     final skeletonColor = colors.surfaces.surfaceContainerHighest;
+    final shadow = AppShadowTokens.elevation2(context);
 
     return ListView.builder(
       padding: EdgeInsets.all(DesignTokens.spacingL),
@@ -463,10 +479,7 @@ class _RequestLoadingState extends StatelessWidget {
           decoration: BoxDecoration(
             color: colors.cardBackground,
             borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
-            border: Border.all(
-              color: colors.borderSubtle,
-              width: 1,
-            ),
+            boxShadow: shadow,
           ),
           child: Row(
             children: [
@@ -532,11 +545,7 @@ class _EmptyState extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.music_off,
-              size: 64,
-              color: colors.textSecondary,
-            ),
+            Icon(Icons.music_off, size: 64, color: colors.textSecondary),
             SizedBox(height: DesignTokens.spacingL),
             Text(
               'No tracks found',
@@ -594,11 +603,7 @@ class _SuccessState extends StatelessWidget {
                 color: Colors.green.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: Icon(
-                Icons.check_circle,
-                size: 64,
-                color: Colors.green,
-              ),
+              child: Icon(Icons.check_circle, size: 64, color: Colors.green),
             ),
             SizedBox(height: DesignTokens.spacingL),
             Text(
@@ -632,10 +637,7 @@ class _ErrorState extends StatelessWidget {
   final dynamic failure;
   final VoidCallback onRetry;
 
-  const _ErrorState({
-    required this.failure,
-    required this.onRetry,
-  });
+  const _ErrorState({required this.failure, required this.onRetry});
 
   @override
   Widget build(BuildContext context) {
@@ -651,7 +653,9 @@ class _ErrorState extends StatelessWidget {
             Container(
               padding: EdgeInsets.all(DesignTokens.spacingL),
               decoration: BoxDecoration(
-                color: colors.surfaces.surfaceContainerHighest.withValues(alpha: 0.3),
+                color: colors.surfaces.surfaceContainerHighest.withValues(
+                  alpha: 0.3,
+                ),
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -700,12 +704,10 @@ class _WebViewRequestPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final webViewUrl = RadioConfig.requestWebViewUrl;
-    
+
     if (webViewUrl == null || webViewUrl.isEmpty) {
       return Scaffold(
-        appBar: AppBar(
-          title: Text('request_title'.tr()),
-        ),
+        appBar: AppBar(title: Text('request_title'.tr())),
         body: Center(
           child: Padding(
             padding: EdgeInsets.all(DesignTokens.spacingXl),
@@ -737,9 +739,7 @@ class _WebViewRequestPage extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('request_title'.tr()),
-      ),
+      appBar: AppBar(title: Text('request_title'.tr())),
       body: FutureBuilder<bool>(
         future: canLaunchUrl(Uri.parse(webViewUrl)),
         builder: (context, snapshot) {
@@ -748,13 +748,8 @@ class _WebViewRequestPage extends StatelessWidget {
           }
 
           if (snapshot.data == true) {
-            launchUrl(
-              Uri.parse(webViewUrl),
-              mode: LaunchMode.inAppWebView,
-            );
-            return Center(
-              child: Text('Opening request page...'),
-            );
+            launchUrl(Uri.parse(webViewUrl), mode: LaunchMode.inAppWebView);
+            return Center(child: Text('Opening request page...'));
           }
 
           return Center(

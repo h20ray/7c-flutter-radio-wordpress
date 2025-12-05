@@ -10,6 +10,7 @@ import '../../../../core/themes/app_color_system.dart';
 import '../../../../core/themes/design_tokens.dart';
 import '../../../../core/widgets/floating_bottom_nav_bar.dart';
 import '../../../../core/widgets/floating_play_fab.dart';
+import '../../../../core/widgets/glass_app_bar_background.dart';
 import '../../../../core/widgets/shimmer_skeleton.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/pages/login_dialog.dart';
@@ -45,9 +46,7 @@ class _ShoutboxPageViewState extends State<ShoutboxPageView> {
       if (!mounted) return;
       // Use refreshMessages for silent incremental updates
       // The bloc handles debouncing and skips if already fetching
-      context.read<ShoutboxBloc>().add(
-        const ShoutboxEvent.refreshMessages(),
-      );
+      context.read<ShoutboxBloc>().add(const ShoutboxEvent.refreshMessages());
     });
   }
 
@@ -101,6 +100,9 @@ class _ShoutboxPageViewState extends State<ShoutboxPageView> {
                   SliverAppBar(
                     pinned: true,
                     elevation: 0,
+                    automaticallyImplyLeading: false,
+                    backgroundColor: Colors.transparent,
+                    surfaceTintColor: Theme.of(context).colorScheme.surfaceTint,
                     leading: IconButton(
                       icon: const Icon(LucideIcons.arrow_left),
                       onPressed: () => Navigator.pushReplacementNamed(
@@ -123,6 +125,7 @@ class _ShoutboxPageViewState extends State<ShoutboxPageView> {
                         },
                       ),
                     ],
+                    flexibleSpace: GlassAppBarBackground(child: Container()),
                   ),
                   SliverToBoxAdapter(
                     child: Padding(
@@ -136,11 +139,12 @@ class _ShoutboxPageViewState extends State<ShoutboxPageView> {
                           BlocBuilder<AuthBloc, AuthState>(
                             builder: (context, authState) {
                               return authState.maybeWhen(
-                                authenticated: (_) => ShoutboxComposer(
-                                  onSend: _onSend,
-                                ),
+                                authenticated: (_) =>
+                                    ShoutboxComposer(onSend: _onSend),
                                 orElse: () => Container(
-                                  padding: EdgeInsets.all(DesignTokens.spacingL),
+                                  padding: EdgeInsets.all(
+                                    DesignTokens.spacingL,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: colors.cardBackground,
                                     borderRadius: BorderRadius.circular(
@@ -148,7 +152,9 @@ class _ShoutboxPageViewState extends State<ShoutboxPageView> {
                                     ),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withValues(alpha: 0.08),
+                                        color: Colors.black.withValues(
+                                          alpha: 0.08,
+                                        ),
                                         blurRadius: 16,
                                         offset: const Offset(0, 8),
                                       ),
@@ -161,29 +167,23 @@ class _ShoutboxPageViewState extends State<ShoutboxPageView> {
                                         size: 32,
                                         color: colors.textSecondary,
                                       ),
-                                      SizedBox(
-                                        height: DesignTokens.spacingS,
-                                      ),
+                                      SizedBox(height: DesignTokens.spacingS),
                                       Text(
                                         'shoutbox_login_to_chat'.tr(),
                                         style: Theme.of(context)
                                             .textTheme
                                             .bodyMedium
                                             ?.copyWith(
-                                          color: colors.textSecondary,
-                                        ),
+                                              color: colors.textSecondary,
+                                            ),
                                         textAlign: TextAlign.center,
                                       ),
-                                      SizedBox(
-                                        height: DesignTokens.spacingM,
-                                      ),
+                                      SizedBox(height: DesignTokens.spacingM),
                                       ElevatedButton.icon(
                                         onPressed: () {
                                           LoginDialog.show(context);
                                         },
-                                        icon: const Icon(
-                                          LucideIcons.log_in,
-                                        ),
+                                        icon: const Icon(LucideIcons.log_in),
                                         label: Text('auth_login'.tr()),
                                       ),
                                     ],
@@ -392,7 +392,7 @@ class _ShoutboxPageViewState extends State<ShoutboxPageView> {
             : user.name.trim();
         final trimmedMessage = message.trim();
         if (trimmedMessage.isEmpty) return;
-        
+
         context.read<ShoutboxBloc>().add(
           ShoutboxEvent.sendMessage(
             username: displayName,

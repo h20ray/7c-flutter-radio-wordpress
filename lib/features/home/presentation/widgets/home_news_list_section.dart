@@ -25,7 +25,6 @@ class HomeNewsListSection extends StatefulWidget {
 
 class _HomeNewsListSectionState extends State<HomeNewsListSection> {
   bool _hasTriggeredInitialLoad = false;
-  int? _lastRequestedCategoryId;
 
   void _checkAndTriggerInitialLoad(BuildContext context) {
     if (_hasTriggeredInitialLoad) return;
@@ -43,7 +42,6 @@ class _HomeNewsListSectionState extends State<HomeNewsListSection> {
       ) {
         if (filterChipCategories.isNotEmpty) {
           _hasTriggeredInitialLoad = true;
-          _lastRequestedCategoryId = null;
           _requestPosts(context, categoryId: null);
         }
       },
@@ -118,7 +116,7 @@ class _HomeNewsListSectionState extends State<HomeNewsListSection> {
               ) {
                 if (filterChipCategories.isNotEmpty && !_hasTriggeredInitialLoad) {
                   _hasTriggeredInitialLoad = true;
-                  _lastRequestedCategoryId = null;
+
                   _requestPosts(context, categoryId: null);
                 }
               },
@@ -167,9 +165,9 @@ class _HomeNewsListSectionState extends State<HomeNewsListSection> {
                 filterChipCategories,
                 selectedCategoryId,
               ) {
-                if (filterChipCategories.isNotEmpty && 
-                    selectedCategoryId != _lastRequestedCategoryId) {
-                  _lastRequestedCategoryId = selectedCategoryId;
+                // Always request posts when category changes
+                // listenWhen already filters for actual changes
+                if (filterChipCategories.isNotEmpty) {
                   _requestPosts(context, categoryId: selectedCategoryId);
                 }
               },
@@ -399,29 +397,9 @@ class _HomeNewsListSectionState extends State<HomeNewsListSection> {
     int? categoryId,
     bool forceRefresh = false,
   }) {
-    final bloc = context.read<NewsFeedBloc>();
-    
-    final blocState = bloc.state;
-    final isAlreadyLoading = blocState.maybeWhen(
-      loading: (activeCategoryId) => activeCategoryId == categoryId,
-      loaded: (
-        _,
-        _,
-        _,
-        _,
-        isLoadingByCategory,
-        _,
-        _,
-      ) =>
-          isLoadingByCategory[categoryId] ?? false,
-      orElse: () => false,
-    );
-
-    if (isAlreadyLoading && !forceRefresh) {
-      return;
-    }
-
-    bloc.add(
+    // Let the bloc handle deduplication - don't block requests here
+    // This prevents race conditions where taps are silently dropped
+    context.read<NewsFeedBloc>().add(
       NewsFeedEvent.getPosts(
         categoryId: categoryId,
         forceRefresh: forceRefresh,

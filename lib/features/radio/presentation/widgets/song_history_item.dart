@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/themes/app_color_system.dart';
+import '../../../../core/themes/component_tokens.dart';
 import '../../../../core/themes/design_tokens.dart';
 import '../../../../core/widgets/app_network_image.dart';
 import '../../domain/entities/song_history_entity.dart';
@@ -12,13 +13,14 @@ class SongHistoryItem extends StatelessWidget {
   const SongHistoryItem({
     super.key,
     required this.song,
-    this.showBorder = true,
+    this.showBorder = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = context.appColors;
+    final shadow = AppShadowTokens.elevation4(context);
 
     return Container(
       margin: EdgeInsets.only(bottom: DesignTokens.spacingM),
@@ -32,6 +34,7 @@ class SongHistoryItem extends StatelessWidget {
                 width: 1,
               )
             : null,
+        boxShadow: showBorder ? null : shadow,
       ),
       child: Row(
         children: [

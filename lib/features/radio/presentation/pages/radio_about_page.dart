@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
-import '../../../../core/themes/design_tokens.dart';
 import '../../../../core/themes/app_color_system.dart';
+import '../../../../core/themes/component_tokens.dart';
+import '../../../../core/themes/design_tokens.dart';
 
 class RadioAboutPage extends StatelessWidget {
   const RadioAboutPage({super.key});
@@ -11,6 +12,7 @@ class RadioAboutPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = context.appColors;
+    final shadow = AppShadowTokens.elevation4(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -26,10 +28,7 @@ class RadioAboutPage extends StatelessWidget {
               decoration: BoxDecoration(
                 color: colors.cardBackground,
                 borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
-                border: Border.all(
-                  color: colors.borderSubtle,
-                  width: 1,
-                ),
+                boxShadow: shadow,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -91,10 +90,7 @@ class RadioAboutPage extends StatelessWidget {
               decoration: BoxDecoration(
                 color: colors.cardBackground,
                 borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
-                border: Border.all(
-                  color: colors.borderSubtle,
-                  width: 1,
-                ),
+                boxShadow: shadow,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

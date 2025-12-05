@@ -1,8 +1,9 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../core/themes/design_tokens.dart';
 import '../../../../core/themes/app_color_system.dart';
+import '../../../../core/themes/component_tokens.dart';
+import '../../../../core/themes/design_tokens.dart';
 import '../../../../core/widgets/shimmer_skeleton.dart';
 import '../../../../core/di/injection_container.dart';
 import '../bloc/song_history_bloc.dart';
@@ -99,6 +100,7 @@ class _SongHistoryLoadingState extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     final skeletonColor = colors.surfaces.surfaceContainerHighest;
+    final shadow = AppShadowTokens.elevation2(context);
 
     return ListView.builder(
       padding: EdgeInsets.all(DesignTokens.spacingL),
@@ -110,10 +112,7 @@ class _SongHistoryLoadingState extends StatelessWidget {
           decoration: BoxDecoration(
             color: colors.cardBackground,
             borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
-            border: Border.all(
-              color: colors.borderSubtle,
-              width: 1,
-            ),
+            boxShadow: shadow,
           ),
           child: Row(
             children: [
