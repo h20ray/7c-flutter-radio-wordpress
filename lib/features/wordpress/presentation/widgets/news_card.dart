@@ -78,7 +78,7 @@ class NewsCard extends StatelessWidget {
                     post.title,
                     style: TextStyle(
                       fontSize: DesignTokens.fontSizeH2,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: DesignTokens.fontWeightH2,
                       color: colors.textPrimary,
                       height: 1.3,
                     ),
@@ -165,8 +165,9 @@ class _NewsPillChip extends StatelessWidget {
       child: Text(
         text,
         style: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w500,
+          fontSize: DesignTokens.fontSizeLabelSmall,
+          fontWeight: DesignTokens.fontWeightLabelSmall,
+          letterSpacing: DesignTokens.letterSpacingLabelSmall,
           color: vibrantTextColor,
         ),
       ),

@@ -18,8 +18,10 @@ class AppTheme {
       scaffoldBackgroundColor: semanticColors.primaryBackground,
       textTheme: _buildTextTheme(colorScheme, Brightness.light),
       cardTheme: CardThemeData(
-        elevation: 1,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        elevation: DesignTokens.elevationCard,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
+        ),
         clipBehavior: Clip.antiAlias,
         color: semanticColors.cardBackground,
         margin: EdgeInsets.zero,
@@ -32,49 +34,64 @@ class AppTheme {
         backgroundColor: Colors.transparent,
         foregroundColor: colorScheme.onSurface,
         titleTextStyle: TextStyle(
-          fontSize: 22,
-          fontWeight: FontWeight.w400,
+          fontSize: DesignTokens.fontSizeAppBarTitle,
+          fontWeight: DesignTokens.fontWeightAppBarTitle,
+          letterSpacing: DesignTokens.letterSpacingAppBarTitle,
           color: colorScheme.onSurface,
           fontFamily: 'Inter',
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: EdgeInsets.symmetric(
+            horizontal: DesignTokens.spacingL,
+            vertical: DesignTokens.spacingM,
+          ),
           shape: const StadiumBorder(),
-          textStyle: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
+          textStyle: TextStyle(
+            fontSize: DesignTokens.fontSizeLabelLarge,
+            fontWeight: DesignTokens.fontWeightLabelLarge,
+            letterSpacing: DesignTokens.letterSpacingLabelLarge,
             fontFamily: 'Inter',
           ),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: EdgeInsets.symmetric(
+            horizontal: DesignTokens.spacingL,
+            vertical: DesignTokens.spacingM,
+          ),
           shape: const StadiumBorder(),
-          textStyle: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
+          textStyle: TextStyle(
+            fontSize: DesignTokens.fontSizeLabelLarge,
+            fontWeight: DesignTokens.fontWeightLabelLarge,
+            letterSpacing: DesignTokens.letterSpacingLabelLarge,
             fontFamily: 'Inter',
           ),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: EdgeInsets.symmetric(
+            horizontal: DesignTokens.spacingM,
+            vertical: DesignTokens.spacingS,
+          ),
           shape: const StadiumBorder(),
-          textStyle: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
+          textStyle: TextStyle(
+            fontSize: DesignTokens.fontSizeBodyMedium,
+            fontWeight: DesignTokens.fontWeightLabelLarge,
+            letterSpacing: DesignTokens.letterSpacingLabelLarge,
             fontFamily: 'Inter',
           ),
         ),
       ),
       iconButtonTheme: IconButtonThemeData(
         style: IconButton.styleFrom(
-          minimumSize: const Size(40, 40),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          minimumSize: Size(DesignTokens.spacingXl * 2.5, DesignTokens.spacingXl * 2.5),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(DesignTokens.spacingS),
+          ),
         ),
       ),
       sliderTheme: SliderThemeData(
@@ -119,49 +136,64 @@ class AppTheme {
         backgroundColor: Colors.transparent,
         foregroundColor: colorScheme.onSurface,
         titleTextStyle: TextStyle(
-          fontSize: 22,
-          fontWeight: FontWeight.w400,
+          fontSize: DesignTokens.fontSizeAppBarTitle,
+          fontWeight: DesignTokens.fontWeightAppBarTitle,
+          letterSpacing: DesignTokens.letterSpacingAppBarTitle,
           color: colorScheme.onSurface,
           fontFamily: 'Inter',
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: EdgeInsets.symmetric(
+            horizontal: DesignTokens.spacingL,
+            vertical: DesignTokens.spacingM,
+          ),
           shape: const StadiumBorder(),
-          textStyle: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
+          textStyle: TextStyle(
+            fontSize: DesignTokens.fontSizeLabelLarge,
+            fontWeight: DesignTokens.fontWeightLabelLarge,
+            letterSpacing: DesignTokens.letterSpacingLabelLarge,
             fontFamily: 'Inter',
           ),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: EdgeInsets.symmetric(
+            horizontal: DesignTokens.spacingL,
+            vertical: DesignTokens.spacingM,
+          ),
           shape: const StadiumBorder(),
-          textStyle: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
+          textStyle: TextStyle(
+            fontSize: DesignTokens.fontSizeLabelLarge,
+            fontWeight: DesignTokens.fontWeightLabelLarge,
+            letterSpacing: DesignTokens.letterSpacingLabelLarge,
             fontFamily: 'Inter',
           ),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: EdgeInsets.symmetric(
+            horizontal: DesignTokens.spacingM,
+            vertical: DesignTokens.spacingS,
+          ),
           shape: const StadiumBorder(),
-          textStyle: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
+          textStyle: TextStyle(
+            fontSize: DesignTokens.fontSizeBodyMedium,
+            fontWeight: DesignTokens.fontWeightLabelLarge,
+            letterSpacing: DesignTokens.letterSpacingLabelLarge,
             fontFamily: 'Inter',
           ),
         ),
       ),
       iconButtonTheme: IconButtonThemeData(
         style: IconButton.styleFrom(
-          minimumSize: const Size(40, 40),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          minimumSize: Size(DesignTokens.spacingXl * 2.5, DesignTokens.spacingXl * 2.5),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(DesignTokens.spacingS),
+          ),
         ),
       ),
       sliderTheme: SliderThemeData(
@@ -175,123 +207,114 @@ class AppTheme {
     );
   }
 
-  /// Build Material 3 Typography Scale
+  /// Build Material 3 Expressive Typography Scale
   static TextTheme _buildTextTheme(
     ColorScheme colorScheme,
     Brightness brightness,
   ) {
     return TextTheme(
-      // Display styles (for large headlines)
       displayLarge: TextStyle(
-        fontSize: 53,
-        fontWeight: FontWeight.w400,
-        letterSpacing: -0.25,
+        fontSize: DesignTokens.fontSizeDisplayLarge,
+        fontWeight: DesignTokens.fontWeightDisplay,
+        letterSpacing: DesignTokens.letterSpacingDisplayLarge,
         color: colorScheme.onSurface,
         fontFamily: 'Inter',
       ),
       displayMedium: TextStyle(
-        fontSize: 41,
-        fontWeight: FontWeight.w400,
-        letterSpacing: 0,
+        fontSize: DesignTokens.fontSizeDisplayMedium,
+        fontWeight: DesignTokens.fontWeightDisplay,
+        letterSpacing: DesignTokens.letterSpacingDisplayMedium,
         color: colorScheme.onSurface,
         fontFamily: 'Inter',
       ),
       displaySmall: TextStyle(
-        fontSize: 32,
-        fontWeight: FontWeight.w400,
-        letterSpacing: 0,
+        fontSize: DesignTokens.fontSizeDisplaySmall,
+        fontWeight: DesignTokens.fontWeightDisplay,
+        letterSpacing: DesignTokens.letterSpacingDisplaySmall,
         color: colorScheme.onSurface,
         fontFamily: 'Inter',
       ),
-
-      // Headline styles (for section headers) - M3 Expressive
       headlineLarge: TextStyle(
-        fontSize: DesignTokens.fontSizeH1,
-        fontWeight: DesignTokens.fontWeightH1,
-        letterSpacing: 0,
+        fontSize: DesignTokens.fontSizeHeadlineLarge,
+        fontWeight: DesignTokens.fontWeightHeadline,
+        letterSpacing: DesignTokens.letterSpacingHeadline,
         color: colorScheme.onSurface,
         fontFamily: 'Inter',
       ),
       headlineMedium: TextStyle(
-        fontSize: 24,
-        fontWeight: FontWeight.w600,
-        letterSpacing: 0,
+        fontSize: DesignTokens.fontSizeHeadlineMedium,
+        fontWeight: DesignTokens.fontWeightHeadline,
+        letterSpacing: DesignTokens.letterSpacingHeadline,
         color: colorScheme.onSurface,
         fontFamily: 'Inter',
       ),
       headlineSmall: TextStyle(
-        fontSize: 20,
-        fontWeight: FontWeight.w600,
-        letterSpacing: 0,
+        fontSize: DesignTokens.fontSizeHeadlineSmall,
+        fontWeight: DesignTokens.fontWeightHeadline,
+        letterSpacing: DesignTokens.letterSpacingHeadline,
         color: colorScheme.onSurface,
         fontFamily: 'Inter',
       ),
-
-      // Title styles (for card titles) - M3 Expressive
       titleLarge: TextStyle(
-        fontSize: DesignTokens.fontSizeNumbers,
-        fontWeight: DesignTokens.fontWeightNumbers,
-        letterSpacing: 0,
+        fontSize: DesignTokens.fontSizeTitleLarge,
+        fontWeight: DesignTokens.fontWeightTitleLarge,
+        letterSpacing: DesignTokens.letterSpacingTitleLarge,
         color: colorScheme.onSurface,
         fontFamily: 'Inter',
       ),
       titleMedium: TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.w600,
-        letterSpacing: 0.15,
+        fontSize: DesignTokens.fontSizeTitleMedium,
+        fontWeight: DesignTokens.fontWeightTitleMedium,
+        letterSpacing: DesignTokens.letterSpacingTitleMedium,
         color: colorScheme.onSurface,
         fontFamily: 'Inter',
       ),
       titleSmall: TextStyle(
-        fontSize: DesignTokens.fontSizeH2,
-        fontWeight: DesignTokens.fontWeightH2,
-        letterSpacing: 0.1,
+        fontSize: DesignTokens.fontSizeTitleSmall,
+        fontWeight: DesignTokens.fontWeightTitleSmall,
+        letterSpacing: DesignTokens.letterSpacingTitleSmall,
         color: colorScheme.onSurface,
         fontFamily: 'Inter',
       ),
-
-      // Body styles (for content text) - M3 Expressive
       bodyLarge: TextStyle(
-        fontSize: DesignTokens.fontSizeBody,
+        fontSize: DesignTokens.fontSizeBodyLarge,
         fontWeight: DesignTokens.fontWeightBody,
-        letterSpacing: 0.5,
+        letterSpacing: DesignTokens.letterSpacingBodyLarge,
         color: colorScheme.onSurface,
         fontFamily: 'Inter',
       ),
       bodyMedium: TextStyle(
-        fontSize: DesignTokens.fontSizeCaption,
-        fontWeight: DesignTokens.fontWeightCaption,
-        letterSpacing: 0.25,
+        fontSize: DesignTokens.fontSizeBodyMedium,
+        fontWeight: DesignTokens.fontWeightBody,
+        letterSpacing: DesignTokens.letterSpacingBodyMedium,
         color: colorScheme.onSurface,
         fontFamily: 'Inter',
       ),
       bodySmall: TextStyle(
-        fontSize: 11,
-        fontWeight: FontWeight.w400,
-        letterSpacing: 0.4,
+        fontSize: DesignTokens.fontSizeBodySmall,
+        fontWeight: DesignTokens.fontWeightBody,
+        letterSpacing: DesignTokens.letterSpacingBodySmall,
         color: colorScheme.onSurfaceVariant,
         fontFamily: 'Inter',
       ),
-
-      // Label styles (for buttons, labels)
       labelLarge: TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.w600,
-        letterSpacing: 0.1,
+        fontSize: DesignTokens.fontSizeLabelLarge,
+        fontWeight: DesignTokens.fontWeightLabelLarge,
+        letterSpacing: DesignTokens.letterSpacingLabelLarge,
         color: colorScheme.onSurface,
         fontFamily: 'Inter',
       ),
       labelMedium: TextStyle(
-        fontSize: 11,
-        fontWeight: FontWeight.w600,
-        letterSpacing: 0.5,
+        fontSize: DesignTokens.fontSizeLabelMedium,
+        fontWeight: DesignTokens.fontWeightLabelMedium,
+        letterSpacing: DesignTokens.letterSpacingLabelMedium,
         color: colorScheme.onSurface,
         fontFamily: 'Inter',
       ),
       labelSmall: TextStyle(
-        fontSize: 10,
-        fontWeight: FontWeight.w600,
-        letterSpacing: 0.5,
+        fontSize: DesignTokens.fontSizeLabelSmall,
+        fontWeight: DesignTokens.fontWeightLabelSmall,
+        letterSpacing: DesignTokens.letterSpacingLabelSmall,
         color: colorScheme.onSurface,
         fontFamily: 'Inter',
       ),

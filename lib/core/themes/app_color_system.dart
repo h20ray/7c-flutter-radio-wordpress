@@ -24,6 +24,12 @@ class AppColorSystem {
     AppConfig.primaryColor,
   );
 
+  static AppColorSystem fromDynamicSeed(Color? dynamicSeed) {
+    return AppColorSystem._fromSeed(
+      dynamicSeed ?? AppConfig.primaryColor,
+    );
+  }
+
   final Color seedColor;
   final AppSemanticColors light;
   final AppSemanticColors dark;
@@ -247,10 +253,11 @@ class AppTonalPalettes {
 
   factory AppTonalPalettes.fromSeed(Color seedColor) {
     final cam = Cam16.fromInt(seedColor.toARGB32());
+    final primaryChroma = math.max(48.0, math.min(cam.chroma.toDouble(), 120.0));
     return AppTonalPalettes._(
-      primary: TonalPalette.of(cam.hue, math.max(48, cam.chroma)),
-      secondary: TonalPalette.of(cam.hue, 16),
-      tertiary: TonalPalette.of(cam.hue + 60, 24),
+      primary: TonalPalette.of(cam.hue, primaryChroma),
+      secondary: TonalPalette.of(cam.hue, math.max(16.0, primaryChroma * 0.3)),
+      tertiary: TonalPalette.of(cam.hue + 60, math.max(24.0, primaryChroma * 0.5)),
       neutral: TonalPalette.of(cam.hue, 4),
       neutralVariant: TonalPalette.of(cam.hue, 8),
       error: TonalPalette.of(25, 84),

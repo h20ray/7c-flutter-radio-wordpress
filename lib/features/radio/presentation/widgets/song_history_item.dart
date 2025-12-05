@@ -77,8 +77,7 @@ class SongHistoryItem extends StatelessWidget {
               children: [
                 Text(
                   song.title,
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
+                  style: theme.textTheme.titleMedium?.copyWith(
                     color: colors.textPrimary,
                   ),
                   maxLines: 1,

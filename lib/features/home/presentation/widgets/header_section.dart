@@ -67,11 +67,7 @@ class HeaderSection extends StatelessWidget {
     return Container(
       height: 190 + statusBarHeight,
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [tokens.backgroundStart, tokens.backgroundEnd],
-        ),
+        color: tokens.background,
       ),
       padding: EdgeInsets.only(
         top: statusBarHeight + 32,
@@ -412,7 +408,8 @@ class HeaderSection extends StatelessWidget {
                         'home_header_go_premium'.tr(),
                         style: TextStyle(
                           fontSize: DesignTokens.fontSizeCaption,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: DesignTokens.fontWeightLabelLarge,
+                          letterSpacing: DesignTokens.letterSpacingLabelMedium,
                           color: tokens.badgeText,
                         ),
                         overflow: TextOverflow.ellipsis,

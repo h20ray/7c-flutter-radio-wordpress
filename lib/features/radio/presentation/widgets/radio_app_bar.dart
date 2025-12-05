@@ -29,9 +29,6 @@ class RadioAppBar extends StatelessWidget {
         onTap: onScrollToTop,
         child: Text(
           'radio_station_name'.tr(),
-          style: Theme.of(
-            context,
-          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
         ),
       ),
       actions: [

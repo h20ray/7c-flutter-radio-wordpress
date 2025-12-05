@@ -39,9 +39,7 @@ class RadioErrorState extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               'radio_error_title'.tr(),
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(context).textTheme.headlineSmall,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),

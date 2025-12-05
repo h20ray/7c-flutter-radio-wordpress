@@ -476,8 +476,9 @@ class _PostMetadataRow extends StatelessWidget {
                   child: Text(
                     post.categoryName!,
                     style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w500,
+                      fontSize: DesignTokens.fontSizeLabelSmall,
+                      fontWeight: DesignTokens.fontWeightLabelSmall,
+                      letterSpacing: DesignTokens.letterSpacingLabelSmall,
                       color: vibrantTextColor,
                     ),
                   ),
@@ -497,8 +498,9 @@ class _PostMetadataRow extends StatelessWidget {
                   child: Text(
                     formatDate(post.date!, context),
                     style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w500,
+                      fontSize: DesignTokens.fontSizeLabelSmall,
+                      fontWeight: DesignTokens.fontWeightLabelSmall,
+                      letterSpacing: DesignTokens.letterSpacingLabelSmall,
                       color: vibrantTextColor,
                     ),
                   ),
@@ -520,8 +522,9 @@ class _PostMetadataRow extends StatelessWidget {
             child: Text(
               post.authorName!,
               style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w500,
+                fontSize: DesignTokens.fontSizeLabelSmall,
+                fontWeight: DesignTokens.fontWeightLabelSmall,
+                letterSpacing: DesignTokens.letterSpacingLabelSmall,
                 color: authorTextColor,
               ),
             ),
@@ -589,8 +592,8 @@ class _PostContentHtml extends StatelessWidget {
             top: DesignTokens.spacingL,
             bottom: DesignTokens.spacingS,
           ),
-          fontSize: FontSize(18),
-          fontWeight: FontWeight.w600,
+          fontSize: FontSize(DesignTokens.fontSizeTitleMedium),
+          fontWeight: DesignTokens.fontWeightTitleMedium,
           color: colors.textPrimary,
         ),
         'a': Style(

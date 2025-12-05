@@ -79,8 +79,7 @@ class AppShadowTokens {
 
 class HomeHeaderTokens {
   HomeHeaderTokens._({
-    required this.backgroundStart,
-    required this.backgroundEnd,
+    required this.background,
     required this.primaryText,
     required this.secondaryText,
     required this.avatarFill,
@@ -95,22 +94,83 @@ class HomeHeaderTokens {
     final colors = context.appColors;
     final scheme = colors.colorScheme;
     final advanced = colors.advanced;
+    final isLight = colors.brightness == Brightness.light;
+    
+    final background = isLight
+        ? colors.tonalPalettes.primaryTone(45)
+        : colors.tonalPalettes.primaryTone(65);
+    
+    final backgroundLuminance = background.computeLuminance();
+    final needsLightText = backgroundLuminance < 0.5;
+    
+    final primaryTextColor = needsLightText 
+        ? scheme.onPrimary 
+        : scheme.onSurface;
+    final secondaryTextColor = needsLightText
+        ? scheme.onPrimary.withValues(alpha: 0.87)
+        : scheme.onSurface.withValues(alpha: 0.7);
+    
+    final contrastRatio = _calculateContrastRatio(
+      needsLightText ? scheme.onPrimary : scheme.onSurface,
+      background,
+    );
+    
+    final finalPrimaryText = contrastRatio >= 4.5
+        ? primaryTextColor
+        : needsLightText
+            ? Colors.white
+            : Colors.black;
+    
+    final finalSecondaryText = contrastRatio >= 4.5
+        ? secondaryTextColor
+        : needsLightText
+            ? Colors.white.withValues(alpha: 0.87)
+            : Colors.black.withValues(alpha: 0.7);
+    
+    final avatarFillColor = needsLightText
+        ? finalPrimaryText.withValues(alpha: 0.12)
+        : finalPrimaryText.withValues(alpha: 0.12);
+    final avatarBorderColor = needsLightText
+        ? finalPrimaryText.withValues(alpha: 0.24)
+        : finalPrimaryText.withValues(alpha: 0.24);
+    final badgeBgColor = needsLightText
+        ? finalPrimaryText.withValues(alpha: 0.2)
+        : finalPrimaryText.withValues(alpha: 0.15);
+    
+    final tileBg = isLight
+        ? advanced.primaryFixed
+        : advanced.primaryFixedDim;
+    
+    final tileBgLuminance = tileBg.computeLuminance();
+    final tileNeedsLightIcon = tileBgLuminance < 0.5;
+    final tileIconColor = tileNeedsLightIcon
+        ? Colors.white
+        : scheme.onSurface;
+    
     return HomeHeaderTokens._(
-      backgroundStart: colors.gradients.primaryHeroStart,
-      backgroundEnd: colors.gradients.primaryHeroEnd,
-      primaryText: scheme.onPrimary,
-      secondaryText: scheme.onPrimary.withValues(alpha: 0.8),
-      avatarFill: advanced.onPrimaryFixed.withValues(alpha: 0.16),
-      avatarBorder: advanced.onPrimaryFixed.withValues(alpha: 0.3),
-      badgeBackground: scheme.onPrimary.withValues(alpha: 0.2),
-      badgeText: scheme.onPrimary,
-      tileBackground: advanced.primaryFixed,
-      tileIcon: scheme.primary,
+      background: background,
+      primaryText: finalPrimaryText,
+      secondaryText: finalSecondaryText,
+      avatarFill: avatarFillColor,
+      avatarBorder: avatarBorderColor,
+      badgeBackground: badgeBgColor,
+      badgeText: finalPrimaryText,
+      tileBackground: tileBg,
+      tileIcon: tileIconColor,
     );
   }
 
-  final Color backgroundStart;
-  final Color backgroundEnd;
+  static double _calculateContrastRatio(Color foreground, Color background) {
+    final fgLuminance = foreground.computeLuminance();
+    final bgLuminance = background.computeLuminance();
+    
+    final lighter = fgLuminance > bgLuminance ? fgLuminance : bgLuminance;
+    final darker = fgLuminance > bgLuminance ? bgLuminance : fgLuminance;
+    
+    return (lighter + 0.05) / (darker + 0.05);
+  }
+
+  final Color background;
   final Color primaryText;
   final Color secondaryText;
   final Color avatarFill;

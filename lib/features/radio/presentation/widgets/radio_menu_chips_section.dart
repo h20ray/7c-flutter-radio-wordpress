@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -133,7 +134,6 @@ class _MenuChip extends StatelessWidget {
               label.tr(),
               style: theme.textTheme.labelSmall?.copyWith(
                 color: tokens.unselectedText,
-                fontWeight: FontWeight.w600,
               ),
             ),
           ],
@@ -146,6 +146,26 @@ class _MenuChip extends StatelessWidget {
 class _GreetingChip extends StatelessWidget {
   const _GreetingChip();
 
+  double _getContrastRatio(Color foreground, Color background) {
+    final fgLuminance = _getLuminance(foreground);
+    final bgLuminance = _getLuminance(background);
+    final lighter = fgLuminance > bgLuminance ? fgLuminance : bgLuminance;
+    final darker = fgLuminance > bgLuminance ? bgLuminance : fgLuminance;
+    return (lighter + 0.05) / (darker + 0.05);
+  }
+
+  double _getLuminance(Color color) {
+    final r = color.r;
+    final g = color.g;
+    final b = color.b;
+
+    final rLinear = r <= 0.03928 ? r / 12.92 : math.pow((r + 0.055) / 1.055, 2.4);
+    final gLinear = g <= 0.03928 ? g / 12.92 : math.pow((g + 0.055) / 1.055, 2.4);
+    final bLinear = b <= 0.03928 ? b / 12.92 : math.pow((b + 0.055) / 1.055, 2.4);
+
+    return 0.2126 * rLinear + 0.7152 * gLinear + 0.0722 * bLinear;
+  }
+
   Color _getGreetingColor(BuildContext context, String greetingKey) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
@@ -153,20 +173,20 @@ class _GreetingChip extends StatelessWidget {
     switch (greetingKey) {
       case 'greeting_morning':
         return isDark
-            ? const Color(0xFFFFE082)
-            : const Color(0xFFFFF9C4);
+            ? const Color(0xFFFFD54F)
+            : const Color(0xFFFFF176);
       case 'greeting_midday':
         return isDark
-            ? const Color(0xFFFFB74D)
-            : const Color(0xFFFFE0B2);
+            ? const Color(0xFFFF9800)
+            : const Color(0xFFFFB74D);
       case 'greeting_evening':
         return isDark
-            ? const Color(0xFFFF8A65)
-            : const Color(0xFFFFCCBC);
+            ? const Color(0xFFFF6F00)
+            : const Color(0xFFFF8A65);
       case 'greeting_night':
         return isDark
-            ? const Color(0xFF424242)
-            : const Color(0xFF757575);
+            ? const Color(0xFF212121)
+            : const Color(0xFF616161);
       default:
         return theme.colorScheme.surfaceContainerHighest;
     }
@@ -175,24 +195,33 @@ class _GreetingChip extends StatelessWidget {
   Color _getGreetingTextColor(BuildContext context, String greetingKey) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final backgroundColor = _getGreetingColor(context, greetingKey);
+
+    Color getTextColor(Color bgColor, {required bool isDarkMode}) {
+      final lightText = isDarkMode ? Colors.white : const Color(0xFF212121);
+      final darkText = isDarkMode ? const Color(0xFF212121) : Colors.white;
+
+      final lightContrast = _getContrastRatio(lightText, bgColor);
+      final darkContrast = _getContrastRatio(darkText, bgColor);
+
+      return lightContrast >= 4.5
+          ? lightText
+          : darkContrast >= 4.5
+              ? darkText
+              : lightContrast > darkContrast
+                  ? lightText
+                  : darkText;
+    }
 
     switch (greetingKey) {
       case 'greeting_morning':
-        return isDark
-            ? const Color(0xFFF57F17)
-            : const Color(0xFFF9A825);
+        return getTextColor(backgroundColor, isDarkMode: isDark);
       case 'greeting_midday':
-        return isDark
-            ? const Color(0xFFE65100)
-            : const Color(0xFFEF6C00);
+        return getTextColor(backgroundColor, isDarkMode: isDark);
       case 'greeting_evening':
-        return isDark
-            ? const Color(0xFFD84315)
-            : const Color(0xFFE64A19);
+        return getTextColor(backgroundColor, isDarkMode: isDark);
       case 'greeting_night':
-        return isDark
-            ? Colors.white70
-            : Colors.white;
+        return Colors.white;
       default:
         return theme.colorScheme.onSurface;
     }
@@ -216,6 +245,8 @@ class _GreetingChip extends StatelessWidget {
     final chipColor = _getGreetingColor(context, greetingKey);
     final textColor = _getGreetingTextColor(context, greetingKey);
 
+    final borderColor = textColor.withValues(alpha: 0.15);
+
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: DesignTokens.spacingS,
@@ -225,7 +256,7 @@ class _GreetingChip extends StatelessWidget {
         color: chipColor,
         borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusPill),
         border: Border.all(
-          color: textColor.withValues(alpha: 0.2),
+          color: borderColor,
           width: 1,
         ),
       ),
@@ -233,7 +264,7 @@ class _GreetingChip extends StatelessWidget {
         greetingKey.tr(),
         style: theme.textTheme.labelSmall?.copyWith(
           color: textColor,
-          fontWeight: FontWeight.w600,
+          letterSpacing: DesignTokens.letterSpacingLabelSmall,
         ),
       ),
     );

@@ -36,6 +36,49 @@ class DesignTokens {
   static const FontWeight fontWeightCaption = FontWeight.w400;
   static const FontWeight fontWeightNumbers = FontWeight.w600;
 
+  static const double fontSizeDisplayLarge = 57.0;
+  static const double fontSizeDisplayMedium = 45.0;
+  static const double fontSizeDisplaySmall = 36.0;
+  static const double fontSizeHeadlineLarge = 32.0;
+  static const double fontSizeHeadlineMedium = 28.0;
+  static const double fontSizeHeadlineSmall = 24.0;
+  static const double fontSizeTitleLarge = 22.0;
+  static const double fontSizeTitleMedium = 16.0;
+  static const double fontSizeTitleSmall = 14.0;
+  static const double fontSizeBodyLarge = 16.0;
+  static const double fontSizeBodyMedium = 14.0;
+  static const double fontSizeBodySmall = 12.0;
+  static const double fontSizeLabelLarge = 14.0;
+  static const double fontSizeLabelMedium = 12.0;
+  static const double fontSizeLabelSmall = 11.0;
+
+  static const FontWeight fontWeightDisplay = FontWeight.w400;
+  static const FontWeight fontWeightHeadline = FontWeight.w400;
+  static const FontWeight fontWeightTitleLarge = FontWeight.w400;
+  static const FontWeight fontWeightTitleMedium = FontWeight.w500;
+  static const FontWeight fontWeightTitleSmall = FontWeight.w500;
+  static const FontWeight fontWeightLabelLarge = FontWeight.w500;
+  static const FontWeight fontWeightLabelMedium = FontWeight.w500;
+  static const FontWeight fontWeightLabelSmall = FontWeight.w500;
+
+  static const double letterSpacingDisplayLarge = -0.25;
+  static const double letterSpacingDisplayMedium = 0.0;
+  static const double letterSpacingDisplaySmall = 0.0;
+  static const double letterSpacingHeadline = 0.0;
+  static const double letterSpacingTitleLarge = 0.0;
+  static const double letterSpacingTitleMedium = 0.15;
+  static const double letterSpacingTitleSmall = 0.1;
+  static const double letterSpacingBodyLarge = 0.5;
+  static const double letterSpacingBodyMedium = 0.25;
+  static const double letterSpacingBodySmall = 0.4;
+  static const double letterSpacingLabelLarge = 0.1;
+  static const double letterSpacingLabelMedium = 0.5;
+  static const double letterSpacingLabelSmall = 0.5;
+
+  static const double fontSizeAppBarTitle = 22.0;
+  static const FontWeight fontWeightAppBarTitle = FontWeight.w400;
+  static const double letterSpacingAppBarTitle = 0.0;
+
   static const Duration animationDurationShort = Duration(milliseconds: 200);
   static const Duration animationDurationMedium = Duration(milliseconds: 300);
   static const Duration animationDurationLong = Duration(milliseconds: 500);

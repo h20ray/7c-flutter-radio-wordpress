@@ -28,9 +28,6 @@ class ProfileAppBar extends StatelessWidget {
         onTap: onScrollToTop,
         child: Text(
           'home_nav_profile'.tr(),
-          style: Theme.of(
-            context,
-          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
         ),
       ),
       actions: [
