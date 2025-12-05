@@ -46,17 +46,9 @@ class NewsListContent extends StatelessWidget {
                context.read<NewsSearchBloc>().add(const NewsSearchEvent.clearSearch());
             },
           ),
-          error: (failure) => _buildSearchContent(
-            context: context,
-            isLoadingSearch: false,
-            searchResults: [], // Error state, show empty or error?
-            searchQuery: '', // We should probably preserve query in error state too
-            hasMoreSearchResults: false,
-            isLoadingMore: false,
-            onClear: () {
-               context.read<NewsSearchBloc>().add(const NewsSearchEvent.clearSearch());
-            },
-          ), // TODO: Show error properly
+          error: (failure) => const SliverToBoxAdapter(
+            child: NewsErrorState(),
+          ),
           orElse: () => _buildFeedContent(context),
         );
       },

@@ -28,12 +28,6 @@ class LoginDialog extends StatelessWidget {
     );
   }
 
-  // TODO: Configure Google Sign-In OAuth credentials
-  // 1. Add Google Sign-In configuration to Android (google-services.json)
-  // 2. Add Google Sign-In configuration to iOS (GoogleService-Info.plist)
-  // 3. Configure OAuth client ID in Google Cloud Console
-  // 4. Test Google Sign-In flow end-to-end
-  // 5. Ensure WordPress backend endpoint /wp-json/tujuhcahaya/v1/auth/google is implemented
   Future<void> _handleGoogleLogin(BuildContext context) async {
     try {
       final googleSignIn = GoogleSignIn();
@@ -120,10 +114,13 @@ class LoginDialog extends StatelessWidget {
                   alpha: backdropOpacity,
                 ),
                 borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
-                border: Border.all(
-                  color: tokens.outline,
-                  width: 1,
-                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: colorScheme.shadow.withValues(alpha: 0.12),
+                    blurRadius: 24,
+                    offset: const Offset(0, 12),
+                  ),
+                ],
               ),
               child: BlocBuilder<AuthBloc, AuthState>(
                 builder: (context, state) {
@@ -167,6 +164,7 @@ class LoginDialog extends StatelessWidget {
                               )!,
                             ),
                           EmailLoginForm(
+                            isLoading: isLoading,
                             onLogin: (email, password) {
                               context.read<AuthBloc>().add(
                                     AuthEvent.loginWithEmail(
@@ -177,22 +175,13 @@ class LoginDialog extends StatelessWidget {
                             },
                           ),
                           SizedBox(height: DesignTokens.spacingL),
-                          Row(
-                            children: [
-                              Expanded(child: Divider()),
-                              Padding(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: DesignTokens.spacingM,
-                                ),
-                                child: Text(
-                                  'auth_or'.tr(),
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
+                          Center(
+                            child: Text(
+                              'auth_or'.tr(),
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
                               ),
-                              Expanded(child: Divider()),
-                            ],
+                            ),
                           ),
                           SizedBox(height: DesignTokens.spacingL),
                           GoogleLoginButton(
@@ -200,20 +189,6 @@ class LoginDialog extends StatelessWidget {
                           ),
                         ],
                       ),
-                      if (isLoading)
-                        Positioned.fill(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: colorScheme.surface.withValues(alpha: 0.8),
-                              borderRadius: BorderRadius.circular(
-                                DesignTokens.cornerRadiusCard,
-                              ),
-                            ),
-                            child: Center(
-                              child: CircularProgressIndicator(),
-                            ),
-                          ),
-                        ),
                     ],
                   );
                 },

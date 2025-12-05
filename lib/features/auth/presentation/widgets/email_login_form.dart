@@ -6,10 +6,12 @@ import '../../../../core/widgets/haptic_widgets.dart';
 
 class EmailLoginForm extends StatefulWidget {
   final Function(String email, String password) onLogin;
+  final bool isLoading;
 
   const EmailLoginForm({
     super.key,
     required this.onLogin,
+    this.isLoading = false,
   });
 
   @override
@@ -44,67 +46,88 @@ class _EmailLoginFormState extends State<EmailLoginForm> {
 
   @override
   Widget build(BuildContext context) {
-    return Form(
-      key: _formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          TextFormField(
-            controller: _emailController,
-            keyboardType: TextInputType.emailAddress,
-            textInputAction: TextInputAction.next,
-            decoration: InputDecoration(
-              labelText: 'auth_email_label'.tr(),
-              hintText: 'auth_email_hint'.tr(),
-              prefixIcon: Icon(Icons.email_outlined),
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return AbsorbPointer(
+      absorbing: widget.isLoading,
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TextFormField(
+              controller: _emailController,
+              keyboardType: TextInputType.emailAddress,
+              textInputAction: TextInputAction.next,
+              decoration: InputDecoration(
+                labelText: 'auth_email_label'.tr(),
+                hintText: 'auth_email_hint'.tr(),
+                prefixIcon: Icon(Icons.email_outlined),
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'auth_email_required'.tr();
+                }
+                if (!_isValidEmail(value)) {
+                  return 'auth_email_invalid'.tr();
+                }
+                return null;
+              },
             ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'auth_email_required'.tr();
-              }
-              if (!_isValidEmail(value)) {
-                return 'auth_email_invalid'.tr();
-              }
-              return null;
-            },
-          ),
-          SizedBox(height: DesignTokens.spacingL),
-          TextFormField(
-            controller: _passwordController,
-            obscureText: _obscurePassword,
-            textInputAction: TextInputAction.done,
-            onFieldSubmitted: (_) => _handleLogin(),
-            decoration: InputDecoration(
-              labelText: 'auth_password_label'.tr(),
-              hintText: 'auth_password_hint'.tr(),
-              prefixIcon: Icon(Icons.lock_outline),
-              suffixIcon: IconButton(
-                icon: Icon(
-                  _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+            SizedBox(height: DesignTokens.spacingL),
+            TextFormField(
+              controller: _passwordController,
+              obscureText: _obscurePassword,
+              textInputAction: TextInputAction.done,
+              onFieldSubmitted: (_) => _handleLogin(),
+              decoration: InputDecoration(
+                labelText: 'auth_password_label'.tr(),
+                hintText: 'auth_password_hint'.tr(),
+                prefixIcon: Icon(Icons.lock_outline),
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _obscurePassword = !_obscurePassword;
+                    });
+                  },
                 ),
-                onPressed: () {
-                  setState(() {
-                    _obscurePassword = !_obscurePassword;
-                  });
-                },
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'auth_password_required'.tr();
+                }
+                return null;
+              },
+            ),
+            SizedBox(height: DesignTokens.spacingXl),
+            HapticFilledButton(
+              onPressed: widget.isLoading ? null : _handleLogin,
+              style: FilledButton.styleFrom(
+                padding: EdgeInsets.symmetric(vertical: DesignTokens.spacingM),
+              ),
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                child: widget.isLoading
+                    ? SizedBox(
+                        key: const ValueKey('login-loading'),
+                        height: 18,
+                        width: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation(colorScheme.onPrimary),
+                        ),
+                      )
+                    : Text(
+                        'auth_login_button'.tr(),
+                        key: const ValueKey('login-text'),
+                      ),
               ),
             ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'auth_password_required'.tr();
-              }
-              return null;
-            },
-          ),
-          SizedBox(height: DesignTokens.spacingXl),
-          HapticFilledButton(
-            onPressed: _handleLogin,
-            style: FilledButton.styleFrom(
-              padding: EdgeInsets.symmetric(vertical: DesignTokens.spacingM),
-            ),
-            child: Text('auth_login_button'.tr()),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

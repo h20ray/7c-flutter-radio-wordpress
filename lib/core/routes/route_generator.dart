@@ -17,9 +17,10 @@ import '../../features/wordpress/presentation/bloc/news_feed_bloc.dart';
 import '../../features/wordpress/presentation/pages/news_page.dart';
 import '../../features/wordpress/presentation/pages/post_detail_page_view.dart';
 import '../../features/wordpress/domain/entities/post_entity.dart';
-import '../../features/profile/presentation/pages/profile_page.dart';
-import '../../features/tamtama/presentation/bloc/tamtama_bloc.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
+import '../../features/profile/presentation/pages/profile_page.dart';
+import '../../features/shoutbox/presentation/pages/shoutbox_page.dart';
+import '../../features/tamtama/presentation/bloc/tamtama_bloc.dart';
 import '../di/injection_container.dart';
 import 'app_routes.dart';
 
@@ -54,6 +55,8 @@ class RouteGenerator {
         return _buildPageRoute(settings, (context) => const NewsPage());
       case AppRoutes.profile:
         return _buildPageRoute(settings, (context) => const ProfilePage());
+      case AppRoutes.shoutbox:
+        return _buildPageRoute(settings, (context) => const ShoutboxPage());
       case AppRoutes.levelDetails:
         return _buildPageRoute(settings, (context) {
           final bloc = getIt<GamificationBloc>();
@@ -71,17 +74,14 @@ class RouteGenerator {
         PostEntity? post;
         if (args is PostEntity) {
           post = args;
-        } else if (args is Map<String, dynamic> &&
-            args['post'] is PostEntity) {
+        } else if (args is Map<String, dynamic> && args['post'] is PostEntity) {
           post = args['post'] as PostEntity;
         }
 
         if (post == null) {
           return _buildPageRoute(
             settings,
-            (context) => Scaffold(
-              body: Center(child: Text('Post not found')),
-            ),
+            (context) => Scaffold(body: Center(child: Text('Post not found'))),
           );
         }
         return _buildPostDetailRoute(settings, post);
@@ -89,9 +89,7 @@ class RouteGenerator {
         return _buildPageRoute(
           settings,
           (context) => MultiBlocProvider(
-            providers: [
-              BlocProvider.value(value: getIt<RadioPlayerBloc>()),
-            ],
+            providers: [BlocProvider.value(value: getIt<RadioPlayerBloc>())],
             child: const SongHistoryPage(),
           ),
         );
@@ -99,9 +97,7 @@ class RouteGenerator {
         return _buildPageRoute(
           settings,
           (context) => MultiBlocProvider(
-            providers: [
-              BlocProvider.value(value: getIt<RadioPlayerBloc>()),
-            ],
+            providers: [BlocProvider.value(value: getIt<RadioPlayerBloc>())],
             child: const LyricsPage(),
           ),
         );
@@ -109,17 +105,12 @@ class RouteGenerator {
         return _buildPageRoute(
           settings,
           (context) => MultiBlocProvider(
-            providers: [
-              BlocProvider.value(value: getIt<RadioPlayerBloc>()),
-            ],
+            providers: [BlocProvider.value(value: getIt<RadioPlayerBloc>())],
             child: const RequestPage(),
           ),
         );
       case AppRoutes.radioAbout:
-        return _buildPageRoute(
-          settings,
-          (context) => const RadioAboutPage(),
-        );
+        return _buildPageRoute(settings, (context) => const RadioAboutPage());
       default:
         if (settings.name?.startsWith('/auth/') ?? false) {
           return _handleAuthDeepLink(settings);
@@ -136,12 +127,12 @@ class RouteGenerator {
   static Route<dynamic> _handleAuthDeepLink(RouteSettings settings) {
     final uri = Uri.parse(settings.name ?? '');
     final path = uri.path;
-    
+
     if (path.contains('/auth/callback')) {
       final authBloc = getIt<AuthBloc>();
       final code = uri.queryParameters['code'];
       final error = uri.queryParameters['error'];
-      
+
       if (error != null) {
         authBloc.add(const AuthEvent.tokenExpired());
       } else if (code != null) {
@@ -149,7 +140,7 @@ class RouteGenerator {
         // For now, just check auth status
         authBloc.add(const AuthEvent.checkAuthStatus());
       }
-      
+
       return _buildPageRoute(
         settings,
         (context) => Scaffold(
@@ -166,7 +157,7 @@ class RouteGenerator {
         ),
       );
     }
-    
+
     return _buildPageRoute(
       settings,
       (context) => Scaffold(
@@ -208,9 +199,7 @@ class RouteGenerator {
       pageBuilder: (context, animation, secondaryAnimation) {
         return BlocProvider.value(
           value: getIt<NewsFeedBloc>(),
-          child: PostDetailPageView(
-            post: post,
-          ),
+          child: PostDetailPageView(post: post),
         );
       },
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
@@ -236,10 +225,7 @@ class RouteGenerator {
 
         return SlideTransition(
           position: slideAnimation,
-          child: FadeTransition(
-            opacity: fadeAnimation,
-            child: child,
-          ),
+          child: FadeTransition(opacity: fadeAnimation, child: child),
         );
       },
     );

@@ -24,7 +24,7 @@ class ShoutboxRemoteDataSourceImpl implements ShoutboxRemoteDataSource {
     int limit = 50,
   }) async {
     final response = await apiClient.get(
-      '/wp-json/tujuhcahaya/v2/shoutbox/messages',
+      '/wp-json/tujuhcahaya/shoutbox/messages',
       queryParameters: {
         'after_id': afterId,
         'limit': limit,
@@ -43,7 +43,7 @@ class ShoutboxRemoteDataSourceImpl implements ShoutboxRemoteDataSource {
     required String message,
   }) async {
     final response = await apiClient.post(
-      '/wp-json/tujuhcahaya/v2/shoutbox/messages',
+      '/wp-json/tujuhcahaya/shoutbox/messages',
       data: {
         'username': username,
         'message': message,
@@ -55,7 +55,7 @@ class ShoutboxRemoteDataSourceImpl implements ShoutboxRemoteDataSource {
 
   @override
   Future<void> deleteMessage(int id) async {
-    await apiClient.delete('/wp-json/tujuhcahaya/v2/shoutbox/messages/$id');
+    await apiClient.delete('/wp-json/tujuhcahaya/shoutbox/messages/$id');
   }
 }
 

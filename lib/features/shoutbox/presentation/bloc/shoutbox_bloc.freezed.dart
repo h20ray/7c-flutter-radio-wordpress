@@ -55,11 +55,12 @@ extension ShoutboxEventPatterns on ShoutboxEvent {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( GetMessagesEvent value)?  getMessages,TResult Function( SendMessageEvent value)?  sendMessage,TResult Function( DeleteMessageEvent value)?  deleteMessage,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( GetMessagesEvent value)?  getMessages,TResult Function( RefreshMessagesEvent value)?  refreshMessages,TResult Function( SendMessageEvent value)?  sendMessage,TResult Function( DeleteMessageEvent value)?  deleteMessage,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case GetMessagesEvent() when getMessages != null:
-return getMessages(_that);case SendMessageEvent() when sendMessage != null:
+return getMessages(_that);case RefreshMessagesEvent() when refreshMessages != null:
+return refreshMessages(_that);case SendMessageEvent() when sendMessage != null:
 return sendMessage(_that);case DeleteMessageEvent() when deleteMessage != null:
 return deleteMessage(_that);case _:
   return orElse();
@@ -79,11 +80,12 @@ return deleteMessage(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( GetMessagesEvent value)  getMessages,required TResult Function( SendMessageEvent value)  sendMessage,required TResult Function( DeleteMessageEvent value)  deleteMessage,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( GetMessagesEvent value)  getMessages,required TResult Function( RefreshMessagesEvent value)  refreshMessages,required TResult Function( SendMessageEvent value)  sendMessage,required TResult Function( DeleteMessageEvent value)  deleteMessage,}){
 final _that = this;
 switch (_that) {
 case GetMessagesEvent():
-return getMessages(_that);case SendMessageEvent():
+return getMessages(_that);case RefreshMessagesEvent():
+return refreshMessages(_that);case SendMessageEvent():
 return sendMessage(_that);case DeleteMessageEvent():
 return deleteMessage(_that);case _:
   throw StateError('Unexpected subclass');
@@ -102,11 +104,12 @@ return deleteMessage(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( GetMessagesEvent value)?  getMessages,TResult? Function( SendMessageEvent value)?  sendMessage,TResult? Function( DeleteMessageEvent value)?  deleteMessage,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( GetMessagesEvent value)?  getMessages,TResult? Function( RefreshMessagesEvent value)?  refreshMessages,TResult? Function( SendMessageEvent value)?  sendMessage,TResult? Function( DeleteMessageEvent value)?  deleteMessage,}){
 final _that = this;
 switch (_that) {
 case GetMessagesEvent() when getMessages != null:
-return getMessages(_that);case SendMessageEvent() when sendMessage != null:
+return getMessages(_that);case RefreshMessagesEvent() when refreshMessages != null:
+return refreshMessages(_that);case SendMessageEvent() when sendMessage != null:
 return sendMessage(_that);case DeleteMessageEvent() when deleteMessage != null:
 return deleteMessage(_that);case _:
   return null;
@@ -125,10 +128,11 @@ return deleteMessage(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( int afterId,  int limit)?  getMessages,TResult Function( String username,  String message)?  sendMessage,TResult Function( int id)?  deleteMessage,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( int limit)?  getMessages,TResult Function( int limit)?  refreshMessages,TResult Function( String username,  String message)?  sendMessage,TResult Function( int id)?  deleteMessage,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case GetMessagesEvent() when getMessages != null:
-return getMessages(_that.afterId,_that.limit);case SendMessageEvent() when sendMessage != null:
+return getMessages(_that.limit);case RefreshMessagesEvent() when refreshMessages != null:
+return refreshMessages(_that.limit);case SendMessageEvent() when sendMessage != null:
 return sendMessage(_that.username,_that.message);case DeleteMessageEvent() when deleteMessage != null:
 return deleteMessage(_that.id);case _:
   return orElse();
@@ -148,10 +152,11 @@ return deleteMessage(_that.id);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( int afterId,  int limit)  getMessages,required TResult Function( String username,  String message)  sendMessage,required TResult Function( int id)  deleteMessage,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( int limit)  getMessages,required TResult Function( int limit)  refreshMessages,required TResult Function( String username,  String message)  sendMessage,required TResult Function( int id)  deleteMessage,}) {final _that = this;
 switch (_that) {
 case GetMessagesEvent():
-return getMessages(_that.afterId,_that.limit);case SendMessageEvent():
+return getMessages(_that.limit);case RefreshMessagesEvent():
+return refreshMessages(_that.limit);case SendMessageEvent():
 return sendMessage(_that.username,_that.message);case DeleteMessageEvent():
 return deleteMessage(_that.id);case _:
   throw StateError('Unexpected subclass');
@@ -170,10 +175,11 @@ return deleteMessage(_that.id);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( int afterId,  int limit)?  getMessages,TResult? Function( String username,  String message)?  sendMessage,TResult? Function( int id)?  deleteMessage,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( int limit)?  getMessages,TResult? Function( int limit)?  refreshMessages,TResult? Function( String username,  String message)?  sendMessage,TResult? Function( int id)?  deleteMessage,}) {final _that = this;
 switch (_that) {
 case GetMessagesEvent() when getMessages != null:
-return getMessages(_that.afterId,_that.limit);case SendMessageEvent() when sendMessage != null:
+return getMessages(_that.limit);case RefreshMessagesEvent() when refreshMessages != null:
+return refreshMessages(_that.limit);case SendMessageEvent() when sendMessage != null:
 return sendMessage(_that.username,_that.message);case DeleteMessageEvent() when deleteMessage != null:
 return deleteMessage(_that.id);case _:
   return null;
@@ -187,10 +193,9 @@ return deleteMessage(_that.id);case _:
 
 
 class GetMessagesEvent implements ShoutboxEvent {
-  const GetMessagesEvent({this.afterId = 0, this.limit = 50});
+  const GetMessagesEvent({this.limit = 50});
   
 
-@JsonKey() final  int afterId;
 @JsonKey() final  int limit;
 
 /// Create a copy of ShoutboxEvent
@@ -203,16 +208,16 @@ $GetMessagesEventCopyWith<GetMessagesEvent> get copyWith => _$GetMessagesEventCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is GetMessagesEvent&&(identical(other.afterId, afterId) || other.afterId == afterId)&&(identical(other.limit, limit) || other.limit == limit));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GetMessagesEvent&&(identical(other.limit, limit) || other.limit == limit));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,afterId,limit);
+int get hashCode => Object.hash(runtimeType,limit);
 
 @override
 String toString() {
-  return 'ShoutboxEvent.getMessages(afterId: $afterId, limit: $limit)';
+  return 'ShoutboxEvent.getMessages(limit: $limit)';
 }
 
 
@@ -223,7 +228,7 @@ abstract mixin class $GetMessagesEventCopyWith<$Res> implements $ShoutboxEventCo
   factory $GetMessagesEventCopyWith(GetMessagesEvent value, $Res Function(GetMessagesEvent) _then) = _$GetMessagesEventCopyWithImpl;
 @useResult
 $Res call({
- int afterId, int limit
+ int limit
 });
 
 
@@ -240,10 +245,75 @@ class _$GetMessagesEventCopyWithImpl<$Res>
 
 /// Create a copy of ShoutboxEvent
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? afterId = null,Object? limit = null,}) {
+@pragma('vm:prefer-inline') $Res call({Object? limit = null,}) {
   return _then(GetMessagesEvent(
-afterId: null == afterId ? _self.afterId : afterId // ignore: cast_nullable_to_non_nullable
-as int,limit: null == limit ? _self.limit : limit // ignore: cast_nullable_to_non_nullable
+limit: null == limit ? _self.limit : limit // ignore: cast_nullable_to_non_nullable
+as int,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class RefreshMessagesEvent implements ShoutboxEvent {
+  const RefreshMessagesEvent({this.limit = 50});
+  
+
+@JsonKey() final  int limit;
+
+/// Create a copy of ShoutboxEvent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$RefreshMessagesEventCopyWith<RefreshMessagesEvent> get copyWith => _$RefreshMessagesEventCopyWithImpl<RefreshMessagesEvent>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RefreshMessagesEvent&&(identical(other.limit, limit) || other.limit == limit));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,limit);
+
+@override
+String toString() {
+  return 'ShoutboxEvent.refreshMessages(limit: $limit)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $RefreshMessagesEventCopyWith<$Res> implements $ShoutboxEventCopyWith<$Res> {
+  factory $RefreshMessagesEventCopyWith(RefreshMessagesEvent value, $Res Function(RefreshMessagesEvent) _then) = _$RefreshMessagesEventCopyWithImpl;
+@useResult
+$Res call({
+ int limit
+});
+
+
+
+
+}
+/// @nodoc
+class _$RefreshMessagesEventCopyWithImpl<$Res>
+    implements $RefreshMessagesEventCopyWith<$Res> {
+  _$RefreshMessagesEventCopyWithImpl(this._self, this._then);
+
+  final RefreshMessagesEvent _self;
+  final $Res Function(RefreshMessagesEvent) _then;
+
+/// Create a copy of ShoutboxEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? limit = null,}) {
+  return _then(RefreshMessagesEvent(
+limit: null == limit ? _self.limit : limit // ignore: cast_nullable_to_non_nullable
 as int,
   ));
 }
@@ -429,13 +499,15 @@ extension ShoutboxStatePatterns on ShoutboxState {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _Initial value)?  initial,TResult Function( _Loading value)?  loading,TResult Function( _Loaded value)?  loaded,TResult Function( _Error value)?  error,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _Initial value)?  initial,TResult Function( _Loading value)?  loading,TResult Function( _Loaded value)?  loaded,TResult Function( _Refreshing value)?  refreshing,TResult Function( _Sending value)?  sending,TResult Function( _Error value)?  error,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case _Initial() when initial != null:
 return initial(_that);case _Loading() when loading != null:
 return loading(_that);case _Loaded() when loaded != null:
-return loaded(_that);case _Error() when error != null:
+return loaded(_that);case _Refreshing() when refreshing != null:
+return refreshing(_that);case _Sending() when sending != null:
+return sending(_that);case _Error() when error != null:
 return error(_that);case _:
   return orElse();
 
@@ -454,13 +526,15 @@ return error(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _Initial value)  initial,required TResult Function( _Loading value)  loading,required TResult Function( _Loaded value)  loaded,required TResult Function( _Error value)  error,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _Initial value)  initial,required TResult Function( _Loading value)  loading,required TResult Function( _Loaded value)  loaded,required TResult Function( _Refreshing value)  refreshing,required TResult Function( _Sending value)  sending,required TResult Function( _Error value)  error,}){
 final _that = this;
 switch (_that) {
 case _Initial():
 return initial(_that);case _Loading():
 return loading(_that);case _Loaded():
-return loaded(_that);case _Error():
+return loaded(_that);case _Refreshing():
+return refreshing(_that);case _Sending():
+return sending(_that);case _Error():
 return error(_that);case _:
   throw StateError('Unexpected subclass');
 
@@ -478,13 +552,15 @@ return error(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _Initial value)?  initial,TResult? Function( _Loading value)?  loading,TResult? Function( _Loaded value)?  loaded,TResult? Function( _Error value)?  error,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _Initial value)?  initial,TResult? Function( _Loading value)?  loading,TResult? Function( _Loaded value)?  loaded,TResult? Function( _Refreshing value)?  refreshing,TResult? Function( _Sending value)?  sending,TResult? Function( _Error value)?  error,}){
 final _that = this;
 switch (_that) {
 case _Initial() when initial != null:
 return initial(_that);case _Loading() when loading != null:
 return loading(_that);case _Loaded() when loaded != null:
-return loaded(_that);case _Error() when error != null:
+return loaded(_that);case _Refreshing() when refreshing != null:
+return refreshing(_that);case _Sending() when sending != null:
+return sending(_that);case _Error() when error != null:
 return error(_that);case _:
   return null;
 
@@ -502,12 +578,14 @@ return error(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( List<ShoutboxMessageEntity> messages)?  loaded,TResult Function( Failure failure)?  error,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( List<ShoutboxMessageEntity> messages,  int lastId)?  loaded,TResult Function( List<ShoutboxMessageEntity> messages,  int lastId)?  refreshing,TResult Function( List<ShoutboxMessageEntity> messages,  int lastId)?  sending,TResult Function( Failure failure)?  error,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Initial() when initial != null:
 return initial();case _Loading() when loading != null:
 return loading();case _Loaded() when loaded != null:
-return loaded(_that.messages);case _Error() when error != null:
+return loaded(_that.messages,_that.lastId);case _Refreshing() when refreshing != null:
+return refreshing(_that.messages,_that.lastId);case _Sending() when sending != null:
+return sending(_that.messages,_that.lastId);case _Error() when error != null:
 return error(_that.failure);case _:
   return orElse();
 
@@ -526,12 +604,14 @@ return error(_that.failure);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( List<ShoutboxMessageEntity> messages)  loaded,required TResult Function( Failure failure)  error,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( List<ShoutboxMessageEntity> messages,  int lastId)  loaded,required TResult Function( List<ShoutboxMessageEntity> messages,  int lastId)  refreshing,required TResult Function( List<ShoutboxMessageEntity> messages,  int lastId)  sending,required TResult Function( Failure failure)  error,}) {final _that = this;
 switch (_that) {
 case _Initial():
 return initial();case _Loading():
 return loading();case _Loaded():
-return loaded(_that.messages);case _Error():
+return loaded(_that.messages,_that.lastId);case _Refreshing():
+return refreshing(_that.messages,_that.lastId);case _Sending():
+return sending(_that.messages,_that.lastId);case _Error():
 return error(_that.failure);case _:
   throw StateError('Unexpected subclass');
 
@@ -549,12 +629,14 @@ return error(_that.failure);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( List<ShoutboxMessageEntity> messages)?  loaded,TResult? Function( Failure failure)?  error,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( List<ShoutboxMessageEntity> messages,  int lastId)?  loaded,TResult? Function( List<ShoutboxMessageEntity> messages,  int lastId)?  refreshing,TResult? Function( List<ShoutboxMessageEntity> messages,  int lastId)?  sending,TResult? Function( Failure failure)?  error,}) {final _that = this;
 switch (_that) {
 case _Initial() when initial != null:
 return initial();case _Loading() when loading != null:
 return loading();case _Loaded() when loaded != null:
-return loaded(_that.messages);case _Error() when error != null:
+return loaded(_that.messages,_that.lastId);case _Refreshing() when refreshing != null:
+return refreshing(_that.messages,_that.lastId);case _Sending() when sending != null:
+return sending(_that.messages,_that.lastId);case _Error() when error != null:
 return error(_that.failure);case _:
   return null;
 
@@ -631,7 +713,7 @@ String toString() {
 
 
 class _Loaded implements ShoutboxState {
-  const _Loaded(final  List<ShoutboxMessageEntity> messages): _messages = messages;
+  const _Loaded(final  List<ShoutboxMessageEntity> messages, {this.lastId = 0}): _messages = messages;
   
 
  final  List<ShoutboxMessageEntity> _messages;
@@ -641,6 +723,7 @@ class _Loaded implements ShoutboxState {
   return EqualUnmodifiableListView(_messages);
 }
 
+@JsonKey() final  int lastId;
 
 /// Create a copy of ShoutboxState
 /// with the given fields replaced by the non-null parameter values.
@@ -652,16 +735,16 @@ _$LoadedCopyWith<_Loaded> get copyWith => __$LoadedCopyWithImpl<_Loaded>(this, _
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Loaded&&const DeepCollectionEquality().equals(other._messages, _messages));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Loaded&&const DeepCollectionEquality().equals(other._messages, _messages)&&(identical(other.lastId, lastId) || other.lastId == lastId));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_messages));
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_messages),lastId);
 
 @override
 String toString() {
-  return 'ShoutboxState.loaded(messages: $messages)';
+  return 'ShoutboxState.loaded(messages: $messages, lastId: $lastId)';
 }
 
 
@@ -672,7 +755,7 @@ abstract mixin class _$LoadedCopyWith<$Res> implements $ShoutboxStateCopyWith<$R
   factory _$LoadedCopyWith(_Loaded value, $Res Function(_Loaded) _then) = __$LoadedCopyWithImpl;
 @useResult
 $Res call({
- List<ShoutboxMessageEntity> messages
+ List<ShoutboxMessageEntity> messages, int lastId
 });
 
 
@@ -689,10 +772,159 @@ class __$LoadedCopyWithImpl<$Res>
 
 /// Create a copy of ShoutboxState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? messages = null,}) {
+@pragma('vm:prefer-inline') $Res call({Object? messages = null,Object? lastId = null,}) {
   return _then(_Loaded(
 null == messages ? _self._messages : messages // ignore: cast_nullable_to_non_nullable
-as List<ShoutboxMessageEntity>,
+as List<ShoutboxMessageEntity>,lastId: null == lastId ? _self.lastId : lastId // ignore: cast_nullable_to_non_nullable
+as int,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class _Refreshing implements ShoutboxState {
+  const _Refreshing(final  List<ShoutboxMessageEntity> messages, {this.lastId = 0}): _messages = messages;
+  
+
+ final  List<ShoutboxMessageEntity> _messages;
+ List<ShoutboxMessageEntity> get messages {
+  if (_messages is EqualUnmodifiableListView) return _messages;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_messages);
+}
+
+@JsonKey() final  int lastId;
+
+/// Create a copy of ShoutboxState
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$RefreshingCopyWith<_Refreshing> get copyWith => __$RefreshingCopyWithImpl<_Refreshing>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Refreshing&&const DeepCollectionEquality().equals(other._messages, _messages)&&(identical(other.lastId, lastId) || other.lastId == lastId));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_messages),lastId);
+
+@override
+String toString() {
+  return 'ShoutboxState.refreshing(messages: $messages, lastId: $lastId)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$RefreshingCopyWith<$Res> implements $ShoutboxStateCopyWith<$Res> {
+  factory _$RefreshingCopyWith(_Refreshing value, $Res Function(_Refreshing) _then) = __$RefreshingCopyWithImpl;
+@useResult
+$Res call({
+ List<ShoutboxMessageEntity> messages, int lastId
+});
+
+
+
+
+}
+/// @nodoc
+class __$RefreshingCopyWithImpl<$Res>
+    implements _$RefreshingCopyWith<$Res> {
+  __$RefreshingCopyWithImpl(this._self, this._then);
+
+  final _Refreshing _self;
+  final $Res Function(_Refreshing) _then;
+
+/// Create a copy of ShoutboxState
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? messages = null,Object? lastId = null,}) {
+  return _then(_Refreshing(
+null == messages ? _self._messages : messages // ignore: cast_nullable_to_non_nullable
+as List<ShoutboxMessageEntity>,lastId: null == lastId ? _self.lastId : lastId // ignore: cast_nullable_to_non_nullable
+as int,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class _Sending implements ShoutboxState {
+  const _Sending(final  List<ShoutboxMessageEntity> messages, {this.lastId = 0}): _messages = messages;
+  
+
+ final  List<ShoutboxMessageEntity> _messages;
+ List<ShoutboxMessageEntity> get messages {
+  if (_messages is EqualUnmodifiableListView) return _messages;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_messages);
+}
+
+@JsonKey() final  int lastId;
+
+/// Create a copy of ShoutboxState
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SendingCopyWith<_Sending> get copyWith => __$SendingCopyWithImpl<_Sending>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Sending&&const DeepCollectionEquality().equals(other._messages, _messages)&&(identical(other.lastId, lastId) || other.lastId == lastId));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_messages),lastId);
+
+@override
+String toString() {
+  return 'ShoutboxState.sending(messages: $messages, lastId: $lastId)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SendingCopyWith<$Res> implements $ShoutboxStateCopyWith<$Res> {
+  factory _$SendingCopyWith(_Sending value, $Res Function(_Sending) _then) = __$SendingCopyWithImpl;
+@useResult
+$Res call({
+ List<ShoutboxMessageEntity> messages, int lastId
+});
+
+
+
+
+}
+/// @nodoc
+class __$SendingCopyWithImpl<$Res>
+    implements _$SendingCopyWith<$Res> {
+  __$SendingCopyWithImpl(this._self, this._then);
+
+  final _Sending _self;
+  final $Res Function(_Sending) _then;
+
+/// Create a copy of ShoutboxState
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? messages = null,Object? lastId = null,}) {
+  return _then(_Sending(
+null == messages ? _self._messages : messages // ignore: cast_nullable_to_non_nullable
+as List<ShoutboxMessageEntity>,lastId: null == lastId ? _self.lastId : lastId // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 

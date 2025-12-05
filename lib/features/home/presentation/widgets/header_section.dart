@@ -159,7 +159,11 @@ class HeaderSection extends StatelessWidget {
                             child: Text('auth_account_settings'.tr()),
                             onPressed: () {
                               HapticFeedbackHelper.lightImpact();
-                              // TODO: Navigate to account settings
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Account settings coming soon'),
+                                ),
+                              );
                             },
                           ),
                           MenuItemButton(
