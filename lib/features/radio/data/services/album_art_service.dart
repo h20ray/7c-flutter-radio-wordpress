@@ -53,6 +53,9 @@ class AlbumArtService {
   Future<void> initialize() async {
     await _networkService.initialize();
     
+    // Initialize the cache service to load persisted entries
+    await AlbumArtCacheService.instance.initialize();
+    
     // Listen to network status changes
     _networkSubscription = _networkService.networkStatusStream.listen(
       (isOnline) {

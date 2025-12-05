@@ -9,15 +9,19 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../../config/radio_config.dart';
+import '../../../../config/share_config.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/themes/component_tokens.dart';
 import '../../../../core/themes/design_tokens.dart';
 import '../../../../core/widgets/haptic_widgets.dart';
 import '../../../../core/utils/haptic_feedback_helper.dart';
+import '../../../../core/services/palette_service.dart';
+import '../../../../core/utils/palette_cache.dart';
 import '../../data/repositories/greeting_repository.dart';
 import '../bloc/radio_player_bloc.dart';
 import '../bloc/radio_player_state.dart';
 import 'quote_share_card.dart';
+import 'radio_share_card.dart';
 
 class RadioMenuChipsSection extends StatelessWidget {
   const RadioMenuChipsSection({super.key});
@@ -25,6 +29,10 @@ class RadioMenuChipsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final menuChips = <Widget>[];
+
+    menuChips.add(
+      const _ShareChip(),
+    );
 
     if (RadioConfig.showLyrics) {
       menuChips.add(
@@ -463,6 +471,257 @@ class _GreetingChipState extends State<_GreetingChip> {
             color: textColor,
             letterSpacing: DesignTokens.letterSpacingLabelSmall,
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ShareChip extends StatefulWidget {
+  const _ShareChip();
+
+  @override
+  State<_ShareChip> createState() => _ShareChipState();
+}
+
+class _ShareChipState extends State<_ShareChip> {
+  final GlobalKey _previewCardKey = GlobalKey();
+  final PaletteService _paletteService = PaletteService();
+
+  Future<void> _captureAndShare({
+    required String? artist,
+    required String? title,
+    required String? albumArtUrl,
+    required PaletteColors? palette,
+    required bool isPlaying,
+    required BuildContext dialogContext,
+  }) async {
+    try {
+      await Future.delayed(const Duration(milliseconds: 200));
+
+      final boundary = _previewCardKey.currentContext?.findRenderObject()
+          as RenderRepaintBoundary?;
+
+      if (boundary == null) {
+        debugPrint('Could not find render boundary');
+        return;
+      }
+
+      int attempts = 0;
+      while (boundary.debugNeedsPaint && attempts < 20) {
+        await Future.delayed(const Duration(milliseconds: 50));
+        attempts++;
+      }
+
+      await Future.delayed(const Duration(milliseconds: 200));
+
+      final image = await boundary.toImage(pixelRatio: 3.0);
+      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      final pngBytes = byteData?.buffer.asUint8List();
+
+      if (pngBytes == null) {
+        debugPrint('Could not generate PNG bytes');
+        return;
+      }
+
+      final directory = await getTemporaryDirectory();
+      final fileName = 'radio_share_${DateTime.now().millisecondsSinceEpoch}.png';
+      final file = File('${directory.path}/$fileName');
+      await file.writeAsBytes(pngBytes);
+
+      final shareText = title != null && title.trim().isNotEmpty
+          ? '$title${artist != null && artist.trim().isNotEmpty ? ' - $artist' : ''}'
+          : 'Now Playing on ${ShareConfig.appNameFull}';
+
+      if (dialogContext.mounted) {
+        Navigator.pop(dialogContext);
+      }
+
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(file.path)],
+          text: shareText,
+          subject: 'Now Playing',
+        ),
+      );
+    } catch (e) {
+      debugPrint('Error capturing radio share card: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to share'),
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<PaletteColors?> _getPalette(String? albumArtUrl) async {
+    if (albumArtUrl == null || albumArtUrl.isEmpty) {
+      return null;
+    }
+    try {
+      return await _paletteService.fetchForUrl(albumArtUrl);
+    } catch (e) {
+      debugPrint('Error fetching palette: $e');
+      return null;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = ModeTabsTokens.of(context);
+    final theme = Theme.of(context);
+
+    return HapticGestureDetector(
+      hapticType: HapticFeedbackType.selectionClick,
+      onTap: () async {
+        String? artist;
+        String? title;
+        String? albumArtUrl;
+        bool isPlaying = false;
+
+        try {
+          final radioPlayerBloc = context.read<RadioPlayerBloc>();
+          final radioState = radioPlayerBloc.state;
+          radioState.maybeWhen(
+            ready: (playing, currentUrl, currentArtist, currentTitle,
+                currentAlbumArtUrl, isDucking, canAutoResume) {
+              artist = currentArtist;
+              title = currentTitle;
+              albumArtUrl = currentAlbumArtUrl;
+              isPlaying = playing;
+            },
+            orElse: () {},
+          );
+        } catch (e) {
+          debugPrint('Error accessing RadioPlayerBloc: $e');
+        }
+
+        final palette = await _getPalette(albumArtUrl);
+
+        if (!context.mounted) return;
+
+        showDialog(
+          context: context,
+          builder: (dialogContext) => Dialog(
+                backgroundColor: theme.colorScheme.surfaceContainerHigh,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(28),
+                ),
+                child: Container(
+                  padding: EdgeInsets.all(DesignTokens.spacingL),
+                  constraints: BoxConstraints(
+                    maxWidth: MediaQuery.of(context).size.width * 0.9,
+                    maxHeight: MediaQuery.of(context).size.height * 0.85,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Flexible(
+                        child: Container(
+                          constraints: const BoxConstraints(
+                            maxHeight: 500,
+                          ),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            color: theme.colorScheme.surfaceContainerHigh,
+                          ),
+                          clipBehavior: Clip.antiAlias,
+                          child: AspectRatio(
+                            aspectRatio: 9 / 16,
+                            child: RepaintBoundary(
+                              key: _previewCardKey,
+                              child: RadioShareCard(
+                                artist: artist,
+                                title: title,
+                                albumArtUrl: albumArtUrl,
+                                palette: palette,
+                                isPlaying: isPlaying,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: DesignTokens.spacingL),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(dialogContext),
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: DesignTokens.spacingM,
+                                vertical: DesignTokens.spacingS,
+                              ),
+                            ),
+                            child: Text(
+                              'Cancel',
+                              style: theme.textTheme.labelLarge?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: DesignTokens.spacingS),
+                          FilledButton(
+                            onPressed: () async {
+                              await _captureAndShare(
+                                artist: artist,
+                                title: title,
+                                albumArtUrl: albumArtUrl,
+                                palette: palette,
+                                isPlaying: isPlaying,
+                                dialogContext: dialogContext,
+                              );
+                            },
+                            style: FilledButton.styleFrom(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: DesignTokens.spacingM,
+                                vertical: DesignTokens.spacingS,
+                              ),
+                            ),
+                            child: Text('Share'),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+        );
+      },
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: DesignTokens.spacingS,
+          vertical: DesignTokens.spacingS,
+        ),
+        decoration: BoxDecoration(
+          color: tokens.unselectedBackground,
+          borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusPill),
+          border: Border.all(
+            color: tokens.unselectedText.withValues(alpha: 0.2),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              LucideIcons.share_2,
+              size: 16,
+              color: tokens.unselectedText,
+            ),
+            SizedBox(width: DesignTokens.spacingXs),
+            Text(
+              'Share',
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: tokens.unselectedText,
+              ),
+            ),
+          ],
         ),
       ),
     );
