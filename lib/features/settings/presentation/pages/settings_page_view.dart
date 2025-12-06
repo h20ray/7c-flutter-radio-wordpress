@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:adaptive_theme/adaptive_theme.dart';
 
@@ -9,9 +10,51 @@ import '../../../../core/routes/app_routes.dart';
 import '../../../../core/widgets/floating_bottom_nav_bar.dart';
 import '../../../../core/widgets/floating_play_fab.dart';
 import '../widgets/settings_app_bar.dart';
+import '../widgets/offline_news_settings_section.dart';
+import '../bloc/settings_bloc.dart';
 
-class SettingsPageView extends StatelessWidget {
+class SettingsPageView extends StatefulWidget {
   const SettingsPageView({super.key});
+
+  @override
+  State<SettingsPageView> createState() => _SettingsPageViewState();
+}
+
+class _SettingsPageViewState extends State<SettingsPageView> {
+  bool _hasLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _loadSettings();
+      }
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Refresh stats when page becomes visible (after initial load)
+    if (_hasLoaded && mounted) {
+      // Only refresh stats, not settings (to avoid unnecessary reloads)
+      context.read<SettingsBloc>().add(
+            const SettingsEvent.loadOfflineNewsStats(),
+          );
+    }
+  }
+
+  void _loadSettings() {
+    if (!mounted) return;
+    _hasLoaded = true;
+    context.read<SettingsBloc>().add(
+          const SettingsEvent.loadOfflineNewsSettings(),
+        );
+    context.read<SettingsBloc>().add(
+          const SettingsEvent.loadOfflineNewsStats(),
+        );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,6 +82,8 @@ class SettingsPageView extends StatelessWidget {
                     children: [
                       const SizedBox(height: 32),
                       _buildThemeSection(context),
+                      const SizedBox(height: 24),
+                      const OfflineNewsSettingsSection(),
                       const SizedBox(height: 24),
                       SizedBox(height: totalBottomSpacing),
                     ],

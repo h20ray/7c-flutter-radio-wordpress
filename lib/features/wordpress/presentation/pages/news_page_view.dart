@@ -373,20 +373,74 @@ class _NewsPageViewContentState extends State<_NewsPageViewContent> {
                 child: Stack(
                 children: [
                   const NewsSearchOverlay(),
-                  CustomScrollView(
-                    controller: _scrollController,
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    slivers: [
-                      NewsAppBar(
-                        searchController: _searchController,
-                        onSearch: _performSearch,
-                        onClear: _onClearSearch,
-                      ),
-                      const NewsListContent(),
-                      SliverToBoxAdapter(
-                        child: SizedBox(height: totalBottomSpacing),
-                      ),
-                    ],
+                  RefreshIndicator(
+                    onRefresh: () async {
+                      final feedBloc = context.read<NewsFeedBloc>();
+                      final feedState = feedBloc.state;
+                      
+                      feedState.maybeWhen(
+                        loaded: (
+                          posts,
+                          postsByCategory,
+                          selectedCategoryId,
+                          hasMoreByCategory,
+                          isLoadingByCategory,
+                          errorsByCategory,
+                          currentPageByCategory,
+                        ) {
+                          // Refresh current category
+                          feedBloc.add(NewsFeedEvent.getPosts(
+                            categoryId: selectedCategoryId,
+                            useNewsPageLimit: true,
+                            forceRefresh: true,
+                          ));
+                        },
+                        orElse: () {
+                          // Initial load
+                          feedBloc.add(const NewsFeedEvent.getPosts(
+                            useNewsPageLimit: true,
+                            forceRefresh: true,
+                          ));
+                        },
+                      );
+                      
+                      // Wait for loading to complete (with timeout)
+                      try {
+                        await feedBloc.stream.timeout(
+                          const Duration(seconds: 10),
+                        ).firstWhere(
+                          (state) => state.maybeWhen(
+                            loaded: (
+                              posts,
+                              postsByCategory,
+                              selectedCategoryId,
+                              hasMoreByCategory,
+                              isLoadingByCategory,
+                              errorsByCategory,
+                              currentPageByCategory,
+                            ) => !(isLoadingByCategory[selectedCategoryId] ?? false),
+                            orElse: () => true,
+                          ),
+                        );
+                      } catch (e) {
+                        // Timeout or error - refresh indicator will complete anyway
+                      }
+                    },
+                    child: CustomScrollView(
+                      controller: _scrollController,
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      slivers: [
+                        NewsAppBar(
+                          searchController: _searchController,
+                          onSearch: _performSearch,
+                          onClear: _onClearSearch,
+                        ),
+                        const NewsListContent(),
+                        SliverToBoxAdapter(
+                          child: SizedBox(height: totalBottomSpacing),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),

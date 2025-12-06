@@ -27,12 +27,12 @@ void main() async {
   
   await EasyLocalization.ensureInitialized();
   
+  Directory appDocDir = await getApplicationDocumentsDirectory();
+  await Hive.initFlutter(appDocDir.path);
+  
   await initDependencies();
   
   final savedThemeMode = await AdaptiveTheme.getThemeMode();
-  
-  Directory appDocDir = await getApplicationDocumentsDirectory();
-  await Hive.initFlutter(appDocDir.path);
   
   runApp(
     EasyLocalization(

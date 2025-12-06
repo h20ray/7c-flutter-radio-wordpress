@@ -5,6 +5,8 @@ class PostModel extends PostEntity {
   final int? featuredMediaId;
   final int? authorId;
 
+  /// Decodes HTML entities in text (e.g., &amp; -> &, &#39; -> ')
+  /// Handles both named entities and numeric character references
   static String _decodeHtmlEntities(String text) {
     String result = text
         .replaceAll('&#038;', '&')
@@ -16,6 +18,7 @@ class PostModel extends PostEntity {
         .replaceAll('&apos;', "'")
         .replaceAll('&nbsp;', ' ');
     
+    // Handle numeric character references (e.g., &#8217;)
     result = result.replaceAllMapped(RegExp(r'&#(\d+);'), (match) {
       final code = int.tryParse(match.group(1) ?? '');
       if (code != null) {
@@ -27,6 +30,7 @@ class PostModel extends PostEntity {
     return result;
   }
 
+  /// Strips HTML tags from text and normalizes whitespace
   static String _stripHtmlTags(String text) {
     return text
         .replaceAll(RegExp(r'<[^>]*>'), '')
@@ -49,7 +53,11 @@ class PostModel extends PostEntity {
     this.authorId,
   });
 
+  /// Creates a PostModel from JSON
+  /// Handles both minimal payload mode (enriched) and full payload mode (with _embedded)
   factory PostModel.fromJson(Map<String, dynamic> json) {
+    // Extract featured image URL and media ID
+    // Priority: featuredImageUrl (enriched) > _embedded > featured_media ID
     String? featuredImageUrl;
     int? featuredMediaId;
 
@@ -68,16 +76,9 @@ class PostModel extends PostEntity {
       featuredMediaId = json['featured_media'] as int;
     }
 
+    // Parse date - simplified logic (removed redundant null check)
     DateTime? date;
-    if (json['date'] != null) {
-      if (json['date'] is String) {
-        try {
-          date = DateTime.parse(json['date'] as String);
-        } catch (e) {
-          date = null;
-        }
-      }
-    } else if (json['date'] == null && json['date'] is String) {
+    if (json['date'] is String) {
       try {
         date = DateTime.parse(json['date'] as String);
       } catch (e) {
@@ -85,30 +86,22 @@ class PostModel extends PostEntity {
       }
     }
 
-    String title;
-    if (json['title'] is String) {
-      title = json['title'] as String;
-    } else {
-      title = json['title']?['rendered'] ?? '';
-    }
-    title = _decodeHtmlEntities(title);
-    title = _stripHtmlTags(title);
+    // Extract and clean text fields (title, content, excerpt)
+    // Handles both simple string format and WordPress rendered format
+    final titleRaw = json['title'] is String 
+        ? json['title'] as String 
+        : json['title']?['rendered'] ?? '';
+    final title = _stripHtmlTags(_decodeHtmlEntities(titleRaw));
 
-    String content;
-    if (json['content'] is String) {
-      content = json['content'] as String;
-    } else {
-      content = json['content']?['rendered'] ?? '';
-    }
-    content = _decodeHtmlEntities(content);
+    final contentRaw = json['content'] is String 
+        ? json['content'] as String 
+        : json['content']?['rendered'] ?? '';
+    final content = _decodeHtmlEntities(contentRaw);
 
-    String excerpt;
-    if (json['excerpt'] is String) {
-      excerpt = json['excerpt'] as String;
-    } else {
-      excerpt = json['excerpt']?['rendered'] ?? '';
-    }
-    excerpt = _decodeHtmlEntities(excerpt);
+    final excerptRaw = json['excerpt'] is String 
+        ? json['excerpt'] as String 
+        : json['excerpt']?['rendered'] ?? '';
+    final excerpt = _stripHtmlTags(_decodeHtmlEntities(excerptRaw));
     
     String link = json['link'] as String? ?? '';
 

@@ -1,7 +1,10 @@
+import 'dart:async';
 import 'package:dartz/dartz.dart';
 import '../../../../config/news_config.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/error/failures.dart';
+import '../../../../core/utils/debug_logger.dart';
+import '../../../../core/utils/performance_monitor.dart';
 import '../../domain/entities/post_entity.dart';
 import '../../domain/repositories/wordpress_repository.dart';
 import '../datasources/wordpress_remote_datasource.dart';
@@ -58,56 +61,178 @@ class WordPressRepositoryImpl implements WordPressRepository {
     String? search,
     bool useNewsPageLimit = false,
   }) async {
-    // 1. If not forcing refresh, try to get from cache first
-    if (!forceRefresh) {
-      final cachedPosts = await localDataSource.getCachedPosts(
-        categoryId: categoryId,
-        page: page,
-        search: search,
-      );
-
-      if (cachedPosts != null && cachedPosts.isNotEmpty) {
-        return Right(cachedPosts);
-      }
-    }
-
-    // 2. Fetch from network
     try {
+      // 1. If not forcing refresh, try to get from cache first
+      if (!forceRefresh) {
+        try {
+          final stopwatch = Stopwatch()..start();
+          final cachedPosts = await localDataSource.getCachedPosts(
+            categoryId: categoryId,
+            page: page,
+            search: search,
+          );
+          stopwatch.stop();
+
+          if (cachedPosts != null && cachedPosts.isNotEmpty) {
+            PerformanceMonitor.trackCacheHit('getPosts');
+            PerformanceMonitor.trackApiCall('getPosts_cache', stopwatch.elapsed);
+            DebugLogger.log(
+              'Cache hit for posts: categoryId=$categoryId, page=$page, search=$search',
+              tag: 'WordPressRepository',
+            );
+            return Right(cachedPosts);
+          } else {
+            PerformanceMonitor.trackCacheMiss('getPosts');
+          }
+        } catch (e, stackTrace) {
+          PerformanceMonitor.trackCacheMiss('getPosts');
+          DebugLogger.logError(
+            'Failed to load cached posts',
+            error: e,
+            stackTrace: stackTrace,
+            tag: 'WordPressRepository',
+          );
+          // Continue to network fetch if cache fails
+        }
+      }
+
+      // 2. Fetch from network with retry
       final perPage = search != null && search.isNotEmpty
           ? NewsConfig.newsPageListLimit
           : (useNewsPageLimit || page > 1
               ? NewsConfig.newsPageListLimit
               : NewsConfig.homeNewsListLimit);
       
-      final posts = await remoteDataSource.getPosts(
-        categoryId: categoryId,
-        page: page,
-        perPage: perPage,
-        search: search,
+      DebugLogger.log(
+        'Fetching posts from network: categoryId=$categoryId, page=$page, perPage=$perPage, search=$search',
+        tag: 'WordPressRepository',
       );
+      
+      final stopwatch = Stopwatch()..start();
+      final posts = await _fetchWithRetry(
+        () => remoteDataSource.getPosts(
+          categoryId: categoryId,
+          page: page,
+          perPage: perPage,
+          search: search,
+        ),
+        operation: 'getPosts',
+      );
+      stopwatch.stop();
+      PerformanceMonitor.trackApiCall('getPosts_network', stopwatch.elapsed);
 
       final enrichedPosts = await _enrichPosts(posts);
       
       // 3. Save to cache (only for first page or search results)
       if (page == 1 || search != null) {
-        await localDataSource.cachePosts(
-          enrichedPosts,
-          categoryId: categoryId,
-          page: page,
-          search: search,
-        );
+        try {
+          await localDataSource.cachePosts(
+            enrichedPosts,
+            categoryId: categoryId,
+            page: page,
+            search: search,
+          );
+          DebugLogger.log(
+            'Cached posts: categoryId=$categoryId, page=$page, count=${enrichedPosts.length}',
+            tag: 'WordPressRepository',
+          );
+        } catch (e, stackTrace) {
+          DebugLogger.logError(
+            'Failed to cache posts',
+            error: e,
+            stackTrace: stackTrace,
+            tag: 'WordPressRepository',
+          );
+          // Don't fail the request if caching fails
+        }
       }
       
       return Right(enrichedPosts.cast<PostEntity>());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } on NetworkException catch (e) {
-      return Left(NetworkFailure(e.message));
-    } on TimeoutException catch (e) {
-      return Left(TimeoutFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
+    } on ServerException catch (e, stackTrace) {
+      PerformanceMonitor.trackError('getPosts', 'ServerException');
+      DebugLogger.logError(
+        'Server error fetching posts',
+        error: e,
+        stackTrace: stackTrace,
+        tag: 'WordPressRepository',
+      );
+      return Left(ServerFailure('Failed to load posts: ${e.message}'));
+    } on NetworkException catch (e, stackTrace) {
+      PerformanceMonitor.trackError('getPosts', 'NetworkException');
+      DebugLogger.logError(
+        'Network error fetching posts',
+        error: e,
+        stackTrace: stackTrace,
+        tag: 'WordPressRepository',
+      );
+      return Left(NetworkFailure('Network error: ${e.message}. Please check your connection.'));
+    } on TimeoutException catch (e, stackTrace) {
+      PerformanceMonitor.trackError('getPosts', 'TimeoutException');
+      DebugLogger.logError(
+        'Timeout fetching posts',
+        error: e,
+        stackTrace: stackTrace,
+        tag: 'WordPressRepository',
+      );
+      return Left(TimeoutFailure('Request timed out: ${e.message}. Please try again.'));
+    } catch (e, stackTrace) {
+      PerformanceMonitor.trackError('getPosts', 'UnexpectedException');
+      DebugLogger.logError(
+        'Unexpected error fetching posts',
+        error: e,
+        stackTrace: stackTrace,
+        tag: 'WordPressRepository',
+      );
+      return Left(ServerFailure('An unexpected error occurred: ${e.toString()}'));
     }
+  }
+
+  /// Fetches data with exponential backoff retry mechanism
+  Future<T> _fetchWithRetry<T>(
+    Future<T> Function() fetch, {
+    String operation = 'fetch',
+    int maxRetries = 3,
+    Duration initialDelay = const Duration(seconds: 1),
+  }) async {
+    int attempt = 0;
+    Duration delay = initialDelay;
+    
+    while (attempt < maxRetries) {
+      try {
+        return await fetch();
+      } on NetworkException catch (e) {
+        attempt++;
+        if (attempt >= maxRetries) {
+          DebugLogger.logError(
+            'Max retries reached for $operation',
+            error: e,
+            tag: 'WordPressRepository',
+          );
+          rethrow;
+        }
+        
+        DebugLogger.log(
+          'Retrying $operation (attempt $attempt/$maxRetries) after ${delay.inSeconds}s',
+          tag: 'WordPressRepository',
+        );
+        
+        await Future.delayed(delay);
+        delay = Duration(seconds: delay.inSeconds * 2); // Exponential backoff
+      } on ServerException {
+        // Don't retry server errors (4xx, 5xx)
+        rethrow;
+      } on TimeoutException {
+        // Don't retry timeouts immediately, but allow one retry
+        if (attempt >= maxRetries - 1) {
+          rethrow;
+        }
+        attempt++;
+        await Future.delayed(delay);
+        delay = Duration(seconds: delay.inSeconds * 2);
+      }
+    }
+    
+    throw Exception('Failed after $maxRetries attempts');
   }
 
   Future<List<PostModel>> _enrichPosts(List<PostModel> posts) async {
@@ -115,66 +240,124 @@ class WordPressRepositoryImpl implements WordPressRepository {
       return posts;
     }
 
-    final mediaIds = <int>[];
-    final categoryIds = <int>[];
-    final authorIds = <int>[];
+    try {
+      // Collect unique IDs (deduplication)
+      final mediaIds = <int>{};
+      final categoryIds = <int>{};
+      final authorIds = <int>{};
 
-    for (final post in posts) {
-      if (post.featuredMediaId != null && post.featuredMediaId! > 0) {
-        mediaIds.add(post.featuredMediaId!);
-      }
-      for (final id in post.categoryIds) {
-        if (id > 0) {
-          categoryIds.add(id);
+      for (final post in posts) {
+        if (post.featuredMediaId != null && post.featuredMediaId! > 0) {
+          mediaIds.add(post.featuredMediaId!);
+        }
+        for (final id in post.categoryIds) {
+          if (id > 0) {
+            categoryIds.add(id);
+          }
+        }
+        if (post.authorId != null && post.authorId! > 0) {
+          authorIds.add(post.authorId!);
         }
       }
-      if (post.authorId != null && post.authorId! > 0) {
-        authorIds.add(post.authorId!);
-      }
+
+      // Parallelize API calls using Future.wait for better performance
+      DebugLogger.log(
+        'Enriching posts: mediaIds=${mediaIds.length}, categoryIds=${categoryIds.length}, authorIds=${authorIds.length}',
+        tag: 'WordPressRepository',
+      );
+      
+      final results = await Future.wait([
+        if (mediaIds.isNotEmpty)
+          _fetchWithRetry(
+            () => remoteDataSource.getMediaByIds(mediaIds.toList()),
+            operation: 'getMediaByIds',
+            maxRetries: 2, // Fewer retries for enrichment
+          ).catchError((e) {
+            DebugLogger.logError(
+              'Failed to fetch media',
+              error: e,
+              tag: 'WordPressRepository',
+            );
+            return <int, String>{};
+          })
+        else
+          Future.value(<int, String>{}),
+        if (categoryIds.isNotEmpty)
+          _fetchWithRetry(
+            () => remoteDataSource.getCategoriesByIds(categoryIds.toList()),
+            operation: 'getCategoriesByIds',
+            maxRetries: 2,
+          ).catchError((e) {
+            DebugLogger.logError(
+              'Failed to fetch categories',
+              error: e,
+              tag: 'WordPressRepository',
+            );
+            return <int, String>{};
+          })
+        else
+          Future.value(<int, String>{}),
+        if (authorIds.isNotEmpty)
+          _fetchWithRetry(
+            () => remoteDataSource.getUsersByIds(authorIds.toList()),
+            operation: 'getUsersByIds',
+            maxRetries: 2,
+          ).catchError((e) {
+            DebugLogger.logError(
+              'Failed to fetch users',
+              error: e,
+              tag: 'WordPressRepository',
+            );
+            return <int, String>{};
+          })
+        else
+          Future.value(<int, String>{}),
+      ]);
+
+      final resolvedMedia = results[0];
+      final resolvedCategories = results[1];
+      final resolvedUsers = results[2];
+      
+      DebugLogger.log(
+        'Enrichment complete: resolvedMedia=${resolvedMedia.length}, resolvedCategories=${resolvedCategories.length}, resolvedUsers=${resolvedUsers.length}',
+        tag: 'WordPressRepository',
+      );
+
+      return posts
+          .map(
+            (post) => PostModel(
+              id: post.id,
+              title: post.title,
+              content: post.content,
+              excerpt: post.excerpt,
+              link: post.link,
+              featuredImageUrl: post.featuredMediaId != null
+                  ? resolvedMedia[post.featuredMediaId] ?? post.featuredImageUrl
+                  : post.featuredImageUrl,
+              date: post.date,
+              categoryName: post.categoryIds.isNotEmpty
+                  ? resolvedCategories[post.categoryIds.first] ??
+                      post.categoryName
+                  : post.categoryName,
+              categoryIds: post.categoryIds,
+              featuredMediaId: post.featuredMediaId,
+              authorId: post.authorId,
+              authorName: post.authorId != null
+                  ? resolvedUsers[post.authorId] ?? post.authorName
+                  : post.authorName,
+            ),
+          )
+          .toList();
+    } catch (e, stackTrace) {
+      DebugLogger.logError(
+        'Error enriching posts',
+        error: e,
+        stackTrace: stackTrace,
+        tag: 'WordPressRepository',
+      );
+      // Return posts without enrichment if enrichment fails
+      return posts;
     }
-
-    final Map<int, String> resolvedMedia = {};
-    final Map<int, String> resolvedCategories = {};
-    final Map<int, String> resolvedUsers = {};
-
-    if (mediaIds.isNotEmpty) {
-      resolvedMedia.addAll(await remoteDataSource.getMediaByIds(mediaIds));
-    }
-
-    if (categoryIds.isNotEmpty) {
-      resolvedCategories.addAll(
-          await remoteDataSource.getCategoriesByIds(categoryIds));
-    }
-
-    if (authorIds.isNotEmpty) {
-      resolvedUsers.addAll(await remoteDataSource.getUsersByIds(authorIds));
-    }
-
-    return posts
-        .map(
-          (post) => PostModel(
-            id: post.id,
-            title: post.title,
-            content: post.content,
-            excerpt: post.excerpt,
-            link: post.link,
-            featuredImageUrl: post.featuredMediaId != null
-                ? resolvedMedia[post.featuredMediaId] ?? post.featuredImageUrl
-                : post.featuredImageUrl,
-            date: post.date,
-            categoryName: post.categoryIds.isNotEmpty
-                ? resolvedCategories[post.categoryIds.first] ??
-                    post.categoryName
-                : post.categoryName,
-            categoryIds: post.categoryIds,
-            featuredMediaId: post.featuredMediaId,
-            authorId: post.authorId,
-            authorName: post.authorId != null
-                ? resolvedUsers[post.authorId] ?? post.authorName
-                : post.authorName,
-          ),
-        )
-        .toList();
   }
 
   @override
@@ -193,8 +376,18 @@ class WordPressRepositoryImpl implements WordPressRepository {
         authorName: post.authorName,
       );
       await offlineNewsService.savePost(postModel);
+      DebugLogger.log(
+        'Post saved offline: id=${post.id}, title=${post.title}',
+        tag: 'WordPressRepository',
+      );
       return const Right(unit);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      DebugLogger.logError(
+        'Failed to save post offline',
+        error: e,
+        stackTrace: stackTrace,
+        tag: 'WordPressRepository',
+      );
       return Left(CacheFailure('Failed to save post offline: ${e.toString()}'));
     }
   }
@@ -203,8 +396,18 @@ class WordPressRepositoryImpl implements WordPressRepository {
   Future<Either<Failure, Unit>> removePostOffline(int postId) async {
     try {
       await offlineNewsService.removePost(postId);
+      DebugLogger.log(
+        'Post removed from offline: id=$postId',
+        tag: 'WordPressRepository',
+      );
       return const Right(unit);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      DebugLogger.logError(
+        'Failed to remove post from offline',
+        error: e,
+        stackTrace: stackTrace,
+        tag: 'WordPressRepository',
+      );
       return Left(
           CacheFailure('Failed to remove post from offline: ${e.toString()}'));
     }
@@ -214,8 +417,18 @@ class WordPressRepositoryImpl implements WordPressRepository {
   Future<Either<Failure, List<PostEntity>>> getOfflinePosts() async {
     try {
       final posts = await offlineNewsService.getAllPosts();
+      DebugLogger.log(
+        'Retrieved offline posts: count=${posts.length}',
+        tag: 'WordPressRepository',
+      );
       return Right(posts.cast<PostEntity>());
-    } catch (e) {
+    } catch (e, stackTrace) {
+      DebugLogger.logError(
+        'Failed to get offline posts',
+        error: e,
+        stackTrace: stackTrace,
+        tag: 'WordPressRepository',
+      );
       return Left(
           CacheFailure('Failed to get offline posts: ${e.toString()}'));
     }
@@ -224,9 +437,23 @@ class WordPressRepositoryImpl implements WordPressRepository {
   @override
   Future<Either<Failure, bool>> isPostOffline(int postId) async {
     try {
-      final isOffline = await offlineNewsService.isPostOffline(postId);
-      return Right(isOffline);
-    } catch (e) {
+      // Check if post is in offline storage (explicitly saved)
+      final isExplicitlyOffline = await offlineNewsService.isPostOffline(postId);
+      if (isExplicitlyOffline) {
+        return Right(true);
+      }
+      
+      // Check if post is in cache (automatically available offline)
+      // All cached posts are automatically available offline
+      final isCached = await localDataSource.isPostCached(postId);
+      return Right(isCached);
+    } catch (e, stackTrace) {
+      DebugLogger.logError(
+        'Failed to check if post is offline',
+        error: e,
+        stackTrace: stackTrace,
+        tag: 'WordPressRepository',
+      );
       return Left(
           CacheFailure('Failed to check if post is offline: ${e.toString()}'));
     }

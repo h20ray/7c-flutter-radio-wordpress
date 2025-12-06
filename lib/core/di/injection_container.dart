@@ -121,6 +121,16 @@ import '../../features/auth/domain/usecases/refresh_token.dart';
 import '../../features/auth/domain/usecases/auto_login.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
 
+// Settings feature imports
+import '../../features/settings/data/datasources/settings_local_data_source.dart';
+import '../../features/settings/data/repositories/settings_repository_impl.dart';
+import '../../features/settings/domain/repositories/settings_repository.dart';
+import '../../features/settings/domain/usecases/get_offline_news_settings.dart';
+import '../../features/settings/domain/usecases/save_offline_news_settings.dart';
+import '../../features/settings/domain/usecases/get_offline_news_stats.dart';
+import '../../features/settings/domain/usecases/clear_all_offline_posts.dart';
+import '../../features/settings/presentation/bloc/settings_bloc.dart';
+
 final getIt = GetIt.instance;
 
 Future<void> initDependencies() async {
@@ -172,7 +182,8 @@ Future<void> initDependencies() async {
   _initHome();
   _initTamtama();
   _initAuth();
-
+  _initSettings();
+  
   // Initialize network status service
   await getIt<NetworkStatusService>().initialize();
 
@@ -371,6 +382,10 @@ void _initWordPress() {
 
   getIt.registerLazySingleton(() => GetPosts(getIt()));
 
+  // Note: NewsFeedBloc and NewsSearchBloc are registered as lazy singletons
+  // because they manage app-wide news state that should persist across navigation.
+  // This is intentional and correct - they are disposed when the app terminates.
+  // For page-specific state, use BlocProvider with factory registration instead.
   getIt.registerLazySingleton(() => NewsFeedBloc(
         getPosts: getIt(),
         repository: getIt(),
@@ -500,4 +515,55 @@ void _initAuth() {
       fetchListeningStatsFromServer: getIt(),
     ),
   );
+}
+
+void _initSettings() {
+  getIt.registerLazySingleton<SettingsLocalDataSource>(
+    () => SettingsLocalDataSourceImpl(),
+  );
+
+  getIt.registerLazySingleton<SettingsRepository>(
+    () => SettingsRepositoryImpl(
+      localDataSource: getIt(),
+      offlineNewsService: getIt(),
+      wordPressLocalDataSource: getIt(),
+    ),
+  );
+
+  getIt.registerLazySingleton(() => GetOfflineNewsSettings(getIt()));
+  getIt.registerLazySingleton(() => SaveOfflineNewsSettings(getIt()));
+  getIt.registerLazySingleton(() => GetOfflineNewsStats(getIt()));
+  getIt.registerLazySingleton(() => ClearAllOfflinePosts(getIt()));
+
+  getIt.registerLazySingleton(
+    () => SettingsBloc(
+      getOfflineNewsSettings: getIt(),
+      saveOfflineNewsSettings: getIt(),
+      getOfflineNewsStats: getIt(),
+      clearAllOfflinePosts: getIt(),
+    ),
+  );
+  
+  // Initialize offline news service with settings (fire-and-forget, non-blocking)
+  _initializeOfflineNewsServiceFromSettings();
+}
+
+void _initializeOfflineNewsServiceFromSettings() {
+  // Fire and forget - don't block initialization
+  Future.microtask(() async {
+    try {
+      if (getIt.isRegistered<OfflineNewsService>() && getIt.isRegistered<SettingsLocalDataSource>()) {
+        final service = getIt<OfflineNewsService>();
+        final settingsDataSource = getIt<SettingsLocalDataSource>();
+        final settings = await settingsDataSource.getOfflineNewsSettings();
+        service.updateLimits(
+          maxPosts: settings.maxPosts,
+          maxSizeMB: settings.maxSizeMB,
+        );
+      }
+    } catch (e) {
+      // Use defaults if settings can't be loaded - Hive might not be initialized yet
+      // This is fine, settings will be loaded when user opens settings page
+    }
+  });
 }
