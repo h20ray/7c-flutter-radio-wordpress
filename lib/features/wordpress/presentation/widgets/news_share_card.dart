@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../../config/share_config.dart';
 import '../../../../core/widgets/app_network_image.dart';
+import '../../../../core/cache/news_image_cache_manager.dart';
 import '../../domain/entities/post_entity.dart';
 
 class NewsShareCard extends StatelessWidget {
@@ -35,6 +36,7 @@ class NewsShareCard extends StatelessWidget {
               width: width,
               height: height,
               fadeInDuration: Duration.zero,
+              cacheManager: NewsImageCacheManager(),
             ),
 
           // Dark Overlay Gradient

@@ -150,12 +150,10 @@ class AlbumArtService {
         return;
       }
 
-      // Check cache first
       final cacheService = AlbumArtCacheService.instance;
-      final cachedResult = cacheService.getCachedAlbumArtWithSource(artist, title);
+      final cachedResult = await cacheService.getCachedAlbumArtWithSource(artist, title);
       if (cachedResult != null && cachedResult['url'] != null) {
         DebugLogger.log('[AlbumArtService] Using cached album art', tag: 'AlbumArtService');
-        // Show fallback first, then transition to cached album art after minimum duration
         _scheduleSuccessState(
           AlbumArtState.success(
             url: cachedResult['url']!,

@@ -177,10 +177,8 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
         } else if (albumArtState.isFallback && 
                    albumArtState.artist != null && 
                    albumArtState.title != null) {
-          // If we're in fallback state but have artist/title, check cache directly
-          // This handles the case where cached art is scheduled but fallback is shown first
           final cacheService = AlbumArtCacheService.instance;
-          final cachedResult = cacheService.getCachedAlbumArtWithSource(
+          final cachedResult = await cacheService.getCachedAlbumArtWithSource(
             albumArtState.artist!,
             albumArtState.title!,
           );

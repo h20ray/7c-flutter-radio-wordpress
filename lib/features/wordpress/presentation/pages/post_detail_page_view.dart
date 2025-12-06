@@ -15,6 +15,7 @@ import '../../../../config/app_config.dart';
 import '../../../../core/themes/app_color_system.dart';
 import '../../../../core/themes/design_tokens.dart';
 import '../../../../core/widgets/app_network_image.dart';
+import '../../../../core/cache/news_image_cache_manager.dart';
 import '../../../../core/widgets/glass_app_bar_background.dart';
 import '../../domain/entities/post_entity.dart';
 import '../bloc/news_feed_bloc.dart';
@@ -306,6 +307,7 @@ class _PostDetailPageViewState extends State<PostDetailPageView> {
         memCacheWidth: 800,
         memCacheHeight: 450,
         fadeInDuration: Duration.zero,
+        cacheManager: NewsImageCacheManager(),
         placeholder: (context, url) => Container(
           color: Theme.of(context).colorScheme.surfaceContainerHighest,
         ),

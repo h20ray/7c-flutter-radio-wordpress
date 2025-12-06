@@ -55,8 +55,7 @@ class AlbumArtRepositoryImpl implements AlbumArtRepository {
     int albumArtSource,
     String streamUrl,
   ) async {
-    // Check cache first
-    final cachedResult = _cacheService.getCachedAlbumArtWithSource(artist, title);
+    final cachedResult = await _cacheService.getCachedAlbumArtWithSource(artist, title);
     if (cachedResult != null && cachedResult['url'] != null) {
       DebugLogger.log('[AlbumArtRepository] Using cached album art', tag: 'AlbumArtRepository');
       return cachedResult['url'];

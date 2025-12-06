@@ -20,4 +20,8 @@ abstract class WordPressRepository {
     int page = 1,
     String? search,
   });
+  Future<Either<Failure, Unit>> savePostOffline(PostEntity post);
+  Future<Either<Failure, Unit>> removePostOffline(int postId);
+  Future<Either<Failure, List<PostEntity>>> getOfflinePosts();
+  Future<Either<Failure, bool>> isPostOffline(int postId);
 }

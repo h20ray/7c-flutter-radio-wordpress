@@ -55,13 +55,16 @@ extension NewsFeedEventPatterns on NewsFeedEvent {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( GetPostsEvent value)?  getPosts,TResult Function( LoadMorePostsEvent value)?  loadMorePosts,TResult Function( LoadCachedDataEvent value)?  loadCachedData,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( GetPostsEvent value)?  getPosts,TResult Function( LoadMorePostsEvent value)?  loadMorePosts,TResult Function( LoadCachedDataEvent value)?  loadCachedData,TResult Function( SavePostOfflineEvent value)?  savePostOffline,TResult Function( RemovePostOfflineEvent value)?  removePostOffline,TResult Function( CheckPostOfflineStatusEvent value)?  checkPostOfflineStatus,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case GetPostsEvent() when getPosts != null:
 return getPosts(_that);case LoadMorePostsEvent() when loadMorePosts != null:
 return loadMorePosts(_that);case LoadCachedDataEvent() when loadCachedData != null:
-return loadCachedData(_that);case _:
+return loadCachedData(_that);case SavePostOfflineEvent() when savePostOffline != null:
+return savePostOffline(_that);case RemovePostOfflineEvent() when removePostOffline != null:
+return removePostOffline(_that);case CheckPostOfflineStatusEvent() when checkPostOfflineStatus != null:
+return checkPostOfflineStatus(_that);case _:
   return orElse();
 
 }
@@ -79,13 +82,16 @@ return loadCachedData(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( GetPostsEvent value)  getPosts,required TResult Function( LoadMorePostsEvent value)  loadMorePosts,required TResult Function( LoadCachedDataEvent value)  loadCachedData,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( GetPostsEvent value)  getPosts,required TResult Function( LoadMorePostsEvent value)  loadMorePosts,required TResult Function( LoadCachedDataEvent value)  loadCachedData,required TResult Function( SavePostOfflineEvent value)  savePostOffline,required TResult Function( RemovePostOfflineEvent value)  removePostOffline,required TResult Function( CheckPostOfflineStatusEvent value)  checkPostOfflineStatus,}){
 final _that = this;
 switch (_that) {
 case GetPostsEvent():
 return getPosts(_that);case LoadMorePostsEvent():
 return loadMorePosts(_that);case LoadCachedDataEvent():
-return loadCachedData(_that);case _:
+return loadCachedData(_that);case SavePostOfflineEvent():
+return savePostOffline(_that);case RemovePostOfflineEvent():
+return removePostOffline(_that);case CheckPostOfflineStatusEvent():
+return checkPostOfflineStatus(_that);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -102,13 +108,16 @@ return loadCachedData(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( GetPostsEvent value)?  getPosts,TResult? Function( LoadMorePostsEvent value)?  loadMorePosts,TResult? Function( LoadCachedDataEvent value)?  loadCachedData,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( GetPostsEvent value)?  getPosts,TResult? Function( LoadMorePostsEvent value)?  loadMorePosts,TResult? Function( LoadCachedDataEvent value)?  loadCachedData,TResult? Function( SavePostOfflineEvent value)?  savePostOffline,TResult? Function( RemovePostOfflineEvent value)?  removePostOffline,TResult? Function( CheckPostOfflineStatusEvent value)?  checkPostOfflineStatus,}){
 final _that = this;
 switch (_that) {
 case GetPostsEvent() when getPosts != null:
 return getPosts(_that);case LoadMorePostsEvent() when loadMorePosts != null:
 return loadMorePosts(_that);case LoadCachedDataEvent() when loadCachedData != null:
-return loadCachedData(_that);case _:
+return loadCachedData(_that);case SavePostOfflineEvent() when savePostOffline != null:
+return savePostOffline(_that);case RemovePostOfflineEvent() when removePostOffline != null:
+return removePostOffline(_that);case CheckPostOfflineStatusEvent() when checkPostOfflineStatus != null:
+return checkPostOfflineStatus(_that);case _:
   return null;
 
 }
@@ -125,12 +134,15 @@ return loadCachedData(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( bool forceRefresh,  int? categoryId,  bool useNewsPageLimit)?  getPosts,TResult Function( int? categoryId)?  loadMorePosts,TResult Function()?  loadCachedData,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( bool forceRefresh,  int? categoryId,  bool useNewsPageLimit)?  getPosts,TResult Function( int? categoryId)?  loadMorePosts,TResult Function()?  loadCachedData,TResult Function( PostEntity post)?  savePostOffline,TResult Function( int postId)?  removePostOffline,TResult Function( int postId)?  checkPostOfflineStatus,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case GetPostsEvent() when getPosts != null:
 return getPosts(_that.forceRefresh,_that.categoryId,_that.useNewsPageLimit);case LoadMorePostsEvent() when loadMorePosts != null:
 return loadMorePosts(_that.categoryId);case LoadCachedDataEvent() when loadCachedData != null:
-return loadCachedData();case _:
+return loadCachedData();case SavePostOfflineEvent() when savePostOffline != null:
+return savePostOffline(_that.post);case RemovePostOfflineEvent() when removePostOffline != null:
+return removePostOffline(_that.postId);case CheckPostOfflineStatusEvent() when checkPostOfflineStatus != null:
+return checkPostOfflineStatus(_that.postId);case _:
   return orElse();
 
 }
@@ -148,12 +160,15 @@ return loadCachedData();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( bool forceRefresh,  int? categoryId,  bool useNewsPageLimit)  getPosts,required TResult Function( int? categoryId)  loadMorePosts,required TResult Function()  loadCachedData,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( bool forceRefresh,  int? categoryId,  bool useNewsPageLimit)  getPosts,required TResult Function( int? categoryId)  loadMorePosts,required TResult Function()  loadCachedData,required TResult Function( PostEntity post)  savePostOffline,required TResult Function( int postId)  removePostOffline,required TResult Function( int postId)  checkPostOfflineStatus,}) {final _that = this;
 switch (_that) {
 case GetPostsEvent():
 return getPosts(_that.forceRefresh,_that.categoryId,_that.useNewsPageLimit);case LoadMorePostsEvent():
 return loadMorePosts(_that.categoryId);case LoadCachedDataEvent():
-return loadCachedData();case _:
+return loadCachedData();case SavePostOfflineEvent():
+return savePostOffline(_that.post);case RemovePostOfflineEvent():
+return removePostOffline(_that.postId);case CheckPostOfflineStatusEvent():
+return checkPostOfflineStatus(_that.postId);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -170,12 +185,15 @@ return loadCachedData();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( bool forceRefresh,  int? categoryId,  bool useNewsPageLimit)?  getPosts,TResult? Function( int? categoryId)?  loadMorePosts,TResult? Function()?  loadCachedData,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( bool forceRefresh,  int? categoryId,  bool useNewsPageLimit)?  getPosts,TResult? Function( int? categoryId)?  loadMorePosts,TResult? Function()?  loadCachedData,TResult? Function( PostEntity post)?  savePostOffline,TResult? Function( int postId)?  removePostOffline,TResult? Function( int postId)?  checkPostOfflineStatus,}) {final _that = this;
 switch (_that) {
 case GetPostsEvent() when getPosts != null:
 return getPosts(_that.forceRefresh,_that.categoryId,_that.useNewsPageLimit);case LoadMorePostsEvent() when loadMorePosts != null:
 return loadMorePosts(_that.categoryId);case LoadCachedDataEvent() when loadCachedData != null:
-return loadCachedData();case _:
+return loadCachedData();case SavePostOfflineEvent() when savePostOffline != null:
+return savePostOffline(_that.post);case RemovePostOfflineEvent() when removePostOffline != null:
+return removePostOffline(_that.postId);case CheckPostOfflineStatusEvent() when checkPostOfflineStatus != null:
+return checkPostOfflineStatus(_that.postId);case _:
   return null;
 
 }
@@ -350,6 +368,204 @@ String toString() {
 
 
 
+
+/// @nodoc
+
+
+class SavePostOfflineEvent implements NewsFeedEvent {
+  const SavePostOfflineEvent(this.post);
+  
+
+ final  PostEntity post;
+
+/// Create a copy of NewsFeedEvent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SavePostOfflineEventCopyWith<SavePostOfflineEvent> get copyWith => _$SavePostOfflineEventCopyWithImpl<SavePostOfflineEvent>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SavePostOfflineEvent&&(identical(other.post, post) || other.post == post));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,post);
+
+@override
+String toString() {
+  return 'NewsFeedEvent.savePostOffline(post: $post)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SavePostOfflineEventCopyWith<$Res> implements $NewsFeedEventCopyWith<$Res> {
+  factory $SavePostOfflineEventCopyWith(SavePostOfflineEvent value, $Res Function(SavePostOfflineEvent) _then) = _$SavePostOfflineEventCopyWithImpl;
+@useResult
+$Res call({
+ PostEntity post
+});
+
+
+
+
+}
+/// @nodoc
+class _$SavePostOfflineEventCopyWithImpl<$Res>
+    implements $SavePostOfflineEventCopyWith<$Res> {
+  _$SavePostOfflineEventCopyWithImpl(this._self, this._then);
+
+  final SavePostOfflineEvent _self;
+  final $Res Function(SavePostOfflineEvent) _then;
+
+/// Create a copy of NewsFeedEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? post = null,}) {
+  return _then(SavePostOfflineEvent(
+null == post ? _self.post : post // ignore: cast_nullable_to_non_nullable
+as PostEntity,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class RemovePostOfflineEvent implements NewsFeedEvent {
+  const RemovePostOfflineEvent(this.postId);
+  
+
+ final  int postId;
+
+/// Create a copy of NewsFeedEvent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$RemovePostOfflineEventCopyWith<RemovePostOfflineEvent> get copyWith => _$RemovePostOfflineEventCopyWithImpl<RemovePostOfflineEvent>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RemovePostOfflineEvent&&(identical(other.postId, postId) || other.postId == postId));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,postId);
+
+@override
+String toString() {
+  return 'NewsFeedEvent.removePostOffline(postId: $postId)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $RemovePostOfflineEventCopyWith<$Res> implements $NewsFeedEventCopyWith<$Res> {
+  factory $RemovePostOfflineEventCopyWith(RemovePostOfflineEvent value, $Res Function(RemovePostOfflineEvent) _then) = _$RemovePostOfflineEventCopyWithImpl;
+@useResult
+$Res call({
+ int postId
+});
+
+
+
+
+}
+/// @nodoc
+class _$RemovePostOfflineEventCopyWithImpl<$Res>
+    implements $RemovePostOfflineEventCopyWith<$Res> {
+  _$RemovePostOfflineEventCopyWithImpl(this._self, this._then);
+
+  final RemovePostOfflineEvent _self;
+  final $Res Function(RemovePostOfflineEvent) _then;
+
+/// Create a copy of NewsFeedEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? postId = null,}) {
+  return _then(RemovePostOfflineEvent(
+null == postId ? _self.postId : postId // ignore: cast_nullable_to_non_nullable
+as int,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class CheckPostOfflineStatusEvent implements NewsFeedEvent {
+  const CheckPostOfflineStatusEvent(this.postId);
+  
+
+ final  int postId;
+
+/// Create a copy of NewsFeedEvent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$CheckPostOfflineStatusEventCopyWith<CheckPostOfflineStatusEvent> get copyWith => _$CheckPostOfflineStatusEventCopyWithImpl<CheckPostOfflineStatusEvent>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CheckPostOfflineStatusEvent&&(identical(other.postId, postId) || other.postId == postId));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,postId);
+
+@override
+String toString() {
+  return 'NewsFeedEvent.checkPostOfflineStatus(postId: $postId)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $CheckPostOfflineStatusEventCopyWith<$Res> implements $NewsFeedEventCopyWith<$Res> {
+  factory $CheckPostOfflineStatusEventCopyWith(CheckPostOfflineStatusEvent value, $Res Function(CheckPostOfflineStatusEvent) _then) = _$CheckPostOfflineStatusEventCopyWithImpl;
+@useResult
+$Res call({
+ int postId
+});
+
+
+
+
+}
+/// @nodoc
+class _$CheckPostOfflineStatusEventCopyWithImpl<$Res>
+    implements $CheckPostOfflineStatusEventCopyWith<$Res> {
+  _$CheckPostOfflineStatusEventCopyWithImpl(this._self, this._then);
+
+  final CheckPostOfflineStatusEvent _self;
+  final $Res Function(CheckPostOfflineStatusEvent) _then;
+
+/// Create a copy of NewsFeedEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? postId = null,}) {
+  return _then(CheckPostOfflineStatusEvent(
+null == postId ? _self.postId : postId // ignore: cast_nullable_to_non_nullable
+as int,
+  ));
+}
+
+
+}
 
 /// @nodoc
 mixin _$NewsFeedState {

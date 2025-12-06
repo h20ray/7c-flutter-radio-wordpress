@@ -22,9 +22,11 @@ final RouteObserver<ModalRoute<void>> routeObserver = RouteObserver<ModalRoute<v
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
+  PaintingBinding.instance.imageCache.maximumSize = 100;
+  PaintingBinding.instance.imageCache.maximumSizeBytes = 50 * 1024 * 1024;
+  
   await EasyLocalization.ensureInitialized();
   
-  // Initialize dependencies before running the app
   await initDependencies();
   
   final savedThemeMode = await AdaptiveTheme.getThemeMode();

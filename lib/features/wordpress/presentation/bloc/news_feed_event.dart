@@ -13,4 +13,10 @@ class NewsFeedEvent with _$NewsFeedEvent {
   }) = LoadMorePostsEvent;
   
   const factory NewsFeedEvent.loadCachedData() = LoadCachedDataEvent;
+  
+  const factory NewsFeedEvent.savePostOffline(PostEntity post) = SavePostOfflineEvent;
+  
+  const factory NewsFeedEvent.removePostOffline(int postId) = RemovePostOfflineEvent;
+  
+  const factory NewsFeedEvent.checkPostOfflineStatus(int postId) = CheckPostOfflineStatusEvent;
 }

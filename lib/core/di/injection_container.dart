@@ -60,6 +60,8 @@ import '../../features/shoutbox/presentation/bloc/shoutbox_bloc.dart';
 // WordPress feature imports
 import '../../features/wordpress/data/datasources/wordpress_remote_datasource.dart';
 import '../../features/wordpress/data/datasources/wordpress_local_data_source.dart';
+import '../../features/wordpress/data/datasources/offline_news_local_data_source.dart';
+import '../../features/wordpress/data/services/offline_news_service.dart';
 import '../../features/wordpress/data/repositories/wordpress_repository_impl.dart';
 import '../../features/wordpress/domain/repositories/wordpress_repository.dart';
 import '../../features/wordpress/domain/usecases/get_posts.dart';
@@ -351,16 +353,28 @@ void _initWordPress() {
     () => WordPressLocalDataSourceImpl(),
   );
 
+  getIt.registerLazySingleton<OfflineNewsLocalDataSource>(
+    () => OfflineNewsLocalDataSourceImpl(),
+  );
+
+  getIt.registerLazySingleton<OfflineNewsService>(
+    () => OfflineNewsService(localDataSource: getIt()),
+  );
+
   getIt.registerLazySingleton<WordPressRepository>(
     () => WordPressRepositoryImpl(
       remoteDataSource: getIt(),
       localDataSource: getIt(),
+      offlineNewsService: getIt(),
     ),
   );
 
   getIt.registerLazySingleton(() => GetPosts(getIt()));
 
-  getIt.registerLazySingleton(() => NewsFeedBloc(getPosts: getIt()));
+  getIt.registerLazySingleton(() => NewsFeedBloc(
+        getPosts: getIt(),
+        repository: getIt(),
+      ));
   getIt.registerLazySingleton(() => NewsSearchBloc(getPosts: getIt()));
 }
 

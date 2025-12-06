@@ -3,6 +3,8 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import '../models/album_art_state.dart';
 import '../../features/radio/data/services/album_art_service.dart';
 import '../../config/radio_config.dart';
+import '../cache/album_art_image_cache_manager.dart';
+import 'app_network_image.dart';
 
 /// Shape options for album art display
 enum AlbumArtShape {
@@ -83,6 +85,11 @@ class AlbumArtWidget extends StatefulWidget {
 
 class _AlbumArtWidgetState extends State<AlbumArtWidget> {
   @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: widget.width,
@@ -133,21 +140,15 @@ class _AlbumArtWidgetState extends State<AlbumArtWidget> {
       key: ValueKey('network_$url'),
       decoration: _getShapeDecoration(),
       clipBehavior: Clip.antiAlias,
-      child: Image.network(
-        url,
+      child: AppNetworkImage(
+        imageUrl: url,
         width: widget.width,
         height: widget.height,
         fit: widget.fit,
         filterQuality: widget.filterQuality,
-        loadingBuilder: (context, child, loadingProgress) {
-          if (loadingProgress == null) {
-            return child;
-          }
-          return _buildFallbackImage();
-        },
-        errorBuilder: (context, error, stackTrace) {
-          return _buildFallbackImage();
-        },
+        cacheManager: AlbumArtImageCacheManager(),
+        placeholder: (context, url) => _buildFallbackImage(),
+        errorWidget: (context, url, error) => _buildFallbackImage(),
       ),
     );
   }

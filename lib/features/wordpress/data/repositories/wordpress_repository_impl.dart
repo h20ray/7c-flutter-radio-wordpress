@@ -6,19 +6,18 @@ import '../../domain/entities/post_entity.dart';
 import '../../domain/repositories/wordpress_repository.dart';
 import '../datasources/wordpress_remote_datasource.dart';
 import '../datasources/wordpress_local_data_source.dart';
+import '../services/offline_news_service.dart';
 import '../models/post_model.dart';
 
 class WordPressRepositoryImpl implements WordPressRepository {
   final WordPressRemoteDataSource remoteDataSource;
   final WordPressLocalDataSource localDataSource;
-
-  final Map<int, String> _mediaUrlCache = {};
-  final Map<int, String> _categoryNameCache = {};
-  final Map<int, String> _authorNameCache = {};
+  final OfflineNewsService offlineNewsService;
 
   WordPressRepositoryImpl({
     required this.remoteDataSource,
     required this.localDataSource,
+    required this.offlineNewsService,
   });
 
   @override
@@ -121,37 +120,34 @@ class WordPressRepositoryImpl implements WordPressRepository {
     final authorIds = <int>[];
 
     for (final post in posts) {
-      if (post.featuredMediaId != null &&
-          post.featuredMediaId! > 0 &&
-          !_mediaUrlCache.containsKey(post.featuredMediaId)) {
+      if (post.featuredMediaId != null && post.featuredMediaId! > 0) {
         mediaIds.add(post.featuredMediaId!);
       }
       for (final id in post.categoryIds) {
-        if (id > 0 && !_categoryNameCache.containsKey(id)) {
+        if (id > 0) {
           categoryIds.add(id);
         }
       }
-      if (post.authorId != null &&
-          post.authorId! > 0 &&
-          !_authorNameCache.containsKey(post.authorId)) {
+      if (post.authorId != null && post.authorId! > 0) {
         authorIds.add(post.authorId!);
       }
     }
 
+    final Map<int, String> resolvedMedia = {};
+    final Map<int, String> resolvedCategories = {};
+    final Map<int, String> resolvedUsers = {};
+
     if (mediaIds.isNotEmpty) {
-      final resolvedMedia = await remoteDataSource.getMediaByIds(mediaIds);
-      _mediaUrlCache.addAll(resolvedMedia);
+      resolvedMedia.addAll(await remoteDataSource.getMediaByIds(mediaIds));
     }
 
     if (categoryIds.isNotEmpty) {
-      final resolvedCategories =
-          await remoteDataSource.getCategoriesByIds(categoryIds);
-      _categoryNameCache.addAll(resolvedCategories);
+      resolvedCategories.addAll(
+          await remoteDataSource.getCategoriesByIds(categoryIds));
     }
 
     if (authorIds.isNotEmpty) {
-      final resolvedUsers = await remoteDataSource.getUsersByIds(authorIds);
-      _authorNameCache.addAll(resolvedUsers);
+      resolvedUsers.addAll(await remoteDataSource.getUsersByIds(authorIds));
     }
 
     return posts
@@ -163,21 +159,76 @@ class WordPressRepositoryImpl implements WordPressRepository {
             excerpt: post.excerpt,
             link: post.link,
             featuredImageUrl: post.featuredMediaId != null
-                ? _mediaUrlCache[post.featuredMediaId] ?? post.featuredImageUrl
+                ? resolvedMedia[post.featuredMediaId] ?? post.featuredImageUrl
                 : post.featuredImageUrl,
             date: post.date,
             categoryName: post.categoryIds.isNotEmpty
-                ? _categoryNameCache[post.categoryIds.first] ??
+                ? resolvedCategories[post.categoryIds.first] ??
                     post.categoryName
                 : post.categoryName,
             categoryIds: post.categoryIds,
             featuredMediaId: post.featuredMediaId,
             authorId: post.authorId,
             authorName: post.authorId != null
-                ? _authorNameCache[post.authorId] ?? post.authorName
+                ? resolvedUsers[post.authorId] ?? post.authorName
                 : post.authorName,
           ),
         )
         .toList();
+  }
+
+  @override
+  Future<Either<Failure, Unit>> savePostOffline(PostEntity post) async {
+    try {
+      final postModel = PostModel(
+        id: post.id,
+        title: post.title,
+        content: post.content,
+        excerpt: post.excerpt,
+        link: post.link,
+        featuredImageUrl: post.featuredImageUrl,
+        date: post.date,
+        categoryName: post.categoryName,
+        categoryIds: post.categoryIds,
+        authorName: post.authorName,
+      );
+      await offlineNewsService.savePost(postModel);
+      return const Right(unit);
+    } catch (e) {
+      return Left(CacheFailure('Failed to save post offline: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> removePostOffline(int postId) async {
+    try {
+      await offlineNewsService.removePost(postId);
+      return const Right(unit);
+    } catch (e) {
+      return Left(
+          CacheFailure('Failed to remove post from offline: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<PostEntity>>> getOfflinePosts() async {
+    try {
+      final posts = await offlineNewsService.getAllPosts();
+      return Right(posts.cast<PostEntity>());
+    } catch (e) {
+      return Left(
+          CacheFailure('Failed to get offline posts: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> isPostOffline(int postId) async {
+    try {
+      final isOffline = await offlineNewsService.isPostOffline(postId);
+      return Right(isOffline);
+    } catch (e) {
+      return Left(
+          CacheFailure('Failed to check if post is offline: ${e.toString()}'));
+    }
   }
 }

@@ -6,6 +6,7 @@ import '../../../../core/error/failures.dart';
 import '../../../../core/cache/cache_strategy.dart';
 import '../../domain/entities/post_entity.dart';
 import '../../domain/usecases/get_posts.dart';
+import '../../domain/repositories/wordpress_repository.dart';
 
 part 'news_feed_event.dart';
 part 'news_feed_state.dart';
@@ -13,12 +14,19 @@ part 'news_feed_bloc.freezed.dart';
 
 class NewsFeedBloc extends Bloc<NewsFeedEvent, NewsFeedState> {
   final GetPosts getPosts;
+  final WordPressRepository repository;
   bool _hasLoadedCache = false;
 
-  NewsFeedBloc({required this.getPosts}) : super(const NewsFeedState.initial()) {
+  NewsFeedBloc({
+    required this.getPosts,
+    required this.repository,
+  }) : super(const NewsFeedState.initial()) {
     on<GetPostsEvent>(_onGetPosts);
     on<LoadMorePostsEvent>(_onLoadMorePosts);
     on<LoadCachedDataEvent>(_onLoadCachedData);
+    on<SavePostOfflineEvent>(_onSavePostOffline);
+    on<RemovePostOfflineEvent>(_onRemovePostOffline);
+    on<CheckPostOfflineStatusEvent>(_onCheckPostOfflineStatus);
   }
 
   Future<void> _onLoadCachedData(
@@ -388,6 +396,51 @@ class NewsFeedBloc extends Bloc<NewsFeedEvent, NewsFeedState> {
         // Or we show snackbar?
         // For now, just stop loading.
         emit(latestState.copyWith(isLoadingByCategory: latestLoading));
+      },
+    );
+  }
+
+  Future<void> _onSavePostOffline(
+    SavePostOfflineEvent event,
+    Emitter<NewsFeedState> emit,
+  ) async {
+    final result = await repository.savePostOffline(event.post);
+    result.fold(
+      (failure) {
+        // Error saving - could emit error state or show snackbar
+      },
+      (_) {
+        // Success - post saved offline
+      },
+    );
+  }
+
+  Future<void> _onRemovePostOffline(
+    RemovePostOfflineEvent event,
+    Emitter<NewsFeedState> emit,
+  ) async {
+    final result = await repository.removePostOffline(event.postId);
+    result.fold(
+      (failure) {
+        // Error removing - could emit error state or show snackbar
+      },
+      (_) {
+        // Success - post removed from offline
+      },
+    );
+  }
+
+  Future<void> _onCheckPostOfflineStatus(
+    CheckPostOfflineStatusEvent event,
+    Emitter<NewsFeedState> emit,
+  ) async {
+    final result = await repository.isPostOffline(event.postId);
+    result.fold(
+      (failure) {
+        // Error checking status
+      },
+      (isOffline) {
+        // Post offline status checked - could update UI state if needed
       },
     );
   }

@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'avif_cached_image_provider.dart';
 
 class AppNetworkImage extends StatelessWidget {
@@ -14,6 +15,7 @@ class AppNetworkImage extends StatelessWidget {
   final int? memCacheHeight;
   final FilterQuality filterQuality;
   final Duration? fadeInDuration;
+  final BaseCacheManager? cacheManager;
 
   const AppNetworkImage({
     super.key,
@@ -28,6 +30,7 @@ class AppNetworkImage extends StatelessWidget {
     this.memCacheHeight,
     this.filterQuality = FilterQuality.low,
     this.fadeInDuration,
+    this.cacheManager,
   });
 
   @override
@@ -68,6 +71,7 @@ class AppNetworkImage extends StatelessWidget {
       fadeOutDuration: Duration.zero,
       useOldImageOnUrlChange: true,
       cacheKey: imageUrl,
+      cacheManager: cacheManager,
     );
   }
 

@@ -1,4 +1,5 @@
 import '../../../../core/widgets/app_network_image.dart';
+import '../../../../core/cache/news_image_cache_manager.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/themes/app_color_system.dart';
@@ -36,6 +37,7 @@ class NewsPostImage extends StatelessWidget {
               memCacheWidth: 800,
               memCacheHeight: 450,
               fadeInDuration: Duration.zero,
+              cacheManager: NewsImageCacheManager(),
               placeholder: (context, url) => Container(
                 color: skeletonColor,
               ),

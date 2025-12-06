@@ -12,11 +12,13 @@ import 'news_post_image.dart';
 class NewsCard extends StatelessWidget {
   final PostEntity post;
   final bool compact;
+  final bool isOffline;
 
   const NewsCard({
     super.key,
     required this.post,
     this.compact = false,
+    this.isOffline = false,
   });
 
   @override
@@ -56,11 +58,32 @@ class NewsCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (hasImage)
-                  RepaintBoundary(
-                    child: NewsPostImage(
-                      imageUrl: post.featuredImageUrl!,
-                      semanticLabel: post.title,
-                    ),
+                  Stack(
+                    children: [
+                      RepaintBoundary(
+                        child: NewsPostImage(
+                          imageUrl: post.featuredImageUrl!,
+                          semanticLabel: post.title,
+                        ),
+                      ),
+                      if (isOffline)
+                        Positioned(
+                          top: DesignTokens.spacingS,
+                          right: DesignTokens.spacingS,
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.6),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              Icons.offline_pin,
+                              color: Colors.white,
+                              size: 16,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
             Padding(
               padding: EdgeInsets.all(DesignTokens.spacingM),
@@ -72,6 +95,7 @@ class NewsCard extends StatelessWidget {
                     compact: compact,
                     colors: colors,
                     chipTokens: chipTokens,
+                    isOffline: isOffline,
                   ),
                   SizedBox(height: DesignTokens.spacingS),
                   Text(
@@ -102,12 +126,14 @@ class _NewsMetadataRow extends StatelessWidget {
   final bool compact;
   final AppSemanticColors colors;
   final NewsFilterChipTokens chipTokens;
+  final bool isOffline;
 
   const _NewsMetadataRow({
     required this.post,
     required this.compact,
     required this.colors,
     required this.chipTokens,
+    this.isOffline = false,
   });
 
   @override
@@ -127,6 +153,37 @@ class _NewsMetadataRow extends StatelessWidget {
           _NewsPillChip(
             text: _formatNewsDate(post.date!, context),
             colors: colors,
+          ),
+        if (isOffline)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            decoration: BoxDecoration(
+              color: colors.gradientStart.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: colors.gradientStart.withValues(alpha: 0.5),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.offline_pin,
+                  size: 12,
+                  color: colors.gradientStart,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  'Offline',
+                  style: TextStyle(
+                    fontSize: DesignTokens.fontSizeLabelSmall,
+                    fontWeight: DesignTokens.fontWeightLabelSmall,
+                    color: colors.gradientStart,
+                  ),
+                ),
+              ],
+            ),
           ),
       ],
     );

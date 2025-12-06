@@ -8,6 +8,7 @@ import '../../../../core/themes/app_color_system.dart';
 import '../../../../core/themes/component_tokens.dart';
 import '../../../../core/themes/design_tokens.dart';
 import '../../../../core/widgets/app_network_image.dart';
+import '../../../../core/cache/news_image_cache_manager.dart';
 import '../../../../core/widgets/haptic_widgets.dart';
 import '../../../../core/widgets/home_news_card_skeleton.dart';
 import '../../../categories/domain/entities/category_entity.dart';
@@ -531,6 +532,7 @@ class _HomeNewsListSectionState extends State<HomeNewsListSection> {
                               memCacheWidth: 216,
                               memCacheHeight: 216,
                               fadeInDuration: Duration.zero,
+                              cacheManager: NewsImageCacheManager(),
                               placeholder: (context, url) => Container(
                                 color: colors.borderSubtle,
                               ),

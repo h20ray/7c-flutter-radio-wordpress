@@ -23,6 +23,7 @@ abstract class WordPressLocalDataSource {
 
 class WordPressLocalDataSourceImpl implements WordPressLocalDataSource {
   static const _boxName = 'wordpress_posts_box';
+  static const int _maxCachedQueries = 50;
   
   String _getPostsKey({int? categoryId, int page = 1, String? search}) {
     final categoryPart = categoryId == null ? 'all' : 'cat_$categoryId';
@@ -36,6 +37,43 @@ class WordPressLocalDataSourceImpl implements WordPressLocalDataSource {
     final searchPart = search != null && search.isNotEmpty ? '_search_${search.hashCode}' : '';
     final pagePart = page > 1 ? '_page_$page' : '';
     return 'timestamp_$categoryPart$searchPart$pagePart';
+  }
+  
+  Future<void> _cleanupOldCache(Box box) async {
+    try {
+      final allKeys = box.keys.toList();
+      final timestampKeys = allKeys
+          .where((key) => key.toString().startsWith('timestamp_'))
+          .toList();
+      
+      if (timestampKeys.length <= _maxCachedQueries) {
+        return;
+      }
+      
+      final timestamps = <String, int>{};
+      for (final key in timestampKeys) {
+        final timestamp = box.get(key) as int?;
+        if (timestamp != null) {
+          timestamps[key.toString()] = timestamp;
+        }
+      }
+      
+      final sortedKeys = timestamps.entries.toList()
+        ..sort((a, b) => a.value.compareTo(b.value));
+      
+      final keysToRemove = sortedKeys
+          .take(timestampKeys.length - _maxCachedQueries)
+          .map((e) => e.key)
+          .toList();
+      
+      for (final timestampKey in keysToRemove) {
+        final postsKey = timestampKey.replaceFirst('timestamp_', 'posts_');
+        await box.delete(timestampKey);
+        await box.delete(postsKey);
+      }
+    } catch (e) {
+      // Silently fail cleanup
+    }
   }
 
   Future<Box> _openBox() async {
@@ -92,6 +130,7 @@ class WordPressLocalDataSourceImpl implements WordPressLocalDataSource {
   }) async {
     try {
       final box = await _openBox();
+      await _cleanupOldCache(box);
       final postsKey = _getPostsKey(categoryId: categoryId, page: page, search: search);
       final timestampKey = _getTimestampKey(categoryId: categoryId, page: page, search: search);
       final postsJson = posts.map((post) => post.toJson()).toList();
