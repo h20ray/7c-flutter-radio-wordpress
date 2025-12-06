@@ -63,9 +63,12 @@ class NewsFeedBloc extends Bloc<NewsFeedEvent, NewsFeedState> {
       return;
     }
 
-    // Update loading state
-    isLoadingByCategory[categoryId] = true;
-    errorsByCategory[categoryId] = null;
+    // Update loading state - create new map instances for immutability
+    final newIsLoadingByCategory = Map<int?, bool>.from(isLoadingByCategory);
+    newIsLoadingByCategory[categoryId] = true;
+    
+    final newErrorsByCategory = Map<int?, Failure?>.from(errorsByCategory);
+    newErrorsByCategory[categoryId] = null;
     
     // If we are switching categories or initial load, we might want to emit loading/loaded immediately
     if (state is! _Loaded) {
@@ -77,8 +80,8 @@ class NewsFeedBloc extends Bloc<NewsFeedEvent, NewsFeedState> {
         postsByCategory: postsByCategory,
         selectedCategoryId: categoryId,
         hasMoreByCategory: hasMoreByCategory,
-        isLoadingByCategory: isLoadingByCategory,
-        errorsByCategory: errorsByCategory,
+        isLoadingByCategory: newIsLoadingByCategory,
+        errorsByCategory: newErrorsByCategory,
         currentPageByCategory: currentPageByCategory,
       ));
     }
@@ -93,57 +96,159 @@ class NewsFeedBloc extends Bloc<NewsFeedEvent, NewsFeedState> {
     await strategy.execute(
       forceRefresh: event.forceRefresh,
       onCacheHit: (data) async {
-        postsByCategory[categoryId] = data;
-        hasMoreByCategory[categoryId] = data.length >= (event.useNewsPageLimit ? NewsConfig.newsPageListLimit : NewsConfig.homeNewsListLimit);
-        currentPageByCategory[categoryId] = 1;
+        // Get latest state to ensure we're working with current data
+        final latestState = state;
+        List<PostEntity> latestPosts = [];
+        Map<int?, List<PostEntity>> latestPostsByCategory = {};
+        Map<int?, bool> latestHasMoreByCategory = {};
+        Map<int?, bool> latestIsLoadingByCategory = {};
+        Map<int?, Failure?> latestErrorsByCategory = {};
+        Map<int?, int> latestCurrentPageByCategory = {};
+        
+        latestState.maybeWhen(
+          loaded: (p, pbc, sc, hmbc, ilbc, ebc, cpbc) {
+            latestPosts = p;
+            latestPostsByCategory = Map.from(pbc);
+            latestHasMoreByCategory = Map.from(hmbc);
+            latestIsLoadingByCategory = Map.from(ilbc);
+            latestErrorsByCategory = Map.from(ebc);
+            latestCurrentPageByCategory = Map.from(cpbc);
+          },
+          orElse: () {
+            // If state is not loaded, start with empty maps but preserve any existing data
+            latestPostsByCategory = Map.from(postsByCategory);
+            latestHasMoreByCategory = Map.from(hasMoreByCategory);
+            latestIsLoadingByCategory = Map.from(isLoadingByCategory);
+            latestErrorsByCategory = Map.from(errorsByCategory);
+            latestCurrentPageByCategory = Map.from(currentPageByCategory);
+          },
+        );
+        
+        final newPostsByCategory = Map<int?, List<PostEntity>>.from(latestPostsByCategory);
+        newPostsByCategory[categoryId] = data;
+        
+        final newHasMoreByCategory = Map<int?, bool>.from(latestHasMoreByCategory);
+        newHasMoreByCategory[categoryId] = data.length >= (event.useNewsPageLimit ? NewsConfig.newsPageListLimit : NewsConfig.homeNewsListLimit);
+        
+        final newCurrentPageByCategory = Map<int?, int>.from(latestCurrentPageByCategory);
+        newCurrentPageByCategory[categoryId] = 1;
+        
         // Note: We keep isLoading=true because we are still fetching network in background
         // But for UI responsiveness, we might want to show data immediately.
         // The CacheStrategy runs onNetworkSuccess after this.
         
+        // Keep isLoading=true for this category since network is still fetching
+        final newIsLoadingByCategory = Map<int?, bool>.from(latestIsLoadingByCategory);
+        newIsLoadingByCategory[categoryId] = true;
+        
         emit(NewsFeedState.loaded(
-          posts: categoryId == null ? data : currentPosts, // Update main posts if category is null (Home)
-          postsByCategory: postsByCategory,
+          posts: categoryId == null ? data : latestPosts, // Update main posts if category is null (Home)
+          postsByCategory: newPostsByCategory,
           selectedCategoryId: categoryId,
-          hasMoreByCategory: hasMoreByCategory,
-          isLoadingByCategory: isLoadingByCategory,
-          errorsByCategory: errorsByCategory,
-          currentPageByCategory: currentPageByCategory,
+          hasMoreByCategory: newHasMoreByCategory,
+          isLoadingByCategory: newIsLoadingByCategory,
+          errorsByCategory: latestErrorsByCategory,
+          currentPageByCategory: newCurrentPageByCategory,
         ));
       },
       onNetworkSuccess: (data) async {
-        postsByCategory[categoryId] = data;
-        hasMoreByCategory[categoryId] = data.length >= (event.useNewsPageLimit ? NewsConfig.newsPageListLimit : NewsConfig.homeNewsListLimit);
-        currentPageByCategory[categoryId] = 1;
-        isLoadingByCategory[categoryId] = false;
+        // Get latest state to ensure we're working with current data
+        final latestState = state;
+        List<PostEntity> latestPosts = [];
+        Map<int?, List<PostEntity>> latestPostsByCategory = {};
+        Map<int?, bool> latestHasMoreByCategory = {};
+        Map<int?, bool> latestIsLoadingByCategory = {};
+        Map<int?, Failure?> latestErrorsByCategory = {};
+        Map<int?, int> latestCurrentPageByCategory = {};
+        
+        latestState.maybeWhen(
+          loaded: (p, pbc, sc, hmbc, ilbc, ebc, cpbc) {
+            latestPosts = p;
+            latestPostsByCategory = Map.from(pbc);
+            latestHasMoreByCategory = Map.from(hmbc);
+            latestIsLoadingByCategory = Map.from(ilbc);
+            latestErrorsByCategory = Map.from(ebc);
+            latestCurrentPageByCategory = Map.from(cpbc);
+          },
+          orElse: () {
+            latestPostsByCategory = Map.from(postsByCategory);
+            latestHasMoreByCategory = Map.from(hasMoreByCategory);
+            latestIsLoadingByCategory = Map.from(isLoadingByCategory);
+            latestErrorsByCategory = Map.from(errorsByCategory);
+            latestCurrentPageByCategory = Map.from(currentPageByCategory);
+          },
+        );
+        
+        final newPostsByCategory = Map<int?, List<PostEntity>>.from(latestPostsByCategory);
+        newPostsByCategory[categoryId] = data;
+        
+        final newHasMoreByCategory = Map<int?, bool>.from(latestHasMoreByCategory);
+        newHasMoreByCategory[categoryId] = data.length >= (event.useNewsPageLimit ? NewsConfig.newsPageListLimit : NewsConfig.homeNewsListLimit);
+        
+        final newCurrentPageByCategory = Map<int?, int>.from(latestCurrentPageByCategory);
+        newCurrentPageByCategory[categoryId] = 1;
+        
+        final newIsLoadingByCategory = Map<int?, bool>.from(latestIsLoadingByCategory);
+        newIsLoadingByCategory[categoryId] = false;
         
         emit(NewsFeedState.loaded(
-          posts: categoryId == null ? data : currentPosts,
-          postsByCategory: postsByCategory,
+          posts: categoryId == null ? data : latestPosts,
+          postsByCategory: newPostsByCategory,
           selectedCategoryId: categoryId,
-          hasMoreByCategory: hasMoreByCategory,
-          isLoadingByCategory: isLoadingByCategory,
-          errorsByCategory: errorsByCategory,
-          currentPageByCategory: currentPageByCategory,
+          hasMoreByCategory: newHasMoreByCategory,
+          isLoadingByCategory: newIsLoadingByCategory,
+          errorsByCategory: latestErrorsByCategory,
+          currentPageByCategory: newCurrentPageByCategory,
         ));
       },
       onNetworkError: (failure) async {
-        isLoadingByCategory[categoryId] = false;
-        errorsByCategory[categoryId] = failure;
+        // Get latest state to ensure we're working with current data
+        final latestState = state;
+        List<PostEntity> latestPosts = [];
+        Map<int?, List<PostEntity>> latestPostsByCategory = {};
+        Map<int?, bool> latestHasMoreByCategory = {};
+        Map<int?, bool> latestIsLoadingByCategory = {};
+        Map<int?, Failure?> latestErrorsByCategory = {};
+        Map<int?, int> latestCurrentPageByCategory = {};
+        
+        latestState.maybeWhen(
+          loaded: (p, pbc, sc, hmbc, ilbc, ebc, cpbc) {
+            latestPosts = p;
+            latestPostsByCategory = Map.from(pbc);
+            latestHasMoreByCategory = Map.from(hmbc);
+            latestIsLoadingByCategory = Map.from(ilbc);
+            latestErrorsByCategory = Map.from(ebc);
+            latestCurrentPageByCategory = Map.from(cpbc);
+          },
+          orElse: () {
+            latestPostsByCategory = Map.from(postsByCategory);
+            latestHasMoreByCategory = Map.from(hasMoreByCategory);
+            latestIsLoadingByCategory = Map.from(isLoadingByCategory);
+            latestErrorsByCategory = Map.from(errorsByCategory);
+            latestCurrentPageByCategory = Map.from(currentPageByCategory);
+          },
+        );
+        
+        final newIsLoadingByCategory = Map<int?, bool>.from(latestIsLoadingByCategory);
+        newIsLoadingByCategory[categoryId] = false;
+        
+        final newErrorsByCategory = Map<int?, Failure?>.from(latestErrorsByCategory);
+        newErrorsByCategory[categoryId] = failure;
         
         // If we have cached data (postsByCategory has entry), we keep it.
         // If not, we show error.
         
-        if (state is! _Loaded && postsByCategory[categoryId] == null) {
-           emit(NewsFeedState.error(failure: failure, categoryId: categoryId));
+        if (latestState is! _Loaded && latestPostsByCategory[categoryId] == null) {
+          emit(NewsFeedState.error(failure: failure, categoryId: categoryId));
         } else {
            emit(NewsFeedState.loaded(
-            posts: currentPosts,
-            postsByCategory: postsByCategory,
+            posts: latestPosts,
+            postsByCategory: latestPostsByCategory,
             selectedCategoryId: categoryId,
-            hasMoreByCategory: hasMoreByCategory,
-            isLoadingByCategory: isLoadingByCategory,
-            errorsByCategory: errorsByCategory,
-            currentPageByCategory: currentPageByCategory,
+            hasMoreByCategory: latestHasMoreByCategory,
+            isLoadingByCategory: newIsLoadingByCategory,
+            errorsByCategory: newErrorsByCategory,
+            currentPageByCategory: latestCurrentPageByCategory,
           ));
         }
       },

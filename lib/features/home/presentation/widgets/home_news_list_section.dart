@@ -7,7 +7,6 @@ import '../../../../core/routes/app_routes.dart';
 import '../../../../core/themes/app_color_system.dart';
 import '../../../../core/themes/component_tokens.dart';
 import '../../../../core/themes/design_tokens.dart';
-import '../../../../core/utils/debug_logger.dart';
 import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/widgets/haptic_widgets.dart';
 import '../../../../core/widgets/home_news_card_skeleton.dart';
@@ -51,16 +50,10 @@ class _HomeNewsListSectionState extends State<HomeNewsListSection> {
 
   @override
   Widget build(BuildContext context) {
-    final buildStart = DateTime.now();
     WidgetsBinding.instance.addPostFrameCallback((duration) {
       _checkAndTriggerInitialLoad(context);
     });
     final chipTokens = NewsFilterChipTokens.of(context);
-    final buildDuration = DateTime.now().difference(buildStart);
-    DebugLogger.log(
-      'HomeNewsListSection.build took ${buildDuration.inMicroseconds}µs',
-      tag: 'PERF_HOME_NEWS_LIST',
-    );
     return MultiBlocListener(
       listeners: [
         BlocListener<HomeBloc, HomeState>(
@@ -264,6 +257,86 @@ class _HomeNewsListSectionState extends State<HomeNewsListSection> {
               ),
             SizedBox(height: DesignTokens.spacingM),
             BlocBuilder<NewsFeedBloc, NewsFeedState>(
+              buildWhen: (previous, current) {
+                // Get current category from HomeBloc state (what user selected)
+                final homeCategoryId = homeState.maybeWhen(
+                  loaded: (_, _, _, _, _, _, selectedCategoryId) => selectedCategoryId,
+                  orElse: () => null,
+                );
+                
+                // Get selected category from NewsFeedBloc state
+                final prevSelectedCategoryId = previous.maybeWhen(
+                  loaded: (_, _, selectedCategoryId, _, _, _, _) => selectedCategoryId,
+                  orElse: () => null,
+                );
+                
+                final currSelectedCategoryId = current.maybeWhen(
+                  loaded: (_, _, selectedCategoryId, _, _, _, _) => selectedCategoryId,
+                  orElse: () => null,
+                );
+                
+                // Use NewsFeedBloc's selectedCategoryId as the primary category to check
+                // This ensures we're checking the category that NewsFeedBloc is actually working with
+                final categoryToCheck = currSelectedCategoryId ?? homeCategoryId;
+                
+                final prevLoading = previous.maybeWhen(
+                  loaded: (_, _, _, _, isLoadingByCategory, _, _) =>
+                      isLoadingByCategory[categoryToCheck] ?? false,
+                  loading: (categoryId) => categoryId == categoryToCheck,
+                  orElse: () => false,
+                );
+                
+                final currLoading = current.maybeWhen(
+                  loaded: (_, _, _, _, isLoadingByCategory, _, _) =>
+                      isLoadingByCategory[categoryToCheck] ?? false,
+                  loading: (categoryId) => categoryId == categoryToCheck,
+                  orElse: () => false,
+                );
+                
+                final prevPosts = previous.maybeWhen(
+                  loaded: (_, postsByCategory, _, _, _, _, _) =>
+                      postsByCategory[categoryToCheck] ?? [],
+                  orElse: () => <PostEntity>[],
+                );
+                
+                final currPosts = current.maybeWhen(
+                  loaded: (_, postsByCategory, _, _, _, _, _) =>
+                      postsByCategory[categoryToCheck] ?? [],
+                  orElse: () => <PostEntity>[],
+                );
+                
+                final prevError = previous.maybeWhen(
+                  loaded: (_, _, _, _, _, errorsByCategory, _) =>
+                      errorsByCategory[categoryToCheck],
+                  error: (failure, categoryId) => categoryId == categoryToCheck ? failure : null,
+                  orElse: () => null,
+                );
+                
+                final currError = current.maybeWhen(
+                  loaded: (_, _, _, _, _, errorsByCategory, _) =>
+                      errorsByCategory[categoryToCheck],
+                  error: (failure, categoryId) => categoryId == categoryToCheck ? failure : null,
+                  orElse: () => null,
+                );
+                
+                final selectedCategoryChanged = prevSelectedCategoryId != currSelectedCategoryId;
+                final loadingChanged = prevLoading != currLoading;
+                // Check if posts changed - also check if category appeared in map (prev empty, curr not empty)
+                final postsChanged = prevPosts.length != currPosts.length ||
+                    (prevPosts.isEmpty && currPosts.isNotEmpty) ||
+                    (prevPosts.isNotEmpty && currPosts.isNotEmpty && prevPosts.first.id != currPosts.first.id);
+                final errorChanged = prevError != currError;
+                final stateTypeChanged = previous.runtimeType != current.runtimeType;
+                
+                // Rebuild if NewsFeedBloc's selectedCategoryId matches HomeBloc's selectedCategoryId
+                // and we have posts or loading state changed
+                final categoryMatches = currSelectedCategoryId == homeCategoryId;
+                final shouldRebuildForCategory = categoryMatches && (currPosts.isNotEmpty || loadingChanged || selectedCategoryChanged);
+                
+                final shouldRebuild = selectedCategoryChanged || loadingChanged || postsChanged || errorChanged || stateTypeChanged || shouldRebuildForCategory;
+                
+                return shouldRebuild;
+              },
               builder: (context, state) {
                 return state.maybeWhen(
                   loaded: (
