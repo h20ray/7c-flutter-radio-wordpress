@@ -19,23 +19,28 @@ class RadioNowPlayingCard extends StatelessWidget {
   final bool skipWrapper;
   final VoidCallback? onTap;
 
-  const RadioNowPlayingCard({
-    super.key,
-    this.skipWrapper = false,
-    this.onTap,
-  });
+  const RadioNowPlayingCard({super.key, this.skipWrapper = false, this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
 
-    final navigate = onTap ?? () => Navigator.pushNamed(context, AppRoutes.radio);
+    final navigate =
+        onTap ?? () => Navigator.pushNamed(context, AppRoutes.radio);
 
     final child = BlocSelector<HomeBloc, HomeState, _NowPlayingViewData>(
       selector: (state) {
         return state.maybeWhen(
-          loaded: (tabIndex, selectedCategory, nowPlaying, error, availableCategories, filterChipCategories, selectedCategoryId) =>
-              _NowPlayingViewData.fromEntity(nowPlaying),
+          loaded:
+              (
+                tabIndex,
+                selectedCategory,
+                nowPlaying,
+                error,
+                availableCategories,
+                filterChipCategories,
+                selectedCategoryId,
+              ) => _NowPlayingViewData.fromEntity(nowPlaying),
           orElse: () => _NowPlayingViewData.fallback(),
         );
       },
@@ -46,12 +51,11 @@ class RadioNowPlayingCard extends StatelessWidget {
             color: Colors.transparent,
             borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
             child: InkWell(
-              borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
-              onTap: navigate,
-              child: _DynamicNowPlayingCard(
-                viewData: viewData,
-                colors: colors,
+              borderRadius: BorderRadius.circular(
+                DesignTokens.cornerRadiusCard,
               ),
+              onTap: navigate,
+              child: _DynamicNowPlayingCard(viewData: viewData, colors: colors),
             ),
           ),
         );
@@ -73,10 +77,7 @@ class _DynamicNowPlayingCard extends StatefulWidget {
   final _NowPlayingViewData viewData;
   final AppSemanticColors colors;
 
-  const _DynamicNowPlayingCard({
-    required this.viewData,
-    required this.colors,
-  });
+  const _DynamicNowPlayingCard({required this.viewData, required this.colors});
 
   @override
   State<_DynamicNowPlayingCard> createState() => _DynamicNowPlayingCardState();
@@ -215,7 +216,9 @@ class _AlbumArt extends StatelessWidget {
       height: size,
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(
+            DesignTokens.cornerRadiusAlbumArt,
+          ),
           border: Border.all(
             color: Colors.white.withValues(alpha: 0.25),
             width: 1.2,
@@ -223,11 +226,13 @@ class _AlbumArt extends StatelessWidget {
         ),
         clipBehavior: Clip.antiAlias,
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(
+            DesignTokens.cornerRadiusAlbumArt,
+          ),
           child: AlbumArtWidget.roundedRect(
             width: size,
             height: size,
-            borderRadius: 12,
+            borderRadius: DesignTokens.cornerRadiusAlbumArt,
             filterQuality: FilterQuality.high,
           ),
         ),

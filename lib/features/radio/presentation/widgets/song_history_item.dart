@@ -29,10 +29,7 @@ class SongHistoryItem extends StatelessWidget {
         color: colors.cardBackground,
         borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
         border: showBorder
-            ? Border.all(
-                color: colors.borderSubtle,
-                width: 1,
-              )
+            ? Border.all(color: colors.borderSubtle, width: 1)
             : null,
         boxShadow: showBorder ? null : shadow,
       ),
@@ -40,7 +37,9 @@ class SongHistoryItem extends StatelessWidget {
         children: [
           if (song.albumArtUrl != null)
             ClipRRect(
-              borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
+              borderRadius: BorderRadius.circular(
+                DesignTokens.cornerRadiusAlbumArt,
+              ),
               child: AppNetworkImage(
                 imageUrl: song.albumArtUrl!,
                 width: 60,
@@ -50,10 +49,7 @@ class SongHistoryItem extends StatelessWidget {
                   width: 60,
                   height: 60,
                   color: colors.surfaces.surfaceContainerHighest,
-                  child: Icon(
-                    Icons.music_note,
-                    color: colors.textSecondary,
-                  ),
+                  child: Icon(Icons.music_note, color: colors.textSecondary),
                 ),
               ),
             )
@@ -63,12 +59,11 @@ class SongHistoryItem extends StatelessWidget {
               height: 60,
               decoration: BoxDecoration(
                 color: colors.surfaces.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
+                borderRadius: BorderRadius.circular(
+                  DesignTokens.cornerRadiusAlbumArt,
+                ),
               ),
-              child: Icon(
-                Icons.music_note,
-                color: colors.textSecondary,
-              ),
+              child: Icon(Icons.music_note, color: colors.textSecondary),
             ),
           SizedBox(width: DesignTokens.spacingM),
           Expanded(
@@ -114,20 +109,19 @@ class SongHistoryItem extends StatelessWidget {
     if (difference.inMinutes < 1) {
       return 'time_just_now'.tr();
     } else if (difference.inHours < 1) {
-      return 'time_minutes_ago'.tr(namedArgs: {
-        'minutes': difference.inMinutes.toString(),
-      });
+      return 'time_minutes_ago'.tr(
+        namedArgs: {'minutes': difference.inMinutes.toString()},
+      );
     } else if (difference.inDays < 1) {
-      return 'time_hours_ago'.tr(namedArgs: {
-        'hours': difference.inHours.toString(),
-      });
+      return 'time_hours_ago'.tr(
+        namedArgs: {'hours': difference.inHours.toString()},
+      );
     } else if (difference.inDays < 7) {
-      return 'time_days_ago'.tr(namedArgs: {
-        'days': difference.inDays.toString(),
-      });
+      return 'time_days_ago'.tr(
+        namedArgs: {'days': difference.inDays.toString()},
+      );
     } else {
       return DateFormat('MMM d, y').format(timestamp);
     }
   }
 }
-

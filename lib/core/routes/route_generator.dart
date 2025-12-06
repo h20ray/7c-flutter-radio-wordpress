@@ -19,6 +19,7 @@ import '../../features/wordpress/presentation/pages/post_detail_page_view.dart';
 import '../../features/wordpress/domain/entities/post_entity.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
+import '../../features/settings/presentation/pages/settings_page.dart';
 import '../../features/shoutbox/presentation/pages/shoutbox_page.dart';
 import '../../features/tamtama/presentation/bloc/tamtama_bloc.dart';
 import '../di/injection_container.dart';
@@ -55,6 +56,8 @@ class RouteGenerator {
         return _buildPageRoute(settings, (context) => const NewsPage());
       case AppRoutes.profile:
         return _buildPageRoute(settings, (context) => const ProfilePage());
+      case AppRoutes.settings:
+        return _buildPageRoute(settings, (context) => const SettingsPage());
       case AppRoutes.shoutbox:
         return _buildPageRoute(settings, (context) => const ShoutboxPage());
       case AppRoutes.levelDetails:

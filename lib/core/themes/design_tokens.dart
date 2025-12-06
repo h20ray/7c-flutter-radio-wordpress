@@ -15,6 +15,7 @@ class DesignTokens {
   static const double cornerRadiusPill = 24.0;
   static const double cornerRadiusAvatar = 999.0;
   static const double cornerRadiusProgress = 12.0;
+  static const double cornerRadiusAlbumArt = 8.0;
 
   static const double elevationCard = 4.0;
   static const double elevationCardHover = 6.0;

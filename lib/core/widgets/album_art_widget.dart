@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../models/album_art_state.dart';
@@ -84,8 +86,20 @@ class AlbumArtWidget extends StatefulWidget {
 }
 
 class _AlbumArtWidgetState extends State<AlbumArtWidget> {
+  String? _lastKnownUrl;
+  Timer? _debounceTimer;
+  static const _debounceDuration = Duration(milliseconds: 75);
+
+  @override
+  void initState() {
+    super.initState();
+    final initialState = AlbumArtService.instance.currentState;
+    _lastKnownUrl = initialState.hasUrl ? initialState.url : null;
+  }
+
   @override
   void dispose() {
+    _debounceTimer?.cancel();
     super.dispose();
   }
 
@@ -106,8 +120,41 @@ class _AlbumArtWidgetState extends State<AlbumArtWidget> {
   }
 
   Widget _buildContentWithState(AlbumArtState albumArtState) {
+    final currentUrl = albumArtState.hasUrl ? albumArtState.url : null;
+    final urlChanged = currentUrl != null && currentUrl != _lastKnownUrl;
+    
+    String? effectiveUrl;
+    bool useZeroTransition = false;
+
+    if (currentUrl != null) {
+      effectiveUrl = currentUrl;
+      useZeroTransition = !urlChanged;
+      if (urlChanged) {
+        _debounceTimer?.cancel();
+        _lastKnownUrl = currentUrl;
+      }
+    } else if (_lastKnownUrl != null) {
+      _debounceTimer?.cancel();
+      _debounceTimer = Timer(_debounceDuration, () {
+        if (mounted) {
+          final currentState = AlbumArtService.instance.currentState;
+          if (!currentState.hasUrl) {
+            setState(() {
+              _lastKnownUrl = null;
+            });
+          }
+        }
+      });
+      effectiveUrl = _lastKnownUrl;
+      useZeroTransition = true;
+    } else {
+      _lastKnownUrl = null;
+    }
+
+    final transitionDuration = useZeroTransition ? Duration.zero : widget.transitionDuration;
+
     return AnimatedSwitcher(
-      duration: widget.transitionDuration,
+      duration: transitionDuration,
       switchInCurve: Curves.easeOut,
       switchOutCurve: Curves.easeIn,
       layoutBuilder: (currentChild, previousChildren) {
@@ -119,23 +166,19 @@ class _AlbumArtWidgetState extends State<AlbumArtWidget> {
           ],
         );
       },
-      child: _buildAlbumArt(albumArtState),
+      child: _buildAlbumArt(effectiveUrl, useZeroTransition),
     );
   }
 
-  Widget _buildAlbumArt(AlbumArtState albumArtState) {
-    if (albumArtState.isLoading) {
-      return _buildFallbackImage();
-    }
-
-    if (albumArtState.hasUrl) {
-      return _buildNetworkImage(albumArtState.url!);
+  Widget _buildAlbumArt(String? effectiveUrl, bool useZeroTransition) {
+    if (effectiveUrl != null) {
+      return _buildNetworkImage(effectiveUrl, useZeroTransition: useZeroTransition);
     }
 
     return _buildFallbackImage();
   }
 
-  Widget _buildNetworkImage(String url) {
+  Widget _buildNetworkImage(String url, {bool useZeroTransition = false}) {
     return Container(
       key: ValueKey('network_$url'),
       decoration: _getShapeDecoration(),
@@ -147,7 +190,13 @@ class _AlbumArtWidgetState extends State<AlbumArtWidget> {
         fit: widget.fit,
         filterQuality: widget.filterQuality,
         cacheManager: AlbumArtImageCacheManager(),
-        placeholder: (context, url) => _buildFallbackImage(),
+        fadeInDuration: useZeroTransition ? Duration.zero : null,
+        placeholder: (context, url) {
+          if (useZeroTransition && _lastKnownUrl == url) {
+            return const SizedBox.shrink();
+          }
+          return _buildFallbackImage();
+        },
         errorWidget: (context, url, error) => _buildFallbackImage(),
       ),
     );

@@ -11,6 +11,7 @@ import '../../../../core/services/palette_service.dart';
 import '../../../../core/utils/palette_cache.dart';
 import '../../../../config/radio_config.dart';
 import '../../../../core/utils/debug_logger.dart';
+import '../../../../core/themes/design_tokens.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/models/album_art_state.dart';
 import '../../data/services/album_art_service.dart';
@@ -287,7 +288,7 @@ class _CachedNowPlayingContentState extends State<_CachedNowPlayingContent>
     with SingleTickerProviderStateMixin {
   late AnimationController _colorAnimationController;
   late Animation<double> _colorAnimation;
-  
+
   Color _fromBg = const Color(0xFF15232B);
   Color _toBg = const Color(0xFF15232B);
   Color _fromVibrant = const Color(0xFF15232B);
@@ -366,7 +367,9 @@ class _CachedNowPlayingContentState extends State<_CachedNowPlayingContent>
         return RepaintBoundary(
           child: Container(
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(
+                DesignTokens.cornerRadiusAlbumArt,
+              ),
               boxShadow: [
                 BoxShadow(
                   color: Color.lerp(
@@ -416,7 +419,9 @@ class _CachedNowPlayingContentState extends State<_CachedNowPlayingContent>
                         width: widget.artSize,
                         height: widget.artSize,
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(
+                            DesignTokens.cornerRadiusAlbumArt,
+                          ),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withValues(alpha: 0.2),
@@ -429,7 +434,7 @@ class _CachedNowPlayingContentState extends State<_CachedNowPlayingContent>
                         child: AlbumArtWidget.roundedRect(
                           width: widget.artSize,
                           height: widget.artSize,
-                          borderRadius: 8,
+                          borderRadius: DesignTokens.cornerRadiusAlbumArt,
                           filterQuality: FilterQuality.high,
                         ),
                       ),
@@ -493,7 +498,7 @@ class _CachedNowPlayingContentState extends State<_CachedNowPlayingContent>
     Color muted,
   ) {
     final brightness = ThemeData.estimateBrightnessForColor(dominant);
-    
+
     if (brightness == Brightness.dark) {
       return [
         darkVibrant.withValues(alpha: 0.9),
@@ -610,7 +615,7 @@ class _GlassButton extends StatelessWidget {
 
     return Tooltip(
       message: tooltip ?? '',
-        child: Material(
+      child: Material(
         color: Colors.transparent,
         child: HapticInkWell(
           onTap: onPressed,
@@ -663,9 +668,7 @@ class _GlassButton extends StatelessWidget {
 class _BlurredAlbumArtBackground extends StatelessWidget {
   final FilterQuality filterQuality;
 
-  const _BlurredAlbumArtBackground({
-    this.filterQuality = FilterQuality.low,
-  });
+  const _BlurredAlbumArtBackground({this.filterQuality = FilterQuality.low});
 
   @override
   Widget build(BuildContext context) {
@@ -673,8 +676,9 @@ class _BlurredAlbumArtBackground extends StatelessWidget {
       stream: AlbumArtService.instance.albumArtStream,
       initialData: AlbumArtService.instance.currentState,
       builder: (context, snapshot) {
-        final albumArtState = snapshot.data ?? AlbumArtService.instance.currentState;
-        
+        final albumArtState =
+            snapshot.data ?? AlbumArtService.instance.currentState;
+
         if (albumArtState.hasUrl) {
           return AppNetworkImage(
             imageUrl: albumArtState.url!,
@@ -684,7 +688,7 @@ class _BlurredAlbumArtBackground extends StatelessWidget {
             placeholder: (context, url) => _buildFallbackImage(context),
           );
         }
-        
+
         return _buildFallbackImage(context);
       },
     );

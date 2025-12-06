@@ -197,6 +197,15 @@ class HeaderSection extends StatelessWidget {
                             );
                           },
                         ),
+                        MenuItemButton(
+                          style: M3XMenuStyle.itemStyle,
+                          leadingIcon: Icon(LucideIcons.settings, size: 20),
+                          child: Text('settings_title'.tr()),
+                          onPressed: () {
+                            HapticFeedbackHelper.lightImpact();
+                            Navigator.pushNamed(context, '/settings');
+                          },
+                        ),
                         const SizedBox(height: M3XMenuStyle.gapSize),
                         const Divider(height: 1, indent: 16, endIndent: 16),
                         const SizedBox(height: M3XMenuStyle.gapSize),

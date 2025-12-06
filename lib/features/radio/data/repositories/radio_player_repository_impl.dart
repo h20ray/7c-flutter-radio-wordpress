@@ -487,8 +487,8 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
       throw Exception('No radio configuration available');
     }
 
-    // Clear stale album art state when playback starts to force refresh
-    albumArtService.clearStaleState();
+    // Removed clearStaleState() - smart state clearing will preserve cached art for current track
+    // Album art will be refreshed automatically when new metadata arrives
 
     // For live radio streams, always reset before playing
     DebugLogger.log('[RadioPlayerRepository] Resetting before play', tag: 'RadioPlayerRepository');
@@ -854,8 +854,13 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
       if (RadioConfig.enableVerboseLogging) {
         DebugLogger.log('[RadioPlayerRepository] App resumed, checking if polling needed', tag: 'RadioPlayerRepository');
       }
-      // Clear stale album art state when app resumes to force refresh on next metadata update
-      albumArtService.clearStaleState();
+      // Smart state clearing: preserve cached album art for current track if available
+      final currentArtist = _currentState.currentArtist;
+      final currentTitle = _currentState.currentTitle;
+      unawaited(albumArtService.clearStaleState(
+        currentArtist: currentArtist,
+        currentTitle: currentTitle,
+      ));
       // Resume polling if we are initialized, have config, and NOT playing audio
       if (_currentState.isInitialized && 
           _currentConfig != null && 

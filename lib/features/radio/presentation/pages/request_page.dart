@@ -379,7 +379,7 @@ class _TrackItem extends StatelessWidget {
           if (track.albumArtUrl != null)
             ClipRRect(
               borderRadius: BorderRadius.circular(
-                DesignTokens.cornerRadiusCard,
+                DesignTokens.cornerRadiusAlbumArt,
               ),
               child: AppNetworkImage(
                 imageUrl: track.albumArtUrl!,
@@ -401,7 +401,7 @@ class _TrackItem extends StatelessWidget {
               decoration: BoxDecoration(
                 color: colors.surfaces.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(
-                  DesignTokens.cornerRadiusCard,
+                  DesignTokens.cornerRadiusAlbumArt,
                 ),
               ),
               child: Icon(LucideIcons.music, color: colors.textSecondary),

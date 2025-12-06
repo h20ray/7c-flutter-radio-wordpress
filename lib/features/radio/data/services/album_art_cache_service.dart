@@ -190,6 +190,25 @@ class AlbumArtCacheService {
     return '${artist.trim().toLowerCase()}_${title.trim().toLowerCase()}';
   }
 
+  /// Quick synchronous check for in-memory cache only
+  /// Returns cached URL if available in memory, null otherwise
+  /// Use this for fast lookups when you don't need to check Hive
+  String? getCachedAlbumArtSync(String artist, String title) {
+    final key = _generateCacheKey(artist, title);
+    
+    if (_cache.containsKey(key)) {
+      final timestamp = _cacheTimestamps[key];
+      if (timestamp != null && DateTime.now().difference(timestamp) <= _cacheDuration) {
+        _updateAccessOrder(key);
+        return _cache[key];
+      } else {
+        _removeFromCache(key);
+      }
+    }
+    
+    return null;
+  }
+
   Future<String?> getCachedAlbumArt(String artist, String title) async {
     final key = _generateCacheKey(artist, title);
     
