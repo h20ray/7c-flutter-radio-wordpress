@@ -1,9 +1,9 @@
-import '../../../../core/widgets/app_network_image.dart';
-import '../../../../core/cache/news_image_cache_manager.dart';
+import '../../../../../core/widgets/app_network_image.dart';
+import '../../../../../core/cache/news_image_cache_manager.dart';
 import 'package:flutter/material.dart';
 
-import '../../../../core/themes/app_color_system.dart';
-import '../../../../core/themes/design_tokens.dart';
+import '../../../../../core/themes/app_color_system.dart';
+import '../../../../../core/themes/design_tokens.dart';
 
 class NewsPostImage extends StatelessWidget {
   final String imageUrl;
@@ -56,5 +56,4 @@ class NewsPostImage extends StatelessWidget {
     );
   }
 }
-
 

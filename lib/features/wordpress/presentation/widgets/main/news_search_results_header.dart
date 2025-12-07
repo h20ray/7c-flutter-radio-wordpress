@@ -1,9 +1,9 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
-import '../../../../core/themes/app_color_system.dart';
-import '../../../../core/themes/design_tokens.dart';
-import '../../../../core/widgets/haptic_widgets.dart';
+import '../../../../../core/themes/app_color_system.dart';
+import '../../../../../core/themes/design_tokens.dart';
+import '../../../../../core/widgets/haptic_widgets.dart';
 
 class NewsSearchResultsHeader extends StatelessWidget {
   final String searchQuery;

@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../core/themes/design_tokens.dart';
-import '../../../../core/widgets/news_list_skeleton.dart';
-import '../bloc/news_feed_bloc.dart';
-import '../bloc/news_search_bloc.dart';
-import '../widgets/news_card_widget.dart';
-import '../widgets/news_empty_states.dart';
-import '../widgets/news_search_results_header.dart';
-import '../../domain/entities/post_entity.dart';
+import '../../../../../core/themes/design_tokens.dart';
+import '../../../../../core/widgets/news_list_skeleton.dart';
+import '../../bloc/news_feed_bloc.dart';
+import '../../bloc/news_search_bloc.dart';
+import '../shared/news_card.dart';
+import 'news_empty_states.dart';
+import 'news_search_results_header.dart';
+import '../../../domain/entities/post_entity.dart';
 import 'news_load_more_footer.dart';
 
 class NewsListContent extends StatelessWidget {
@@ -23,7 +23,7 @@ class NewsListContent extends StatelessWidget {
             if (query.isNotEmpty) {
               return _buildSearchContent(
                 context: context,
-                isLoadingSearch: false, // Loaded means not initial loading
+                isLoadingSearch: false,
                 searchResults: results,
                 searchQuery: query,
                 hasMoreSearchResults: hasMore,
@@ -39,7 +39,7 @@ class NewsListContent extends StatelessWidget {
             context: context,
             isLoadingSearch: true,
             searchResults: null,
-            searchQuery: '', // Query is not available in loading state? Actually we can pass it if we want, but loading state is simple.
+            searchQuery: '',
             hasMoreSearchResults: false,
             isLoadingMore: false,
             onClear: () {
@@ -69,12 +69,9 @@ class NewsListContent extends StatelessWidget {
             currentPageByCategory,
             offlinePostIds,
           ) {
-            // Always prefer the category-specific list (including the "all" category with null key)
             final regularPosts =
                 postsByCategory[selectedCategoryId] ?? posts;
             final isLoadingMore = isLoadingByCategory[selectedCategoryId] ?? false;
-            // We need to distinguish between initial loading and loading more.
-            // If posts are empty and loading, it's initial loading.
             
             if (regularPosts.isEmpty && isLoadingMore) {
                return SliverToBoxAdapter(
@@ -122,7 +119,6 @@ class NewsListContent extends StatelessWidget {
     required bool isLoadingMore,
     required VoidCallback onClear,
   }) {
-    // Show skeleton when loading and no results (or when starting a new search)
     if (isLoadingSearch && (searchResults == null || searchResults.isEmpty)) {
       return SliverPadding(
         padding: EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
@@ -165,7 +161,7 @@ class NewsListContent extends StatelessWidget {
                 );
               }
 
-              if (isLoadingMore) { // Use isLoadingMore from arguments
+              if (isLoadingMore) {
                 return const NewsLoadMoreFooter();
               }
 
@@ -238,5 +234,4 @@ class NewsListContent extends StatelessWidget {
     );
   }
 }
-
 

@@ -1,10 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
-import '../../../../config/share_config.dart';
-import '../../../../core/widgets/app_network_image.dart';
-import '../../../../core/cache/news_image_cache_manager.dart';
-import '../../domain/entities/post_entity.dart';
+import '../../../../../config/share_config.dart';
+import '../../../../../core/widgets/app_network_image.dart';
+import '../../../../../core/cache/news_image_cache_manager.dart';
+import '../../../domain/entities/post_entity.dart';
 
 class NewsShareCard extends StatelessWidget {
   final PostEntity post;
@@ -16,8 +16,6 @@ class NewsShareCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Fixed size for 9:16 aspect ratio (e.g., 1080x1920 scaled down)
-    // We use a fixed width for consistency in generation
     const double width = 360;
     const double height = 640;
 
@@ -28,7 +26,6 @@ class NewsShareCard extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          // Background Image
           if (post.featuredImageUrl != null)
             AppNetworkImage(
               imageUrl: post.featuredImageUrl!,
@@ -39,7 +36,6 @@ class NewsShareCard extends StatelessWidget {
               cacheManager: NewsImageCacheManager(),
             ),
 
-          // Dark Overlay Gradient
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -56,13 +52,11 @@ class NewsShareCard extends StatelessWidget {
             ),
           ),
 
-          // Content
           Padding(
             padding: const EdgeInsets.all(32.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // App Logo / Branding - Top Right
                 Align(
                   alignment: Alignment.topRight,
                   child: Row(
@@ -114,7 +108,6 @@ class NewsShareCard extends StatelessWidget {
                     children: [
                       const Spacer(),
                       
-                      // Category
                       if (post.categoryName != null)
                         Container(
                           padding: const EdgeInsets.symmetric(
@@ -138,7 +131,6 @@ class NewsShareCard extends StatelessWidget {
                       
                       const SizedBox(height: 16),
 
-                      // Title
                       Text(
                         post.title,
                         style: const TextStyle(
@@ -155,7 +147,6 @@ class NewsShareCard extends StatelessWidget {
 
                 const SizedBox(height: 24),
 
-                // Footer / CTA
                 Row(
                   children: [
                     Expanded(
@@ -181,7 +172,6 @@ class NewsShareCard extends StatelessWidget {
                         ],
                       ),
                     ),
-                    // Date
                     if (post.date != null)
                       Text(
                         DateFormat('dd MMM yyyy').format(post.date!),
@@ -194,7 +184,6 @@ class NewsShareCard extends StatelessWidget {
                   ],
                 ),
                 
-                // Link icon placeholder - for Instagram Story link sticker
                 if (post.link.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(top: 12),
@@ -228,3 +217,4 @@ class NewsShareCard extends StatelessWidget {
     );
   }
 }
+

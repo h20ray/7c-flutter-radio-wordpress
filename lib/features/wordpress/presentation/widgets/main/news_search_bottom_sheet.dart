@@ -4,12 +4,12 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../core/error/failures.dart';
-import '../../../../core/themes/app_color_system.dart';
-import '../../../../core/themes/design_tokens.dart';
-import '../../domain/entities/post_entity.dart';
-import '../bloc/news_search_bloc.dart';
-import '../widgets/news_card_widget.dart';
+import '../../../../../core/error/failures.dart';
+import '../../../../../core/themes/app_color_system.dart';
+import '../../../../../core/themes/design_tokens.dart';
+import '../../../domain/entities/post_entity.dart';
+import '../../bloc/news_search_bloc.dart';
+import '../shared/news_card.dart';
 
 class NewsSearchBottomSheet extends StatefulWidget {
   final AppSemanticColors colors;
@@ -250,5 +250,4 @@ Future<void> showNewsSearchBottomSheet(
     ),
   );
 }
-
 

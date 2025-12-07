@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/themes/design_tokens.dart';
-import '../../../../core/widgets/shimmer_skeleton.dart';
+import '../../../../../core/themes/design_tokens.dart';
+import '../../../../../core/widgets/shimmer_skeleton.dart';
 
 class NewsLoadMoreFooter extends StatelessWidget {
   const NewsLoadMoreFooter({super.key});

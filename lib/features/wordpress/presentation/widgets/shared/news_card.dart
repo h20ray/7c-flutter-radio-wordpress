@@ -3,13 +3,13 @@ import 'package:easy_localization/easy_localization.dart';
 
 import 'package:flutter/material.dart';
 
-import '../../../../core/themes/app_color_system.dart';
-import '../../../../core/themes/component_tokens.dart';
-import '../../../../core/themes/design_tokens.dart';
-import '../../../../core/widgets/haptic_widgets.dart';
-import '../../../../core/routes/app_routes.dart';
-import '../../domain/entities/post_entity.dart';
-import 'news_post_image_widget.dart';
+import '../../../../../core/themes/app_color_system.dart';
+import '../../../../../core/themes/component_tokens.dart';
+import '../../../../../core/themes/design_tokens.dart';
+import '../../../../../core/widgets/haptic_widgets.dart';
+import '../../../../../core/routes/app_routes.dart';
+import '../../../domain/entities/post_entity.dart';
+import 'news_post_image.dart';
 
 class NewsCard extends StatelessWidget {
   final PostEntity post;
@@ -255,5 +255,4 @@ String _formatNewsDate(DateTime date, BuildContext context) {
     }
   }
 }
-
 

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:adaptive_theme/adaptive_theme.dart';
 
-import '../../../../core/widgets/haptic_widgets.dart';
+import '../../../../../core/widgets/haptic_widgets.dart';
 
 class NewsThemeSwitcher extends StatelessWidget {
   const NewsThemeSwitcher({super.key});

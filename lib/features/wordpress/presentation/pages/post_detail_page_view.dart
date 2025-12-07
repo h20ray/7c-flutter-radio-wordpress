@@ -25,7 +25,7 @@ import '../../../../core/widgets/glass_app_bar_background.dart';
 import '../../domain/entities/post_entity.dart';
 import '../../domain/repositories/wordpress_repository.dart';
 import '../bloc/news_feed_bloc.dart';
-import '../widgets/news_share_card.dart';
+import '../widgets/main/news_share_card.dart';
 
 class PostDetailPageView extends StatefulWidget {
   final PostEntity post;

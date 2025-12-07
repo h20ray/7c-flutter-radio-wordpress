@@ -5,11 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
-import '../../../../core/routes/app_routes.dart';
-import '../../../../core/themes/design_tokens.dart';
-import '../../../../core/widgets/glass_app_bar_background.dart';
-import '../../../../core/widgets/haptic_widgets.dart';
-import '../bloc/news_search_bloc.dart';
+import '../../../../../core/routes/app_routes.dart';
+import '../../../../../core/themes/design_tokens.dart';
+import '../../../../../core/widgets/glass_app_bar_background.dart';
+import '../../../../../core/widgets/haptic_widgets.dart';
+import '../../bloc/news_search_bloc.dart';
 import 'news_search_box.dart';
 import 'news_theme_switcher.dart';
 
@@ -127,3 +127,4 @@ class NewsAppBarState extends State<NewsAppBar> {
     );
   }
 }
+

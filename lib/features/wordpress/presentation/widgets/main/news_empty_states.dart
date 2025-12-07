@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
-import '../../../../core/themes/app_color_system.dart';
-import '../../../../core/themes/design_tokens.dart';
-import '../bloc/news_feed_bloc.dart';
+import '../../../../../core/themes/app_color_system.dart';
+import '../../../../../core/themes/design_tokens.dart';
+import '../../bloc/news_feed_bloc.dart';
 
 class NewsEmptyState extends StatelessWidget {
   final bool isSearch;

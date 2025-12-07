@@ -13,9 +13,9 @@ import '../../../../core/widgets/floating_play_fab.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../bloc/news_feed_bloc.dart';
 import '../bloc/news_search_bloc.dart';
-import '../widgets/news_app_bar_widget.dart';
-import '../widgets/news_list_content.dart';
-import '../widgets/news_search_overlay.dart';
+import '../widgets/main/news_app_bar.dart';
+import '../widgets/main/news_list_content.dart';
+import '../widgets/main/news_search_overlay.dart';
 
 class NewsPageView extends StatefulWidget {
   const NewsPageView({super.key});
