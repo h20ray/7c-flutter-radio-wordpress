@@ -53,7 +53,7 @@ class LevelCardItem extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Padding(
-      padding: EdgeInsets.all(DesignTokens.spacingL),
+      padding: const EdgeInsets.all(DesignTokens.spacingL),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -66,7 +66,7 @@ class LevelCardItem extends StatelessWidget {
             enableAnimation: isUnlocked,
             isLocked: !isUnlocked,
           ),
-          SizedBox(width: DesignTokens.spacingL),
+          const SizedBox(width: DesignTokens.spacingL),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -94,7 +94,7 @@ class LevelCardItem extends StatelessWidget {
                       ),
                   ],
                 ),
-                SizedBox(height: DesignTokens.spacingXs),
+                const SizedBox(height: DesignTokens.spacingXs),
                 Text(
                   level.description,
                   style: textTheme.bodySmall?.copyWith(
@@ -103,7 +103,7 @@ class LevelCardItem extends StatelessWidget {
                         : const Color(0xFF1A1A1A).withValues(alpha: 0.8),
                   ),
                 ),
-                SizedBox(height: DesignTokens.spacingM),
+                const SizedBox(height: DesignTokens.spacingM),
                 _LevelRequirements(
                   level: level,
                   isUnlocked: isUnlocked,
@@ -127,7 +127,7 @@ class LevelCardItem extends StatelessWidget {
 
     return Container(
       color: Colors.black.withValues(alpha: 0.15),
-      padding: EdgeInsets.all(DesignTokens.spacingL),
+      padding: const EdgeInsets.all(DesignTokens.spacingL),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -157,7 +157,7 @@ class LevelCardItem extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(width: DesignTokens.spacingL),
+          const SizedBox(width: DesignTokens.spacingL),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -185,7 +185,7 @@ class LevelCardItem extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
-      padding: EdgeInsets.symmetric(
+      padding: const EdgeInsets.symmetric(
         horizontal: DesignTokens.spacingS,
         vertical: DesignTokens.spacingXs,
       ),
@@ -246,7 +246,7 @@ class _LevelRequirements extends StatelessWidget {
       return Row(
         children: [
           Icon(LucideIcons.infinity, size: 16, color: textColor),
-          SizedBox(width: DesignTokens.spacingXs),
+          const SizedBox(width: DesignTokens.spacingXs),
           Text(
             'level_details_hours_minimum'.tr(
               namedArgs: {'hours': level.minHours.toStringAsFixed(0)},
@@ -268,7 +268,7 @@ class _LevelRequirements extends StatelessWidget {
     return Row(
       children: [
         Icon(LucideIcons.lock, size: 16, color: textColor),
-        SizedBox(width: DesignTokens.spacingXs),
+        const SizedBox(width: DesignTokens.spacingXs),
         Flexible(
           child: Text(
             isMinutes

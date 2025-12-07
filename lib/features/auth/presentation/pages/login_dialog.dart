@@ -108,7 +108,7 @@ class LoginDialog extends StatelessWidget {
             ),
             child: Container(
               constraints: const BoxConstraints(maxWidth: 400),
-              padding: EdgeInsets.all(DesignTokens.spacingXl),
+              padding: const EdgeInsets.all(DesignTokens.spacingXl),
               decoration: BoxDecoration(
                 color: tokens.surface.withValues(
                   alpha: backdropOpacity,
@@ -145,13 +145,13 @@ class LoginDialog extends StatelessWidget {
                               ),
                             ),
                             IconButton(
-                              icon: Icon(Icons.close),
+                              icon: const Icon(Icons.close),
                               onPressed: () => Navigator.of(context).pop(),
                               color: colorScheme.onSurfaceVariant,
                             ),
                           ],
                         ),
-                        SizedBox(height: DesignTokens.spacingXl),
+                        const SizedBox(height: DesignTokens.spacingXl),
                         if (state.maybeWhen(
                           error: (failure) => failure,
                           orElse: () => null,
@@ -173,7 +173,7 @@ class LoginDialog extends StatelessWidget {
                                 );
                           },
                         ),
-                        SizedBox(height: DesignTokens.spacingL),
+                        const SizedBox(height: DesignTokens.spacingL),
                         Center(
                           child: Text(
                             'auth_or'.tr(),
@@ -182,7 +182,7 @@ class LoginDialog extends StatelessWidget {
                             ),
                           ),
                         ),
-                        SizedBox(height: DesignTokens.spacingL),
+                        const SizedBox(height: DesignTokens.spacingL),
                         GoogleLoginButton(
                           onPressed: () => _handleGoogleLogin(context),
                         ),

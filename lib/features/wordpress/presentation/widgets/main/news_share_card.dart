@@ -2,6 +2,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../../../config/share_config.dart';
+import '../../../../../core/themes/design_tokens.dart';
+import '../../../../../core/themes/share_card_tokens.dart';
 import '../../../../../core/widgets/app_network_image.dart';
 import '../../../../../core/cache/news_image_cache_manager.dart';
 import '../../../domain/entities/post_entity.dart';
@@ -18,11 +20,12 @@ class NewsShareCard extends StatelessWidget {
   Widget build(BuildContext context) {
     const double width = 360;
     const double height = 640;
+    final tokens = ShareCardTokens.of(context);
 
     return Container(
       width: width,
       height: height,
-      color: Colors.black,
+      color: tokens.background,
       child: Stack(
         fit: StackFit.expand,
         children: [
@@ -42,10 +45,10 @@ class NewsShareCard extends StatelessWidget {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Colors.black.withValues(alpha: 0.3),
-                  Colors.black.withValues(alpha: 0.1),
-                  Colors.black.withValues(alpha: 0.8),
-                  Colors.black,
+                  tokens.background.withValues(alpha: 0.3),
+                  tokens.background.withValues(alpha: 0.1),
+                  tokens.background.withValues(alpha: 0.8),
+                  tokens.background,
                 ],
                 stops: const [0.0, 0.4, 0.8, 1.0],
               ),
@@ -53,7 +56,7 @@ class NewsShareCard extends StatelessWidget {
           ),
 
           Padding(
-            padding: const EdgeInsets.all(32.0),
+            padding: const EdgeInsets.all(DesignTokens.spacingXxl + DesignTokens.spacingS),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -63,36 +66,36 @@ class NewsShareCard extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(8),
+                        padding: const EdgeInsets.all(DesignTokens.spacingS),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: tokens.iconBackground,
                           shape: BoxShape.circle,
                         ),
                         child: ShareConfig.useLogoAsset
                             ? Image.asset(
                                 ShareConfig.logoAssetPath,
-                                width: 20,
-                                height: 20,
+                                width: DimensionTokens.iconSizeMedium,
+                                height: DimensionTokens.iconSizeMedium,
                                 fit: BoxFit.contain,
                                 errorBuilder: (context, error, stackTrace) =>
-                                    const Icon(
+                                    Icon(
                                   Icons.radio,
-                                  color: Colors.black,
-                                  size: 20,
+                                  color: tokens.iconForeground,
+                                  size: DimensionTokens.iconSizeMedium,
                                 ),
                               )
-                            : const Icon(
+                            : Icon(
                                 Icons.radio,
-                                color: Colors.black,
-                                size: 20,
+                                color: tokens.iconForeground,
+                                size: DimensionTokens.iconSizeMedium,
                               ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: DesignTokens.spacingM),
                       Text(
                         ShareConfig.appName,
                         style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
+                          color: tokens.textPrimary,
+                          fontSize: DesignTokens.fontSizeBodyLarge,
                           fontWeight: FontWeight.bold,
                           letterSpacing: 1.0,
                         ),
@@ -129,13 +132,13 @@ class NewsShareCard extends StatelessWidget {
                           ),
                         ),
                       
-                      const SizedBox(height: 16),
+                      const SizedBox(height: DesignTokens.spacingL),
 
                       Text(
                         post.title,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 28,
+                        style: TextStyle(
+                          color: tokens.textPrimary,
+                          fontSize: DesignTokens.fontSizeHeadlineMedium,
                           fontWeight: FontWeight.w800,
                           height: 1.2,
                           fontFamily: 'Inter',
@@ -145,7 +148,7 @@ class NewsShareCard extends StatelessWidget {
                   ),
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: DesignTokens.spacingXl),
 
                 Row(
                   children: [
@@ -156,16 +159,16 @@ class NewsShareCard extends StatelessWidget {
                           Text(
                             'Read more on',
                             style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.7),
-                              fontSize: 12,
+                              color: tokens.textSecondary,
+                              fontSize: DesignTokens.fontSizeLabelMedium,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: DesignTokens.spacingXs),
                           Text(
                             ShareConfig.appNameFull,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 14,
+                            style: TextStyle(
+                              color: tokens.textPrimary,
+                              fontSize: DesignTokens.fontSizeBodyMedium,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -176,8 +179,8 @@ class NewsShareCard extends StatelessWidget {
                       Text(
                         DateFormat('dd MMM yyyy').format(post.date!),
                         style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.7),
-                          fontSize: 12,
+                          color: tokens.textSecondary,
+                          fontSize: DesignTokens.fontSizeLabelMedium,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -186,29 +189,29 @@ class NewsShareCard extends StatelessWidget {
                 
                 if (post.link.isNotEmpty)
                   Padding(
-                    padding: const EdgeInsets.only(top: 12),
+                    padding: const EdgeInsets.only(top: DesignTokens.spacingM),
                     child: Container(
-                      width: 48,
-                      height: 48,
+                      width: DimensionTokens.avatarSizeMedium,
+                      height: DimensionTokens.avatarSizeMedium,
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.15),
+                        color: tokens.textPrimary.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.3),
-                          width: 1.5,
+                          color: tokens.textPrimary.withValues(alpha: 0.3),
+                          width: DimensionTokens.borderWidthMedium,
                         ),
                       ),
                       child: Center(
                         child: Icon(
                           LucideIcons.link,
-                          size: 20,
-                          color: Colors.white.withValues(alpha: 0.9),
+                          size: DimensionTokens.iconSizeMedium,
+                          color: tokens.textPrimary.withValues(alpha: 0.9),
                         ),
                       ),
                     ),
                   ),
                 
-                const SizedBox(height: 16),
+                const SizedBox(height: DesignTokens.spacingL),
               ],
             ),
           ),

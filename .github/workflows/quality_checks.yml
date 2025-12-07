@@ -1,0 +1,102 @@
+name: Quality Checks
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+
+jobs:
+  analyze:
+    name: Code Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+      
+      - name: Install dependencies
+        run: flutter pub get
+      
+      - name: Verify no hard-coded spacing values
+        run: |
+          if grep -r "EdgeInsets\.all([0-9]" lib/features/ --include="*.dart" | grep -v "DesignTokens"; then
+            echo "❌ Found hard-coded EdgeInsets values. Use DesignTokens instead."
+            exit 1
+          fi
+          echo "✅ No hard-coded EdgeInsets values found"
+      
+      - name: Verify no hard-coded SizedBox dimensions
+        run: |
+          if grep -r "SizedBox(height: [0-9]\|width: [0-9])" lib/features/ --include="*.dart" | grep -v "DesignTokens\|DimensionTokens"; then
+            echo "❌ Found hard-coded SizedBox values. Use DesignTokens instead."
+            exit 1
+          fi
+          echo "✅ No hard-coded SizedBox values found"
+      
+      - name: Verify translation keys exist
+        run: |
+          hardcoded=$(grep -rE "['\"][A-Z][a-z]+ [a-z]+['\"]" lib/features/ --include="*.dart" | grep -v "\.tr()" | grep -v "import\|export\|//" | head -5 || true)
+          if [ -n "$hardcoded" ]; then
+            echo "⚠️  Potential hard-coded strings found (first 5):"
+            echo "$hardcoded"
+            echo "Please ensure all user-facing strings use .tr() for translation"
+          else
+            echo "✅ No obvious hard-coded strings found"
+          fi
+      
+      - name: Run Flutter Analyzer
+        run: flutter analyze
+      
+      - name: Check for missing dispose calls
+        run: |
+          echo "Checking for potential memory leaks..."
+          files_with_resources=$(grep -rl "StreamSubscription\|Timer\|AnimationController" lib/features/ --include="*.dart" || true)
+          if [ -n "$files_with_resources" ]; then
+            echo "Files with resources found. Verifying dispose methods..."
+            for file in $files_with_resources; do
+              if ! grep -q "dispose\|close" "$file"; then
+                echo "⚠️  Warning: $file has resources but no dispose/close method found"
+              fi
+            done
+          fi
+          echo "✅ Resource disposal check complete"
+
+  translations:
+    name: Translation Completeness
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Check translation file structure
+        run: |
+          if [ ! -f "assets/translations/en-US.json" ] || [ ! -f "assets/translations/id-ID.json" ]; then
+            echo "❌ Translation files missing"
+            exit 1
+          fi
+          echo "✅ Translation files exist"
+      
+      - name: Verify translation keys match
+        run: |
+          en_keys=$(cat assets/translations/en-US.json | grep -o '"[^"]*":' | sort)
+          id_keys=$(cat assets/translations/id-ID.json | grep -o '"[^"]*":' | sort)
+          
+          missing_in_id=$(comm -23 <(echo "$en_keys") <(echo "$id_keys") || true)
+          missing_in_en=$(comm -13 <(echo "$en_keys") <(echo "$id_keys") || true)
+          
+          if [ -n "$missing_in_id" ]; then
+            echo "⚠️  Keys in en-US.json missing in id-ID.json:"
+            echo "$missing_in_id"
+          fi
+          
+          if [ -n "$missing_in_en" ]; then
+            echo "⚠️  Keys in id-ID.json missing in en-US.json:"
+            echo "$missing_in_en"
+          fi
+          
+          if [ -z "$missing_in_id" ] && [ -z "$missing_in_en" ]; then
+            echo "✅ Translation keys match between languages"
+          fi
+

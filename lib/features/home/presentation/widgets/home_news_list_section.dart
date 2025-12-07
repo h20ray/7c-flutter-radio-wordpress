@@ -194,14 +194,14 @@ class _HomeNewsListSectionState extends State<HomeNewsListSection> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(height: DesignTokens.spacingS),
+            const SizedBox(height: DesignTokens.spacingS),
             if (data.categories.isNotEmpty)
               SizedBox(
                 height: 40,
                 child: Center(
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
-                    padding: EdgeInsets.symmetric(
+                    padding: const EdgeInsets.symmetric(
                       horizontal: DesignTokens.spacingL,
                     ),
                     child: Row(
@@ -243,7 +243,7 @@ class _HomeNewsListSectionState extends State<HomeNewsListSection> {
                                   : chipTokens.outline,
                             ),
                             backgroundColor: chipTokens.unselectedBackground,
-                            padding: EdgeInsets.symmetric(
+                            padding: const EdgeInsets.symmetric(
                               horizontal: DesignTokens.spacingM,
                             ),
                             shape: RoundedRectangleBorder(
@@ -256,7 +256,7 @@ class _HomeNewsListSectionState extends State<HomeNewsListSection> {
                   ),
                 ),
               ),
-            SizedBox(height: DesignTokens.spacingM),
+            const SizedBox(height: DesignTokens.spacingM),
             BlocBuilder<NewsFeedBloc, NewsFeedState>(
               buildWhen: (previous, current) {
                 // Get current category from HomeBloc state (what user selected)
@@ -363,7 +363,7 @@ class _HomeNewsListSectionState extends State<HomeNewsListSection> {
                     
                     if (error != null && categoryPosts.isEmpty) {
                       return Padding(
-                        padding: EdgeInsets.symmetric(
+                        padding: const EdgeInsets.symmetric(
                           horizontal: DesignTokens.spacingL,
                         ),
                         child: Column(
@@ -374,7 +374,7 @@ class _HomeNewsListSectionState extends State<HomeNewsListSection> {
                                 color: context.appColors.textSecondary,
                               ),
                             ),
-                            SizedBox(height: DesignTokens.spacingS),
+                            const SizedBox(height: DesignTokens.spacingS),
                             TextButton(
                               onPressed: () {
                                 _requestPosts(
@@ -401,7 +401,7 @@ class _HomeNewsListSectionState extends State<HomeNewsListSection> {
                         return const HomeNewsCardSkeleton(itemCount: 3);
                       }
                       return Padding(
-                        padding: EdgeInsets.symmetric(
+                        padding: const EdgeInsets.symmetric(
                           horizontal: DesignTokens.spacingL,
                         ),
                         child: Text(
@@ -428,7 +428,7 @@ class _HomeNewsListSectionState extends State<HomeNewsListSection> {
                   error: (failure, categoryId) {
                     if (categoryId == data.selectedCategoryId) {
                       return Padding(
-                        padding: EdgeInsets.symmetric(
+                        padding: const EdgeInsets.symmetric(
                           horizontal: DesignTokens.spacingL,
                         ),
                         child: Column(
@@ -439,7 +439,7 @@ class _HomeNewsListSectionState extends State<HomeNewsListSection> {
                                 color: context.appColors.textSecondary,
                               ),
                             ),
-                            SizedBox(height: DesignTokens.spacingS),
+                            const SizedBox(height: DesignTokens.spacingS),
                             TextButton(
                               onPressed: () {
                                 _requestPosts(
@@ -491,7 +491,7 @@ class _HomeNewsListSectionState extends State<HomeNewsListSection> {
     return RepaintBoundary(
       child: Container(
         key: ValueKey(post.id),
-        margin: EdgeInsets.fromLTRB(
+        margin: const EdgeInsets.fromLTRB(
           DesignTokens.spacingL,
           DesignTokens.spacingS,
           DesignTokens.spacingL,
@@ -513,7 +513,7 @@ class _HomeNewsListSectionState extends State<HomeNewsListSection> {
             },
             borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
             child: Padding(
-              padding: EdgeInsets.all(DesignTokens.spacingM),
+              padding: const EdgeInsets.all(DesignTokens.spacingM),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -545,7 +545,7 @@ class _HomeNewsListSectionState extends State<HomeNewsListSection> {
                           )
                         : Icon(Icons.image, color: colors.textSecondary),
                   ),
-                  SizedBox(width: DesignTokens.spacingM),
+                  const SizedBox(width: DesignTokens.spacingM),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -562,7 +562,7 @@ class _HomeNewsListSectionState extends State<HomeNewsListSection> {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        SizedBox(height: DesignTokens.spacingS),
+                        const SizedBox(height: DesignTokens.spacingS),
                         _buildInfoPills(context, post, chipTokens),
                       ],
                     ),

@@ -89,9 +89,9 @@ class _TimeOfDayBackground extends StatelessWidget {
     final now = DateTime.now();
     final minutesSinceMidnight = now.hour * 60 + now.minute;
 
-    final dayStart = 6 * 60;
-    final afternoonStart = 15 * 60 + 30;
-    final nightStart = 18 * 60;
+    const dayStart = 6 * 60;
+    const afternoonStart = 15 * 60 + 30;
+    const nightStart = 18 * 60;
 
     if (minutesSinceMidnight >= dayStart && minutesSinceMidnight < afternoonStart) {
       return 'assets/sprites/backgrounds/time_day.png';

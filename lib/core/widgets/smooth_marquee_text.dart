@@ -166,7 +166,7 @@ class _FadeMarqueeTextState extends State<FadeMarqueeText>
         return ClipRect(
           child: ShaderMask(
             shaderCallback: (bounds) {
-              return LinearGradient(
+              return const LinearGradient(
                 begin: Alignment.centerLeft,
                 end: Alignment.centerRight,
                 colors: [
@@ -175,7 +175,7 @@ class _FadeMarqueeTextState extends State<FadeMarqueeText>
                   Colors.black,
                   Colors.transparent,
                 ],
-                stops: const [0.0, 0.05, 0.95, 1.0],
+                stops: [0.0, 0.05, 0.95, 1.0],
               ).createShader(bounds);
             },
             blendMode: BlendMode.dstIn,

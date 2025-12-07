@@ -29,7 +29,7 @@ class SocialMediaService {
           'whatsappUrl'
         ];
 
-        for (var key in keys) {
+        for (final key in keys) {
           if (jsonMap.containsKey(key) && jsonMap[key] != null && jsonMap[key].toString().isNotEmpty) {
             links[key] = jsonMap[key].toString();
           }

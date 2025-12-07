@@ -36,7 +36,7 @@ class RadioBigAlbumArt extends StatelessWidget {
                 ),
               ],
             ),
-            child: AspectRatio(
+            child: const AspectRatio(
               aspectRatio: 1,
               child: AlbumArtWidget.roundedRect(
                 width: double.infinity,

@@ -58,7 +58,7 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
 
     return Dialog(
       backgroundColor: Colors.transparent,
-      insetPadding: EdgeInsets.all(DesignTokens.spacingL),
+      insetPadding: const EdgeInsets.all(DesignTokens.spacingL),
       child: Container(
         constraints: BoxConstraints(
           maxHeight: MediaQuery.of(context).size.height * 0.8,
@@ -71,7 +71,7 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Padding(
-              padding: EdgeInsets.all(DesignTokens.spacingL),
+              padding: const EdgeInsets.all(DesignTokens.spacingL),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -91,7 +91,7 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
               ),
             ),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
+              padding: const EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
               child: TextField(
                 controller: _searchController,
                 decoration: InputDecoration(
@@ -103,19 +103,19 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
                   ),
-                  contentPadding: EdgeInsets.symmetric(
+                  contentPadding: const EdgeInsets.symmetric(
                     horizontal: DesignTokens.spacingM,
                     vertical: DesignTokens.spacingS,
                   ),
                 ),
               ),
             ),
-            SizedBox(height: DesignTokens.spacingM),
+            const SizedBox(height: DesignTokens.spacingM),
             Flexible(
               child: _filteredCategories.isEmpty
                   ? Center(
                       child: Padding(
-                        padding: EdgeInsets.all(DesignTokens.spacingXl),
+                        padding: const EdgeInsets.all(DesignTokens.spacingXl),
                         child: Text(
                           'No categories found',
                           style: TextStyle(
@@ -126,9 +126,9 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
                       ),
                     )
                   : GridView.builder(
-                      padding: EdgeInsets.all(DesignTokens.spacingL),
+                      padding: const EdgeInsets.all(DesignTokens.spacingL),
                       shrinkWrap: true,
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
                         childAspectRatio: 1.2,
                         crossAxisSpacing: DesignTokens.spacingM,
@@ -215,9 +215,9 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
                   size: 30,
                 ),
               ),
-            SizedBox(height: DesignTokens.spacingS),
+            const SizedBox(height: DesignTokens.spacingS),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: DesignTokens.spacingS),
+              padding: const EdgeInsets.symmetric(horizontal: DesignTokens.spacingS),
               child: Text(
                 category.name,
                 style: TextStyle(
@@ -232,7 +232,7 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
             ),
             if (isSelected)
               Padding(
-                padding: EdgeInsets.only(top: DesignTokens.spacingXs),
+                padding: const EdgeInsets.only(top: DesignTokens.spacingXs),
                 child: Icon(
                   Icons.check_circle,
                   color: colors.gradientStart,

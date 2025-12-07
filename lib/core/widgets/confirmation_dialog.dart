@@ -99,7 +99,7 @@ class ConfirmationDialog extends StatelessWidget {
           ),
           child: Container(
             constraints: const BoxConstraints(maxWidth: 400),
-            padding: EdgeInsets.all(DesignTokens.spacingXl),
+            padding: const EdgeInsets.all(DesignTokens.spacingXl),
             decoration: BoxDecoration(
               color: tokens.surface.withValues(
                 alpha: backdropOpacity,
@@ -127,7 +127,7 @@ class ConfirmationDialog extends StatelessWidget {
                   size: 24,
                 ),
               ),
-              SizedBox(height: DesignTokens.spacingL),
+              const SizedBox(height: DesignTokens.spacingL),
             ],
             Text(
               titleKey.tr(),
@@ -136,7 +136,7 @@ class ConfirmationDialog extends StatelessWidget {
                 color: colorScheme.onSurface,
               ),
             ),
-            SizedBox(height: DesignTokens.spacingM),
+            const SizedBox(height: DesignTokens.spacingM),
             Text(
               messageKey.tr(),
               style: theme.textTheme.bodyMedium?.copyWith(
@@ -144,7 +144,7 @@ class ConfirmationDialog extends StatelessWidget {
                 height: 1.5,
               ),
             ),
-            SizedBox(height: DesignTokens.spacingXl),
+            const SizedBox(height: DesignTokens.spacingXl),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -158,7 +158,7 @@ class ConfirmationDialog extends StatelessWidget {
                   ),
                   child: Text(cancelTextKey.tr()),
                 ),
-                SizedBox(width: DesignTokens.spacingM),
+                const SizedBox(width: DesignTokens.spacingM),
                 HapticFilledButton(
                   hapticType: HapticFeedbackType.mediumImpact,
                   onPressed: onConfirm,

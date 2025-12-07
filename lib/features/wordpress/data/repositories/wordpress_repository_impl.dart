@@ -207,11 +207,11 @@ class WordPressRepositoryImpl implements WordPressRepository {
     try {
       final post = await remoteDataSource.getPostById(id);
       if (post == null) {
-        return Left(ServerFailure('Post not found'));
+        return const Left(ServerFailure('Post not found'));
       }
       final enrichedPost = await _enrichPosts([post]);
       if (enrichedPost.isEmpty) {
-        return Left(ServerFailure('Post not found'));
+        return const Left(ServerFailure('Post not found'));
       }
       return Right(enrichedPost.first);
     } on ServerException catch (e) {
@@ -230,11 +230,11 @@ class WordPressRepositoryImpl implements WordPressRepository {
     try {
       final post = await remoteDataSource.getPostBySlug(slug);
       if (post == null) {
-        return Left(ServerFailure('Post not found'));
+        return const Left(ServerFailure('Post not found'));
       }
       final enrichedPost = await _enrichPosts([post]);
       if (enrichedPost.isEmpty) {
-        return Left(ServerFailure('Post not found'));
+        return const Left(ServerFailure('Post not found'));
       }
       return Right(enrichedPost.first);
     } on ServerException catch (e) {
@@ -501,7 +501,7 @@ class WordPressRepositoryImpl implements WordPressRepository {
       // Check if post is in offline storage (explicitly saved)
       final isExplicitlyOffline = await offlineNewsService.isPostOffline(postId);
       if (isExplicitlyOffline) {
-        return Right(true);
+        return const Right(true);
       }
       
       // Check if post is in cache (automatically available offline)

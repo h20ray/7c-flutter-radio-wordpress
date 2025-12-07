@@ -97,8 +97,8 @@ class _ShoutboxPageViewState extends State<ShoutboxPageView> {
     if (smooth) {
       await _scrollController.animateTo(
         maxScroll,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
+        duration: DesignTokens.animationDurationMedium,
+        curve: DesignTokens.animationCurveDefault,
       );
     } else {
       _scrollController.jumpTo(maxScroll);
@@ -203,9 +203,9 @@ class _ShoutboxPageViewState extends State<ShoutboxPageView> {
                       actions: [
                         if (_newMessagesCount > 0 && !_isAtBottom)
                           Padding(
-                            padding: const EdgeInsets.only(right: 8.0),
+                            padding: const EdgeInsets.only(right: DesignTokens.spacingS),
                             child: ActionChip(
-                              label: Text('$_newMessagesCount new'),
+                              label: Text('shoutbox_new_messages_count'.tr(namedArgs: {'count': '$_newMessagesCount'})),
                               avatar: const Icon(LucideIcons.arrow_down,
                                   size: 16),
                               backgroundColor:
@@ -216,8 +216,8 @@ class _ShoutboxPageViewState extends State<ShoutboxPageView> {
                         IconButton(
                           icon: const Icon(LucideIcons.arrow_down_to_line),
                           tooltip: _isAtBottom
-                              ? 'Scroll to bottom'
-                              : 'Scroll to bottom ($_newMessagesCount new)',
+                              ? 'shoutbox_scroll_to_bottom'.tr()
+                              : 'shoutbox_scroll_to_bottom_with_count'.tr(namedArgs: {'count': '$_newMessagesCount'}),
                           onPressed: _scrollToBottom,
                         ),
                         IconButton(
@@ -240,7 +240,7 @@ class _ShoutboxPageViewState extends State<ShoutboxPageView> {
                           }
                         },
                         child: Padding(
-                          padding: EdgeInsets.symmetric(
+                          padding: const EdgeInsets.symmetric(
                             horizontal: DesignTokens.spacingL,
                             vertical: DesignTokens.spacingM,
                           ),
@@ -255,7 +255,7 @@ class _ShoutboxPageViewState extends State<ShoutboxPageView> {
                                           .addPostFrameCallback((_) {
                                         _scrollToBottom(smooth: false);
                                       });
-                                      return _ShoutboxLoadingSkeleton(
+                                      return const _ShoutboxLoadingSkeleton(
                                         itemCount: 6,
                                         spacing: DesignTokens.spacingS,
                                       );
@@ -265,7 +265,7 @@ class _ShoutboxPageViewState extends State<ShoutboxPageView> {
                                           .addPostFrameCallback((_) {
                                         _scrollToBottom(smooth: false);
                                       });
-                                      return _ShoutboxLoadingSkeleton(
+                                      return const _ShoutboxLoadingSkeleton(
                                         itemCount: 6,
                                         spacing: DesignTokens.spacingS,
                                       );
@@ -360,7 +360,7 @@ class _ShoutboxPageViewState extends State<ShoutboxPageView> {
                   child: SafeArea(
                     top: false,
                     child: Padding(
-                      padding: EdgeInsets.only(
+                      padding: const EdgeInsets.only(
                         left: DesignTokens.spacingL,
                         right: DesignTokens.spacingL,
                         bottom: DesignTokens.spacingS,
@@ -378,7 +378,7 @@ class _ShoutboxPageViewState extends State<ShoutboxPageView> {
                               },
                             ),
                           ),
-                          SizedBox(width: DesignTokens.spacingM),
+                          const SizedBox(width: DesignTokens.spacingM),
                           const FloatingPlayFab(size: 60),
                         ],
                       ),
@@ -436,7 +436,7 @@ class _ShoutboxPageViewState extends State<ShoutboxPageView> {
 
   Widget _buildEmptyState(AppSemanticColors colors) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: DesignTokens.spacingL),
+      padding: const EdgeInsets.symmetric(vertical: DesignTokens.spacingL),
       child: Column(
         children: [
           Icon(
@@ -444,12 +444,12 @@ class _ShoutboxPageViewState extends State<ShoutboxPageView> {
             size: 56,
             color: colors.textSecondary,
           ),
-          SizedBox(height: DesignTokens.spacingM),
+          const SizedBox(height: DesignTokens.spacingM),
           Text(
             'shoutbox_empty_title'.tr(),
             style: Theme.of(context).textTheme.titleMedium,
           ),
-          SizedBox(height: DesignTokens.spacingS),
+          const SizedBox(height: DesignTokens.spacingS),
           Text(
             'shoutbox_empty_message'.tr(),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -464,7 +464,7 @@ class _ShoutboxPageViewState extends State<ShoutboxPageView> {
 
   Widget _buildErrorState(AppSemanticColors colors, String message) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: DesignTokens.spacingL),
+      padding: const EdgeInsets.symmetric(vertical: DesignTokens.spacingL),
       child: Column(
         children: [
           Icon(
@@ -472,12 +472,12 @@ class _ShoutboxPageViewState extends State<ShoutboxPageView> {
             size: 56,
             color: Theme.of(context).colorScheme.error,
           ),
-          SizedBox(height: DesignTokens.spacingM),
+          const SizedBox(height: DesignTokens.spacingM),
           Text(
             'shoutbox_error_title'.tr(),
             style: Theme.of(context).textTheme.titleMedium,
           ),
-          SizedBox(height: DesignTokens.spacingS),
+          const SizedBox(height: DesignTokens.spacingS),
           Text(
             message,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -485,7 +485,7 @@ class _ShoutboxPageViewState extends State<ShoutboxPageView> {
                 ),
             textAlign: TextAlign.center,
           ),
-          SizedBox(height: DesignTokens.spacingM),
+          const SizedBox(height: DesignTokens.spacingM),
           ElevatedButton.icon(
             onPressed: () {
               context.read<ShoutboxBloc>().add(
@@ -536,7 +536,7 @@ class _ShoutboxLoginCard extends StatelessWidget {
     final colors = context.appColors;
 
     return Container(
-      padding: EdgeInsets.all(DesignTokens.spacingL),
+      padding: const EdgeInsets.all(DesignTokens.spacingL),
       decoration: BoxDecoration(
         color: colors.cardBackground,
         borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
@@ -556,7 +556,7 @@ class _ShoutboxLoginCard extends StatelessWidget {
             size: 32,
             color: colors.textSecondary,
           ),
-          SizedBox(height: DesignTokens.spacingS),
+          const SizedBox(height: DesignTokens.spacingS),
           Text(
             'shoutbox_login_to_chat'.tr(),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -564,7 +564,7 @@ class _ShoutboxLoginCard extends StatelessWidget {
                 ),
             textAlign: TextAlign.center,
           ),
-          SizedBox(height: DesignTokens.spacingM),
+          const SizedBox(height: DesignTokens.spacingM),
           ElevatedButton.icon(
             onPressed: () {
               LoginDialog.show(context);
@@ -599,7 +599,7 @@ class _ShoutboxLoadingSkeleton extends StatelessWidget {
       separatorBuilder: (_, _) => SizedBox(height: spacing),
       itemBuilder: (_, _) {
         return Container(
-          padding: EdgeInsets.all(DesignTokens.spacingM),
+          padding: const EdgeInsets.all(DesignTokens.spacingM),
           decoration: BoxDecoration(
             color: colors.cardBackground,
             borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
@@ -621,7 +621,7 @@ class _ShoutboxLoadingSkeleton extends StatelessWidget {
                 baseColor: skeletonColor.withValues(alpha: 0.35),
                 highlightColor: skeletonColor.withValues(alpha: 0.55),
               ),
-              SizedBox(width: DesignTokens.spacingM),
+              const SizedBox(width: DesignTokens.spacingM),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -633,7 +633,7 @@ class _ShoutboxLoadingSkeleton extends StatelessWidget {
                       baseColor: skeletonColor.withValues(alpha: 0.35),
                       highlightColor: skeletonColor.withValues(alpha: 0.55),
                     ),
-                    SizedBox(height: DesignTokens.spacingXs),
+                    const SizedBox(height: DesignTokens.spacingXs),
                     ShimmerContainer(
                       width: 90,
                       height: 12,
@@ -641,7 +641,7 @@ class _ShoutboxLoadingSkeleton extends StatelessWidget {
                       baseColor: skeletonColor.withValues(alpha: 0.3),
                       highlightColor: skeletonColor.withValues(alpha: 0.5),
                     ),
-                    SizedBox(height: DesignTokens.spacingS),
+                    const SizedBox(height: DesignTokens.spacingS),
                     ShimmerContainer(
                       width: double.infinity,
                       height: 14,
@@ -649,7 +649,7 @@ class _ShoutboxLoadingSkeleton extends StatelessWidget {
                       baseColor: skeletonColor.withValues(alpha: 0.3),
                       highlightColor: skeletonColor.withValues(alpha: 0.5),
                     ),
-                    SizedBox(height: DesignTokens.spacingXs),
+                    const SizedBox(height: DesignTokens.spacingXs),
                     ShimmerContainer(
                       width: double.infinity,
                       height: 14,

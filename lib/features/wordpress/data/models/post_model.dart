@@ -103,7 +103,7 @@ class PostModel extends PostEntity {
         : json['excerpt']?['rendered'] ?? '';
     final excerpt = _stripHtmlTags(_decodeHtmlEntities(excerptRaw));
     
-    String link = json['link'] as String? ?? '';
+    final String link = json['link'] as String? ?? '';
 
     List<int> categoryIds = [];
     if (json['categories'] != null && json['categories'] is List) {

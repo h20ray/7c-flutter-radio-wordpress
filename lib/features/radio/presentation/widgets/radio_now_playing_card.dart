@@ -391,7 +391,7 @@ class _CachedNowPlayingContentState extends State<_CachedNowPlayingContent>
                       imageFilter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
                       child: Transform.scale(
                         scale: 1.2,
-                        child: _BlurredAlbumArtBackground(
+                        child: const _BlurredAlbumArtBackground(
                           filterQuality: FilterQuality.low,
                         ),
                       ),
@@ -721,8 +721,8 @@ class _RequestWebViewPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(RadioConfig.requestWebViewTitle)),
-      body: Center(
+      appBar: AppBar(title: const Text(RadioConfig.requestWebViewTitle)),
+      body: const Center(
         child: Text(
           'WebView implementation needed for: ${RadioConfig.requestWebViewUrl}',
         ),

@@ -29,7 +29,7 @@ class OfflineNewsListDialog extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Padding(
-              padding: EdgeInsets.all(DesignTokens.spacingL),
+              padding: const EdgeInsets.all(DesignTokens.spacingL),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -55,7 +55,7 @@ class OfflineNewsListDialog extends StatelessWidget {
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return Padding(
-                      padding: EdgeInsets.all(DesignTokens.spacingL),
+                      padding: const EdgeInsets.all(DesignTokens.spacingL),
                       child: Center(
                         child: CircularProgressIndicator(
                           color: colors.colorScheme.primary,
@@ -66,7 +66,7 @@ class OfflineNewsListDialog extends StatelessWidget {
 
                   if (snapshot.hasError) {
                     return Padding(
-                      padding: EdgeInsets.all(DesignTokens.spacingL),
+                      padding: const EdgeInsets.all(DesignTokens.spacingL),
                       child: Center(
                         child: Text(
                           'settings_offline_error_loading'.tr(),
@@ -83,7 +83,7 @@ class OfflineNewsListDialog extends StatelessWidget {
 
                   return result.fold(
                     (failure) => Padding(
-                      padding: EdgeInsets.all(DesignTokens.spacingL),
+                      padding: const EdgeInsets.all(DesignTokens.spacingL),
                       child: Center(
                         child: Text(
                           'settings_offline_error_loading'.tr(),
@@ -94,7 +94,7 @@ class OfflineNewsListDialog extends StatelessWidget {
                     (posts) {
                       if (posts.isEmpty) {
                         return Padding(
-                          padding: EdgeInsets.all(DesignTokens.spacingL),
+                          padding: const EdgeInsets.all(DesignTokens.spacingL),
                           child: Center(
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
@@ -104,7 +104,7 @@ class OfflineNewsListDialog extends StatelessWidget {
                                   size: 48,
                                   color: colors.textSecondary,
                                 ),
-                                SizedBox(height: DesignTokens.spacingM),
+                                const SizedBox(height: DesignTokens.spacingM),
                                 Text(
                                   'settings_offline_no_posts'.tr(),
                                   style: TextStyle(

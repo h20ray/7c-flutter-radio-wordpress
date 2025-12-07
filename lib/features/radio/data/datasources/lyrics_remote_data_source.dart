@@ -19,7 +19,7 @@ class LyricsRemoteDataSourceImpl implements LyricsRemoteDataSource {
 
   @override
   Future<LyricsModel> getLyrics(String artist, String title) async {
-    final provider = RadioConfig.lyricsApiProvider;
+    const provider = RadioConfig.lyricsApiProvider;
 
     switch (provider) {
       case 'proxy':
@@ -38,8 +38,8 @@ class LyricsRemoteDataSourceImpl implements LyricsRemoteDataSource {
     String artist,
     String title,
   ) async {
-    final baseUrl = RadioConfig.lyricsProxyApiBaseUrl;
-    final fallbackChain = RadioConfig.lyricsProviderFallbackChain;
+    const baseUrl = RadioConfig.lyricsProxyApiBaseUrl;
+    const fallbackChain = RadioConfig.lyricsProviderFallbackChain;
 
     Exception? lastError;
 
@@ -85,7 +85,7 @@ class LyricsRemoteDataSourceImpl implements LyricsRemoteDataSource {
       }
     }
 
-    throw lastError ?? ServerException('All lyrics providers failed');
+    throw lastError ?? const ServerException('All lyrics providers failed');
   }
 
   Future<LyricsModel> _getLyricsFromWordPress(
@@ -113,12 +113,12 @@ class LyricsRemoteDataSourceImpl implements LyricsRemoteDataSource {
     String artist,
     String title,
   ) async {
-    final apiKey = RadioConfig.lyricsApiKey;
+    const apiKey = RadioConfig.lyricsApiKey;
     if (apiKey == null || apiKey.isEmpty) {
-      throw ServerException('Musixmatch API key is required for direct API access');
+      throw const ServerException('Musixmatch API key is required for direct API access');
     }
 
-    final url = 'https://api.musixmatch.com/ws/1.1/matcher.lyrics.get';
+    const url = 'https://api.musixmatch.com/ws/1.1/matcher.lyrics.get';
 
     try {
       final response = await dio.get(
@@ -141,7 +141,7 @@ class LyricsRemoteDataSourceImpl implements LyricsRemoteDataSource {
       final lyricsText = lyricsObj?['lyrics_body'] as String? ?? '';
 
       if (lyricsText.isEmpty || lyricsText.contains('***')) {
-        throw ServerException('Lyrics not found');
+        throw const ServerException('Lyrics not found');
       }
 
       return LyricsModel(

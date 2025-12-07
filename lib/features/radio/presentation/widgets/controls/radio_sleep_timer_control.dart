@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -82,9 +83,9 @@ class _RadioSleepTimerControlState extends State<RadioSleepTimerControl> {
   }
 
   String get _statusText {
-    if (_state.isRunning) return 'Stops in ${_formatDuration(_state.scheduledDuration)}';
-    if (_state.isEnabled) return 'Set to ${_formatDuration(_state.scheduledDuration)}';
-    return 'Off';
+    if (_state.isRunning) return 'sleep_timer_stops_in'.tr(namedArgs: {'duration': _formatDuration(_state.scheduledDuration)});
+    if (_state.isEnabled) return 'sleep_timer_set_to'.tr(namedArgs: {'duration': _formatDuration(_state.scheduledDuration)});
+    return 'sleep_timer_off'.tr();
   }
 
   @override

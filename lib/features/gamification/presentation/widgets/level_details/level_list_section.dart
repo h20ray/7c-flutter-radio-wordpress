@@ -17,13 +17,13 @@ class LevelListSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final allLevels = GameRadioTimeConfig.levels;
+    const allLevels = GameRadioTimeConfig.levels;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
+          padding: const EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
           child: Text(
             'level_details_all_levels'.tr(),
             style: textTheme.titleLarge?.copyWith(
@@ -31,7 +31,7 @@ class LevelListSection extends StatelessWidget {
             ),
           ),
         ),
-        SizedBox(height: DesignTokens.spacingL),
+        const SizedBox(height: DesignTokens.spacingL),
         ListView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
@@ -42,7 +42,7 @@ class LevelListSection extends StatelessWidget {
             final isUnlocked = currentHours >= level.minHours;
 
             return Padding(
-              padding: EdgeInsets.only(
+              padding: const EdgeInsets.only(
                 left: DesignTokens.spacingL,
                 right: DesignTokens.spacingL,
                 bottom: DesignTokens.spacingM,

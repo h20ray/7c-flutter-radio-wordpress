@@ -41,9 +41,9 @@ class OfflineNewsLimitSlider extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            SizedBox(width: DesignTokens.spacingS),
+            const SizedBox(width: DesignTokens.spacingS),
             Container(
-              padding: EdgeInsets.symmetric(
+              padding: const EdgeInsets.symmetric(
                 horizontal: DesignTokens.spacingS,
                 vertical: DesignTokens.spacingXs,
               ),
@@ -62,7 +62,7 @@ class OfflineNewsLimitSlider extends StatelessWidget {
             ),
           ],
         ),
-        SizedBox(height: DesignTokens.spacingS),
+        const SizedBox(height: DesignTokens.spacingS),
         Slider(
           value: value.toDouble(),
           min: min.toDouble(),

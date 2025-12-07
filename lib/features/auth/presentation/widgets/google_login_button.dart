@@ -21,7 +21,7 @@ class GoogleLoginButton extends StatelessWidget {
     return HapticOutlinedButton(
       onPressed: onPressed,
       style: OutlinedButton.styleFrom(
-        padding: EdgeInsets.symmetric(vertical: DesignTokens.spacingM),
+        padding: const EdgeInsets.symmetric(vertical: DesignTokens.spacingM),
         side: BorderSide(
           color: colorScheme.outline,
           width: 1,
@@ -30,11 +30,11 @@ class GoogleLoginButton extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
+          const Icon(
             LucideIcons.mail,
             size: 20,
           ),
-          SizedBox(width: DesignTokens.spacingM),
+          const SizedBox(width: DesignTokens.spacingM),
           Text('auth_login_google'.tr()),
         ],
       ),

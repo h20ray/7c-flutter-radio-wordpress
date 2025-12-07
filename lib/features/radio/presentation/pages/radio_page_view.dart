@@ -106,8 +106,8 @@ class _RadioPageViewContentState extends State<_RadioPageViewContent> {
     if (!_scrollController.hasClients) return;
     await _scrollController.animateTo(
       0,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOut,
+      duration: DesignTokens.animationDurationMedium,
+      curve: DesignTokens.animationCurveDefault,
     );
   }
 
@@ -115,8 +115,8 @@ class _RadioPageViewContentState extends State<_RadioPageViewContent> {
   @override
   Widget build(BuildContext context) {
     final safeAreaBottom = MediaQuery.of(context).padding.bottom;
-    final bottomSpacing = DesignTokens.spacingS;
-    final extraSpacing = DesignTokens.spacingXl;
+    const bottomSpacing = DesignTokens.spacingS;
+    const extraSpacing = DesignTokens.spacingXl;
     final totalBottomSpacing = FloatingBottomNavBar.totalHeight + bottomSpacing + safeAreaBottom + extraSpacing;
 
     return Stack(
@@ -129,27 +129,27 @@ class _RadioPageViewContentState extends State<_RadioPageViewContent> {
             ),
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                padding: const EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const SizedBox(height: 32),
+                    const SizedBox(height: DesignTokens.spacingXxl),
                     // Big Album Art
                     const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16.0),
+                      padding: EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
                       child: RadioBigAlbumArt(),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: DesignTokens.spacingL + DesignTokens.spacingS),
                     // Metadata Section
                     const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16.0),
+                      padding: EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
                       child: RadioMetadataSection(),
                     ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: DesignTokens.spacingXxl),
                     // Subtle divider
                     Builder(
                       builder: (context) => Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        padding: const EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
                         child: Divider(
                           height: 1,
                           thickness: 0.5,
@@ -157,20 +157,20 @@ class _RadioPageViewContentState extends State<_RadioPageViewContent> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: DesignTokens.spacingXl),
                     // Menu Chips Section
                     const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16.0),
+                      padding: EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
                       child: RadioActionButtons(),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: DesignTokens.spacingXl),
                     const AspectRatio(
                       aspectRatio: 5 / 4,
                       child: RadioBannerSection(),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: DesignTokens.spacingXl),
                     const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16.0),
+                      padding: EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
                       child: RadioSongHistorySection(),
                     ),
                     SizedBox(height: totalBottomSpacing),
@@ -187,7 +187,7 @@ class _RadioPageViewContentState extends State<_RadioPageViewContent> {
           child: SafeArea(
             top: false,
             child: Padding(
-              padding: EdgeInsets.only(
+              padding: const EdgeInsets.only(
                 left: DesignTokens.spacingL,
                 right: DesignTokens.spacingL,
                 bottom: DesignTokens.spacingS,
@@ -205,9 +205,9 @@ class _RadioPageViewContentState extends State<_RadioPageViewContent> {
                       },
                     ),
                   ),
-                  SizedBox(width: DesignTokens.spacingM),
-                  FloatingPlayFab(
-                    key: const ValueKey('radio-play-fab'),
+                  const SizedBox(width: DesignTokens.spacingM),
+                  const FloatingPlayFab(
+                    key: ValueKey('radio-play-fab'),
                     size: 60,
                   ),
                 ],

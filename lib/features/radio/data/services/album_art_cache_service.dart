@@ -24,7 +24,7 @@ class AlbumArtCacheService {
   
   bool _isInitialized = false;
 
-  Duration get _cacheDuration => Duration(hours: RadioConfig.albumArtCacheTTLHours);
+  Duration get _cacheDuration => const Duration(hours: RadioConfig.albumArtCacheTTLHours);
 
   static const int _maxInMemorySize = 100;
   static const int _maxPersistedSize = 512;

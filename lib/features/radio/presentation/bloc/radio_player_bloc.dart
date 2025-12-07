@@ -312,7 +312,7 @@ class RadioPlayerBloc extends Bloc<RadioPlayerEvent, RadioPlayerState> {
         if (isPlaying) {
           DebugLogger.log('[RadioPlayerBloc] Transient focus loss with ducking, reducing volume', tag: 'RadioPlayerBloc');
           // Update state to show ducking without pausing
-          add(RadioPlayerEvent.playbackStateChanged(true)); // Keep playing but with ducking
+          add(const RadioPlayerEvent.playbackStateChanged(true)); // Keep playing but with ducking
         }
       },
       orElse: () {},
@@ -390,8 +390,8 @@ class RadioPlayerBloc extends Bloc<RadioPlayerEvent, RadioPlayerState> {
     // Optimize audio session and request audio focus
     try {
       await AudioFocusManager.instance.optimizeAudioSession();
-      final audioSessionDelay = RadioConfig.audioSessionOptimizationDelayMs;
-      await Future.delayed(Duration(milliseconds: audioSessionDelay));
+      const audioSessionDelay = RadioConfig.audioSessionOptimizationDelayMs;
+      await Future.delayed(const Duration(milliseconds: audioSessionDelay));
       final hasFocus = await AudioFocusManager.instance.requestAudioFocus();
       if (!hasFocus) {
         DebugLogger.log('[RadioPlayerBloc] Audio focus denied, but continuing playback', tag: 'RadioPlayerBloc');
@@ -404,8 +404,8 @@ class RadioPlayerBloc extends Bloc<RadioPlayerEvent, RadioPlayerState> {
     }
 
     DebugLogger.log('[RadioPlayerBloc] Starting playback', tag: 'RadioPlayerBloc');
-    final audioFocusDelay = RadioConfig.audioFocusDelayMs;
-    await Future.delayed(Duration(milliseconds: audioFocusDelay));
+    const audioFocusDelay = RadioConfig.audioFocusDelayMs;
+    await Future.delayed(const Duration(milliseconds: audioFocusDelay));
     final result = await playRadio();
     result.fold(
       (failure) => emit(

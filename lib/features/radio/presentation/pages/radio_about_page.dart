@@ -19,12 +19,12 @@ class RadioAboutPage extends StatelessWidget {
         title: Text('radio_menu_about'.tr()),
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(DesignTokens.spacingL),
+        padding: const EdgeInsets.all(DesignTokens.spacingL),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              padding: EdgeInsets.all(DesignTokens.spacingL),
+              padding: const EdgeInsets.all(DesignTokens.spacingL),
               decoration: BoxDecoration(
                 color: colors.cardBackground,
                 borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
@@ -36,7 +36,7 @@ class RadioAboutPage extends StatelessWidget {
                   Row(
                     children: [
                       Container(
-                        padding: EdgeInsets.all(DesignTokens.spacingM),
+                        padding: const EdgeInsets.all(DesignTokens.spacingM),
                         decoration: BoxDecoration(
                           color: colors.primaryAccent.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
@@ -47,7 +47,7 @@ class RadioAboutPage extends StatelessWidget {
                           size: 32,
                         ),
                       ),
-                      SizedBox(width: DesignTokens.spacingM),
+                      const SizedBox(width: DesignTokens.spacingM),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -59,7 +59,7 @@ class RadioAboutPage extends StatelessWidget {
                                 color: colors.textPrimary,
                               ),
                             ),
-                            SizedBox(height: DesignTokens.spacingXs),
+                            const SizedBox(height: DesignTokens.spacingXs),
                             Text(
                               'radio_info_dialog_heading'.tr(),
                               style: theme.textTheme.bodyMedium?.copyWith(
@@ -71,7 +71,7 @@ class RadioAboutPage extends StatelessWidget {
                       ),
                     ],
                   ),
-                  SizedBox(height: DesignTokens.spacingL),
+                  const SizedBox(height: DesignTokens.spacingL),
                   Text(
                     'radio_info_dialog_welcome'.tr(
                       namedArgs: {'radio_station_name': 'radio_station_name'.tr()},
@@ -84,9 +84,9 @@ class RadioAboutPage extends StatelessWidget {
                 ],
               ),
             ),
-            SizedBox(height: DesignTokens.spacingL),
+            const SizedBox(height: DesignTokens.spacingL),
             Container(
-              padding: EdgeInsets.all(DesignTokens.spacingL),
+              padding: const EdgeInsets.all(DesignTokens.spacingL),
               decoration: BoxDecoration(
                 color: colors.cardBackground,
                 borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
@@ -102,19 +102,19 @@ class RadioAboutPage extends StatelessWidget {
                       color: colors.textPrimary,
                     ),
                   ),
-                  SizedBox(height: DesignTokens.spacingM),
+                  const SizedBox(height: DesignTokens.spacingM),
                   _InfoRow(
                     icon: LucideIcons.radio,
                     label: 'radio_info_frequency_label'.tr(),
                     value: 'radio_info_frequency_value'.tr(),
                   ),
-                  SizedBox(height: DesignTokens.spacingM),
+                  const SizedBox(height: DesignTokens.spacingM),
                   _InfoRow(
                     icon: LucideIcons.map_pin,
                     label: 'radio_info_location_label'.tr(),
                     value: 'radio_info_location_value'.tr(),
                   ),
-                  SizedBox(height: DesignTokens.spacingM),
+                  const SizedBox(height: DesignTokens.spacingM),
                   _InfoRow(
                     icon: LucideIcons.globe,
                     label: 'radio_info_website_label'.tr(),
@@ -150,7 +150,7 @@ class _InfoRow extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          padding: EdgeInsets.all(DesignTokens.spacingS),
+          padding: const EdgeInsets.all(DesignTokens.spacingS),
           decoration: BoxDecoration(
             color: colors.surfaces.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusButton),
@@ -161,7 +161,7 @@ class _InfoRow extends StatelessWidget {
             color: colors.textSecondary,
           ),
         ),
-        SizedBox(width: DesignTokens.spacingM),
+        const SizedBox(width: DesignTokens.spacingM),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -173,7 +173,7 @@ class _InfoRow extends StatelessWidget {
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              SizedBox(height: DesignTokens.spacingXs),
+              const SizedBox(height: DesignTokens.spacingXs),
               Text(
                 value,
                 style: theme.textTheme.bodyMedium?.copyWith(

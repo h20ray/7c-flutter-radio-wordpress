@@ -20,7 +20,7 @@ class NewsLoadMoreFooter extends StatelessWidget {
           children: List.generate(
             1,
             (index) => Container(
-              margin: EdgeInsets.only(bottom: DesignTokens.spacingL),
+              margin: const EdgeInsets.only(bottom: DesignTokens.spacingL),
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(
@@ -51,7 +51,7 @@ class NewsLoadMoreFooter extends StatelessWidget {
                       ),
                     ),
                     Padding(
-                      padding: EdgeInsets.all(DesignTokens.spacingM),
+                      padding: const EdgeInsets.all(DesignTokens.spacingM),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [

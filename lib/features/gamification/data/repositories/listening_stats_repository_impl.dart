@@ -303,7 +303,7 @@ class ListeningStatsRepositoryImpl implements ListeningStatsRepository {
     String userId,
   ) async {
     if (remoteDataSource == null || userId == _guestUserId) {
-      return Left(ServerFailure('Cannot fetch server stats for guest user'));
+      return const Left(ServerFailure('Cannot fetch server stats for guest user'));
     }
 
     try {

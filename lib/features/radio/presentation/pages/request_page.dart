@@ -74,7 +74,7 @@ class _RequestPageState extends State<RequestPage> {
   }
 
   void _detectMode() {
-    final mode = RadioConfig.requestMode;
+    const mode = RadioConfig.requestMode;
     _requestMode = mode;
 
     if (mode == 'webview') {
@@ -263,7 +263,7 @@ class _RequestPageState extends State<RequestPage> {
                       )
                     : null,
                 border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(
+                contentPadding: const EdgeInsets.symmetric(
                   horizontal: DesignTokens.spacingM,
                   vertical: DesignTokens.spacingS,
                 ),
@@ -338,7 +338,7 @@ class _TrackList extends StatelessWidget {
       ),
       slivers: [
         SliverPadding(
-          padding: EdgeInsets.all(DesignTokens.spacingL),
+          padding: const EdgeInsets.all(DesignTokens.spacingL),
           sliver: SliverList(
             delegate: SliverChildBuilderDelegate((context, index) {
               final track = tracks[index];
@@ -367,8 +367,8 @@ class _TrackItem extends StatelessWidget {
     final shadow = AppShadowTokens.elevation4(context);
 
     return Container(
-      margin: EdgeInsets.only(bottom: DesignTokens.spacingM),
-      padding: EdgeInsets.all(DesignTokens.spacingM),
+      margin: const EdgeInsets.only(bottom: DesignTokens.spacingM),
+      padding: const EdgeInsets.all(DesignTokens.spacingM),
       decoration: BoxDecoration(
         color: colors.cardBackground,
         borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
@@ -406,7 +406,7 @@ class _TrackItem extends StatelessWidget {
               ),
               child: Icon(LucideIcons.music, color: colors.textSecondary),
             ),
-          SizedBox(width: DesignTokens.spacingM),
+          const SizedBox(width: DesignTokens.spacingM),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -420,7 +420,7 @@ class _TrackItem extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                SizedBox(height: DesignTokens.spacingXs),
+                const SizedBox(height: DesignTokens.spacingXs),
                 Text(
                   track.artist,
                   style: theme.textTheme.bodyMedium?.copyWith(
@@ -432,10 +432,10 @@ class _TrackItem extends StatelessWidget {
               ],
             ),
           ),
-          SizedBox(width: DesignTokens.spacingM),
+          const SizedBox(width: DesignTokens.spacingM),
           FilledButton.icon(
             onPressed: onRequest,
-            icon: Icon(LucideIcons.send, size: 14),
+            icon: const Icon(LucideIcons.send, size: 14),
             label: Text(
               'Request',
               style: theme.textTheme.labelMedium?.copyWith(
@@ -447,7 +447,7 @@ class _TrackItem extends StatelessWidget {
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.primary,
               foregroundColor: Theme.of(context).colorScheme.onPrimary,
-              padding: EdgeInsets.symmetric(
+              padding: const EdgeInsets.symmetric(
                 horizontal: DesignTokens.spacingS,
                 vertical: DesignTokens.spacingXs,
               ),
@@ -470,12 +470,12 @@ class _RequestLoadingState extends StatelessWidget {
     final shadow = AppShadowTokens.elevation2(context);
 
     return ListView.builder(
-      padding: EdgeInsets.all(DesignTokens.spacingL),
+      padding: const EdgeInsets.all(DesignTokens.spacingL),
       itemCount: RadioConfig.requestListItemsPerPage,
       itemBuilder: (context, index) {
         return Container(
-          margin: EdgeInsets.only(bottom: DesignTokens.spacingM),
-          padding: EdgeInsets.all(DesignTokens.spacingM),
+          margin: const EdgeInsets.only(bottom: DesignTokens.spacingM),
+          padding: const EdgeInsets.all(DesignTokens.spacingM),
           decoration: BoxDecoration(
             color: colors.cardBackground,
             borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
@@ -490,7 +490,7 @@ class _RequestLoadingState extends StatelessWidget {
                 baseColor: skeletonColor.withValues(alpha: 0.3),
                 highlightColor: skeletonColor.withValues(alpha: 0.5),
               ),
-              SizedBox(width: DesignTokens.spacingM),
+              const SizedBox(width: DesignTokens.spacingM),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -502,7 +502,7 @@ class _RequestLoadingState extends StatelessWidget {
                       baseColor: skeletonColor.withValues(alpha: 0.3),
                       highlightColor: skeletonColor.withValues(alpha: 0.5),
                     ),
-                    SizedBox(height: DesignTokens.spacingXs),
+                    const SizedBox(height: DesignTokens.spacingXs),
                     ShimmerContainer(
                       width: 150,
                       height: 14,
@@ -513,7 +513,7 @@ class _RequestLoadingState extends StatelessWidget {
                   ],
                 ),
               ),
-              SizedBox(width: DesignTokens.spacingM),
+              const SizedBox(width: DesignTokens.spacingM),
               ShimmerContainer(
                 width: 80,
                 height: 36,
@@ -541,12 +541,12 @@ class _EmptyState extends StatelessWidget {
 
     return Center(
       child: Padding(
-        padding: EdgeInsets.all(DesignTokens.spacingXl),
+        padding: const EdgeInsets.all(DesignTokens.spacingXl),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.music_off, size: 64, color: colors.textSecondary),
-            SizedBox(height: DesignTokens.spacingL),
+            const SizedBox(height: DesignTokens.spacingL),
             Text(
               'No tracks found',
               style: theme.textTheme.titleLarge?.copyWith(
@@ -554,7 +554,7 @@ class _EmptyState extends StatelessWidget {
                 fontWeight: FontWeight.w600,
               ),
             ),
-            SizedBox(height: DesignTokens.spacingS),
+            const SizedBox(height: DesignTokens.spacingS),
             Text(
               'Try searching with different keywords or get random picks',
               style: theme.textTheme.bodyMedium?.copyWith(
@@ -562,13 +562,13 @@ class _EmptyState extends StatelessWidget {
               ),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: DesignTokens.spacingXl),
+            const SizedBox(height: DesignTokens.spacingXl),
             FilledButton.icon(
               onPressed: onShuffle,
-              icon: Icon(LucideIcons.shuffle),
+              icon: const Icon(LucideIcons.shuffle),
               label: Text('request_get_random_picks'.tr()),
               style: FilledButton.styleFrom(
-                padding: EdgeInsets.symmetric(
+                padding: const EdgeInsets.symmetric(
                   horizontal: DesignTokens.spacingL,
                   vertical: DesignTokens.spacingM,
                 ),
@@ -593,19 +593,19 @@ class _SuccessState extends StatelessWidget {
 
     return Center(
       child: Padding(
-        padding: EdgeInsets.all(DesignTokens.spacingXl),
+        padding: const EdgeInsets.all(DesignTokens.spacingXl),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: EdgeInsets.all(DesignTokens.spacingL),
+              padding: const EdgeInsets.all(DesignTokens.spacingL),
               decoration: BoxDecoration(
                 color: Colors.green.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: Icon(Icons.check_circle, size: 64, color: Colors.green),
+              child: const Icon(Icons.check_circle, size: 64, color: Colors.green),
             ),
-            SizedBox(height: DesignTokens.spacingL),
+            const SizedBox(height: DesignTokens.spacingL),
             Text(
               'Request submitted successfully!',
               style: theme.textTheme.titleLarge?.copyWith(
@@ -614,13 +614,13 @@ class _SuccessState extends StatelessWidget {
               ),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: DesignTokens.spacingXl),
+            const SizedBox(height: DesignTokens.spacingXl),
             FilledButton.icon(
               onPressed: onReset,
-              icon: Icon(LucideIcons.refresh_cw),
+              icon: const Icon(LucideIcons.refresh_cw),
               label: Text('request_another'.tr()),
               style: FilledButton.styleFrom(
-                padding: EdgeInsets.symmetric(
+                padding: const EdgeInsets.symmetric(
                   horizontal: DesignTokens.spacingL,
                   vertical: DesignTokens.spacingM,
                 ),
@@ -646,12 +646,12 @@ class _ErrorState extends StatelessWidget {
 
     return Center(
       child: Padding(
-        padding: EdgeInsets.all(DesignTokens.spacingXl),
+        padding: const EdgeInsets.all(DesignTokens.spacingXl),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: EdgeInsets.all(DesignTokens.spacingL),
+              padding: const EdgeInsets.all(DesignTokens.spacingL),
               decoration: BoxDecoration(
                 color: colors.surfaces.surfaceContainerHighest.withValues(
                   alpha: 0.3,
@@ -664,7 +664,7 @@ class _ErrorState extends StatelessWidget {
                 color: colors.textSecondary,
               ),
             ),
-            SizedBox(height: DesignTokens.spacingL),
+            const SizedBox(height: DesignTokens.spacingL),
             Text(
               'Failed to load tracks',
               style: theme.textTheme.titleLarge?.copyWith(
@@ -673,7 +673,7 @@ class _ErrorState extends StatelessWidget {
               ),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: DesignTokens.spacingS),
+            const SizedBox(height: DesignTokens.spacingS),
             Text(
               failure.message,
               style: theme.textTheme.bodyMedium?.copyWith(
@@ -681,13 +681,13 @@ class _ErrorState extends StatelessWidget {
               ),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: DesignTokens.spacingXl),
+            const SizedBox(height: DesignTokens.spacingXl),
             FilledButton.icon(
               onPressed: onRetry,
-              icon: Icon(LucideIcons.refresh_cw),
+              icon: const Icon(LucideIcons.refresh_cw),
               label: Text('retry'.tr()),
               style: FilledButton.styleFrom(
-                padding: EdgeInsets.symmetric(
+                padding: const EdgeInsets.symmetric(
                   horizontal: DesignTokens.spacingL,
                   vertical: DesignTokens.spacingM,
                 ),
@@ -703,14 +703,14 @@ class _ErrorState extends StatelessWidget {
 class _WebViewRequestPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final webViewUrl = RadioConfig.requestWebViewUrl;
+    const webViewUrl = RadioConfig.requestWebViewUrl;
 
     if (webViewUrl == null || webViewUrl.isEmpty) {
       return Scaffold(
         appBar: AppBar(title: Text('request_title'.tr())),
         body: Center(
           child: Padding(
-            padding: EdgeInsets.all(DesignTokens.spacingXl),
+            padding: const EdgeInsets.all(DesignTokens.spacingXl),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -719,13 +719,13 @@ class _WebViewRequestPage extends StatelessWidget {
                   size: 64,
                   color: Theme.of(context).colorScheme.error,
                 ),
-                SizedBox(height: DesignTokens.spacingL),
+                const SizedBox(height: DesignTokens.spacingL),
                 Text(
                   'WebView URL not configured',
                   style: Theme.of(context).textTheme.titleLarge,
                   textAlign: TextAlign.center,
                 ),
-                SizedBox(height: DesignTokens.spacingS),
+                const SizedBox(height: DesignTokens.spacingS),
                 Text(
                   'Please configure requestWebViewUrl in RadioConfig',
                   style: Theme.of(context).textTheme.bodyMedium,
@@ -744,7 +744,7 @@ class _WebViewRequestPage extends StatelessWidget {
         future: canLaunchUrl(Uri.parse(webViewUrl)),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
 
           if (snapshot.data == true) {
@@ -761,7 +761,7 @@ class _WebViewRequestPage extends StatelessWidget {
                   size: 64,
                   color: Theme.of(context).colorScheme.error,
                 ),
-                SizedBox(height: DesignTokens.spacingL),
+                const SizedBox(height: DesignTokens.spacingL),
                 Text(
                   'Cannot open request page',
                   style: Theme.of(context).textTheme.titleLarge,

@@ -22,13 +22,13 @@ class SongHistoryAzuracastDataSourceImpl
     int limit = 100,
   }) async {
     if (streamUrl.isEmpty) {
-      throw ServerException('Stream URL is required to detect Azuracast configuration');
+      throw const ServerException('Stream URL is required to detect Azuracast configuration');
     }
 
     final detectionService = AzuraCastDetectionService.instance;
     
     if (!detectionService.isLikelyAzuraCastUrl(streamUrl)) {
-      throw ServerException('Stream URL does not appear to be from an Azuracast instance');
+      throw const ServerException('Stream URL does not appear to be from an Azuracast instance');
     }
 
     final detection = await detectionService.detectFromStreamUrl(streamUrl);
@@ -36,7 +36,7 @@ class SongHistoryAzuracastDataSourceImpl
     final stationId = detection['station_id'];
 
     if (baseUrl == null || baseUrl.isEmpty || stationId == null || stationId.isEmpty) {
-      throw ServerException(
+      throw const ServerException(
         'Failed to detect Azuracast configuration from stream URL. '
         'Please ensure the stream URL is from a valid Azuracast instance.',
       );
@@ -67,7 +67,7 @@ class SongHistoryAzuracastDataSourceImpl
         final data = response.data;
         
         if (data is! Map<String, dynamic>) {
-          throw ServerException('Invalid response format from Azuracast API');
+          throw const ServerException('Invalid response format from Azuracast API');
         }
         
         // The /nowplaying endpoint returns song_history array directly (not nested in 'data')
@@ -133,7 +133,7 @@ class SongHistoryAzuracastDataSourceImpl
         final errorData = e.response?.data;
         
         if (statusCode == 404) {
-          throw ServerException('Azuracast station not found. Please check your station ID.');
+          throw const ServerException('Azuracast station not found. Please check your station ID.');
         } else {
           throw ServerException(
             'Failed to fetch song history: $statusCode - ${errorData?.toString() ?? e.message}',

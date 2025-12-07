@@ -41,7 +41,7 @@ class SongHistoryPage extends StatelessWidget {
                           size: 64,
                           color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
                         ),
-                        SizedBox(height: DesignTokens.spacingL),
+                        const SizedBox(height: DesignTokens.spacingL),
                         Text(
                           'song_history_empty'.tr(),
                           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
@@ -53,7 +53,7 @@ class SongHistoryPage extends StatelessWidget {
                   );
                 }
                 return ListView.builder(
-                  padding: EdgeInsets.all(DesignTokens.spacingL),
+                  padding: const EdgeInsets.all(DesignTokens.spacingL),
                   itemCount: songs.length,
                   itemBuilder: (context, index) {
                     return RadioSongHistoryItem(song: songs[index]);
@@ -69,13 +69,13 @@ class SongHistoryPage extends StatelessWidget {
                       size: 64,
                       color: Theme.of(context).colorScheme.error,
                     ),
-                    SizedBox(height: DesignTokens.spacingL),
+                    const SizedBox(height: DesignTokens.spacingL),
                     Text(
                       failure.message,
                       style: Theme.of(context).textTheme.bodyLarge,
                       textAlign: TextAlign.center,
                     ),
-                    SizedBox(height: DesignTokens.spacingM),
+                    const SizedBox(height: DesignTokens.spacingM),
                     ElevatedButton(
                       onPressed: () {
                         context.read<SongHistoryBloc>().add(const SongHistoryEvent.load());
@@ -103,12 +103,12 @@ class _SongHistoryLoadingState extends StatelessWidget {
     final shadow = AppShadowTokens.elevation2(context);
 
     return ListView.builder(
-      padding: EdgeInsets.all(DesignTokens.spacingL),
+      padding: const EdgeInsets.all(DesignTokens.spacingL),
       itemCount: 5,
       itemBuilder: (context, index) {
         return Container(
-          margin: EdgeInsets.only(bottom: DesignTokens.spacingM),
-          padding: EdgeInsets.all(DesignTokens.spacingM),
+          margin: const EdgeInsets.only(bottom: DesignTokens.spacingM),
+          padding: const EdgeInsets.all(DesignTokens.spacingM),
           decoration: BoxDecoration(
             color: colors.cardBackground,
             borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
@@ -123,7 +123,7 @@ class _SongHistoryLoadingState extends StatelessWidget {
                 baseColor: skeletonColor.withValues(alpha: 0.3),
                 highlightColor: skeletonColor.withValues(alpha: 0.5),
               ),
-              SizedBox(width: DesignTokens.spacingM),
+              const SizedBox(width: DesignTokens.spacingM),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -135,7 +135,7 @@ class _SongHistoryLoadingState extends StatelessWidget {
                       baseColor: skeletonColor.withValues(alpha: 0.3),
                       highlightColor: skeletonColor.withValues(alpha: 0.5),
                     ),
-                    SizedBox(height: DesignTokens.spacingXs),
+                    const SizedBox(height: DesignTokens.spacingXs),
                     ShimmerContainer(
                       width: 150,
                       height: 14,
@@ -143,7 +143,7 @@ class _SongHistoryLoadingState extends StatelessWidget {
                       baseColor: skeletonColor.withValues(alpha: 0.3),
                       highlightColor: skeletonColor.withValues(alpha: 0.5),
                     ),
-                    SizedBox(height: DesignTokens.spacingXs),
+                    const SizedBox(height: DesignTokens.spacingXs),
                     ShimmerContainer(
                       width: 80,
                       height: 12,

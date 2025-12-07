@@ -17,7 +17,7 @@ class OfflineNewsStatsCard extends StatelessWidget {
     final colors = context.appColors;
 
     return Container(
-      padding: EdgeInsets.all(DesignTokens.spacingM),
+      padding: const EdgeInsets.all(DesignTokens.spacingM),
       decoration: BoxDecoration(
         color: colors.cardBackground,
         borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
@@ -39,7 +39,7 @@ class OfflineNewsStatsCard extends StatelessWidget {
               color: colors.textPrimary,
             ),
           ),
-          SizedBox(height: DesignTokens.spacingM),
+          const SizedBox(height: DesignTokens.spacingM),
           _buildStatRow(
             context,
             label: 'settings_offline_posts_count'.tr(),
@@ -47,7 +47,7 @@ class OfflineNewsStatsCard extends StatelessWidget {
             percent: stats.postsUsagePercent,
             isWarning: stats.isPostsLimitReached,
           ),
-          SizedBox(height: DesignTokens.spacingS),
+          const SizedBox(height: DesignTokens.spacingS),
           _buildStatRow(
             context,
             label: 'settings_offline_size'.tr(),
@@ -92,7 +92,7 @@ class OfflineNewsStatsCard extends StatelessWidget {
             ),
           ],
         ),
-        SizedBox(height: DesignTokens.spacingXs),
+        const SizedBox(height: DesignTokens.spacingXs),
         ClipRRect(
           borderRadius: BorderRadius.circular(4),
           child: LinearProgressIndicator(

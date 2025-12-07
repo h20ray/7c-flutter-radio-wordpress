@@ -28,7 +28,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     required this.watchHomeNowPlaying,
     required this.categoryRepository,
   }) : super(const HomeState.initial()) {
-    _fallbackNowPlaying = NowPlayingEntity(
+    _fallbackNowPlaying = const NowPlayingEntity(
       title: RadioConfig.fallbackTitle,
       artist: RadioConfig.fallbackArtist,
       albumArtUrl: null,

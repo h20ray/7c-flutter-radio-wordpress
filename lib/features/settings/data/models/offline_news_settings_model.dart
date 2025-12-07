@@ -20,7 +20,7 @@ class OfflineNewsSettingsModel extends OfflineNewsSettingsEntity {
   }
 
   factory OfflineNewsSettingsModel.defaults() {
-    return OfflineNewsSettingsModel(
+    return const OfflineNewsSettingsModel(
       maxPosts: OfflineNewsConfig.defaultMaxPosts,
       maxSizeMB: OfflineNewsConfig.defaultMaxSizeMB,
       autoSaveEnabled: OfflineNewsConfig.defaultAutoSaveEnabled,

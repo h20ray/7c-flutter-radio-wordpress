@@ -97,9 +97,9 @@ class RadioShareCard extends StatelessWidget {
     required double maxWidth,
   }) {
     final baseFontSize = theme.textTheme.headlineSmall?.fontSize ?? 24;
-    final minFontSize = 16.0;
-    final lineHeight = 1.2; // Line height multiplier
-    final maxLines = 3;
+    const minFontSize = 16.0;
+    const lineHeight = 1.2; // Line height multiplier
+    const maxLines = 3;
     final maxHeight = baseFontSize * lineHeight * maxLines;
     
     final baseStyle = theme.textTheme.headlineSmall?.copyWith(

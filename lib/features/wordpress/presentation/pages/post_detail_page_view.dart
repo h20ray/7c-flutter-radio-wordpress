@@ -334,9 +334,9 @@ class _PostDetailPageViewState extends State<PostDetailPageView> {
       // 6. Show confirmation that link is copied
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text('Link copied to clipboard! Paste it in Instagram Story link sticker.'),
-            duration: const Duration(seconds: 3),
+            duration: Duration(seconds: 3),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -445,7 +445,7 @@ class _PostDetailPageViewState extends State<PostDetailPageView> {
               ],
             ),
             SliverPadding(
-              padding: EdgeInsets.fromLTRB(
+              padding: const EdgeInsets.fromLTRB(
                 DesignTokens.spacingL,
                 DesignTokens.spacingL,
                 DesignTokens.spacingL,
@@ -461,7 +461,7 @@ class _PostDetailPageViewState extends State<PostDetailPageView> {
               ),
             ),
             if (hasImage) ...[
-              SliverToBoxAdapter(
+              const SliverToBoxAdapter(
                 child: SizedBox(height: DesignTokens.spacingM),
               ),
               SliverToBoxAdapter(
@@ -469,7 +469,7 @@ class _PostDetailPageViewState extends State<PostDetailPageView> {
               ),
             ],
             SliverPadding(
-              padding: EdgeInsets.fromLTRB(
+              padding: const EdgeInsets.fromLTRB(
                 DesignTokens.spacingL,
                 DesignTokens.spacingL,
                 DesignTokens.spacingL,
@@ -484,7 +484,7 @@ class _PostDetailPageViewState extends State<PostDetailPageView> {
                       colors: colors,
                       formatDate: _formatNewsDate,
                     ),
-                    SizedBox(height: DesignTokens.spacingL),
+                    const SizedBox(height: DesignTokens.spacingL),
                     _PostContentHtml(
                       htmlContent: _currentPost.content,
                       colors: colors,

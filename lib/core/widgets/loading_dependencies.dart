@@ -99,7 +99,7 @@ class _LoadingDependenciesState extends State<LoadingDependencies> {
 
   Future<void> _analyzeBottomAreaColor() async {
     try {
-      final imageProvider = const AssetImage('assets/others/loading.png');
+      const imageProvider = AssetImage('assets/others/loading.png');
       final imageStream = imageProvider.resolve(const ImageConfiguration());
       final completer = Completer<ui.Image>();
       
@@ -231,10 +231,10 @@ class _LoadingDependenciesState extends State<LoadingDependencies> {
             errorBuilder: (context, error, stackTrace) {
               return Container(
                 color: Colors.black,
-                child: Center(
+                child: const Center(
                   child: Text(
                     AppConfig.appName,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: Colors.white,
                       fontSize: 24,
                     ),

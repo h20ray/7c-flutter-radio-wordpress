@@ -51,7 +51,7 @@ class RadioErrorState extends StatelessWidget {
             const SizedBox(height: 16),
             FilledButton.icon(
               onPressed: () {
-                context.read<RadioBloc>().add(RadioEvent.getRadioConfig());
+                context.read<RadioBloc>().add(const RadioEvent.getRadioConfig());
               },
               icon: const Icon(LucideIcons.refresh_cw),
               label: Text('retry'.tr()),

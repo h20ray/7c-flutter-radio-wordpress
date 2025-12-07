@@ -174,7 +174,7 @@ class _GlobalLevelUpOverlayState extends State<GlobalLevelUpOverlay>
           child: SafeArea(
             child: Center(
               child: SingleChildScrollView(
-                padding: EdgeInsets.all(DesignTokens.spacingL),
+                padding: const EdgeInsets.all(DesignTokens.spacingL),
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
                     maxWidth: levelUpAnimationSize,
@@ -242,7 +242,7 @@ class _GlobalLevelUpOverlayState extends State<GlobalLevelUpOverlay>
                                 ],
                               ),
                       ),
-                      SizedBox(height: DesignTokens.spacingL),
+                      const SizedBox(height: DesignTokens.spacingL),
                       Text(
                         'level_up_title'.tr(),
                         style: textTheme.headlineMedium?.copyWith(
@@ -252,7 +252,7 @@ class _GlobalLevelUpOverlayState extends State<GlobalLevelUpOverlay>
                         textAlign: TextAlign.center,
                       ),
                       if (_currentCelebration!.levelName.isNotEmpty) ...[
-                        SizedBox(height: DesignTokens.spacingS),
+                        const SizedBox(height: DesignTokens.spacingS),
                         Text(
                           _currentCelebration!.levelName,
                           style: textTheme.titleLarge?.copyWith(
@@ -262,7 +262,7 @@ class _GlobalLevelUpOverlayState extends State<GlobalLevelUpOverlay>
                           textAlign: TextAlign.center,
                         ),
                       ],
-                      SizedBox(height: DesignTokens.spacingM),
+                      const SizedBox(height: DesignTokens.spacingM),
                       Text(
                         'level_up_tap_to_continue'.tr(),
                         style: textTheme.bodyMedium?.copyWith(
@@ -294,7 +294,7 @@ class _GlobalLevelUpOverlayState extends State<GlobalLevelUpOverlay>
           ],
         ),
       ),
-      child: Icon(
+      child: const Icon(
         LucideIcons.trophy,
         size: 120,
         color: Colors.white,

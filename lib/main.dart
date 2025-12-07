@@ -29,7 +29,7 @@ void main() async {
   
   await EasyLocalization.ensureInitialized();
   
-  Directory appDocDir = await getApplicationDocumentsDirectory();
+  final Directory appDocDir = await getApplicationDocumentsDirectory();
   await Hive.initFlutter(appDocDir.path);
   
   await initDependencies();

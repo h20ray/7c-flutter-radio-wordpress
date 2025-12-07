@@ -105,3 +105,19 @@ extension SpacingExtension on num {
   double get xl => this * DesignTokens.spacingXl;
   double get xxl => this * DesignTokens.spacingXxl;
 }
+
+extension DimensionTokens on DesignTokens {
+  static const double iconSizeSmall = 16.0;
+  static const double iconSizeMedium = 20.0;
+  static const double iconSizeLarge = 24.0;
+  static const double avatarSizeSmall = 40.0;
+  static const double avatarSizeMedium = 48.0;
+  static const double avatarSizeLarge = 56.0;
+  static const double buttonHeightSmall = 32.0;
+  static const double buttonHeightMedium = 40.0;
+  static const double buttonHeightLarge = 48.0;
+  static const double dividerThickness = 0.5;
+  static const double borderWidthThin = 1.0;
+  static const double borderWidthMedium = 1.5;
+  static const double borderWidthThick = 2.0;
+}

@@ -34,13 +34,13 @@ class RequestAzuracastDataSourceImpl implements RequestAzuracastDataSource {
     bool random = false,
   }) async {
     if (streamUrl.isEmpty) {
-      throw ServerException('Stream URL is required to detect Azuracast configuration');
+      throw const ServerException('Stream URL is required to detect Azuracast configuration');
     }
 
     final detectionService = AzuraCastDetectionService.instance;
     
     if (!detectionService.isLikelyAzuraCastUrl(streamUrl)) {
-      throw ServerException('Stream URL does not appear to be from an Azuracast instance');
+      throw const ServerException('Stream URL does not appear to be from an Azuracast instance');
     }
 
     final detection = await detectionService.detectFromStreamUrl(streamUrl);
@@ -48,7 +48,7 @@ class RequestAzuracastDataSourceImpl implements RequestAzuracastDataSource {
     final stationId = detection['station_id'];
 
     if (baseUrl == null || baseUrl.isEmpty || stationId == null || stationId.isEmpty) {
-      throw ServerException(
+      throw const ServerException(
         'Failed to detect Azuracast configuration from stream URL. '
         'Please ensure the stream URL is from a valid Azuracast instance.',
       );
@@ -75,7 +75,7 @@ class RequestAzuracastDataSourceImpl implements RequestAzuracastDataSource {
         final data = response.data;
         
         if (data is! List) {
-          throw ServerException('Invalid response format from Azuracast API');
+          throw const ServerException('Invalid response format from Azuracast API');
         }
         
         List<dynamic> items = data;
@@ -135,7 +135,7 @@ class RequestAzuracastDataSourceImpl implements RequestAzuracastDataSource {
           );
         }).whereType<RequestableTrackModel>().toList();
       } else if (response.statusCode == 403) {
-        throw ServerException('Requests are disabled for this station.');
+        throw const ServerException('Requests are disabled for this station.');
       } else {
         throw ServerException('Failed to fetch requestable tracks: ${response.statusCode}');
       }
@@ -145,9 +145,9 @@ class RequestAzuracastDataSourceImpl implements RequestAzuracastDataSource {
         final errorData = e.response?.data;
         
         if (statusCode == 403) {
-          throw ServerException('Requests are disabled for this station.');
+          throw const ServerException('Requests are disabled for this station.');
         } else if (statusCode == 404) {
-          throw ServerException('Azuracast station not found. Please check your station ID.');
+          throw const ServerException('Azuracast station not found. Please check your station ID.');
         } else {
           throw ServerException(
             'Failed to fetch requestable tracks: $statusCode - ${errorData?.toString() ?? e.message}',
@@ -172,13 +172,13 @@ class RequestAzuracastDataSourceImpl implements RequestAzuracastDataSource {
     String? artist,
   }) async {
     if (streamUrl.isEmpty) {
-      throw ServerException('Stream URL is required to detect Azuracast configuration');
+      throw const ServerException('Stream URL is required to detect Azuracast configuration');
     }
 
     final detectionService = AzuraCastDetectionService.instance;
     
     if (!detectionService.isLikelyAzuraCastUrl(streamUrl)) {
-      throw ServerException('Stream URL does not appear to be from an Azuracast instance');
+      throw const ServerException('Stream URL does not appear to be from an Azuracast instance');
     }
 
     final detection = await detectionService.detectFromStreamUrl(streamUrl);
@@ -186,7 +186,7 @@ class RequestAzuracastDataSourceImpl implements RequestAzuracastDataSource {
     final stationId = detection['station_id'];
 
     if (baseUrl == null || baseUrl.isEmpty || stationId == null || stationId.isEmpty) {
-      throw ServerException(
+      throw const ServerException(
         'Failed to detect Azuracast configuration from stream URL. '
         'Please ensure the stream URL is from a valid Azuracast instance.',
       );

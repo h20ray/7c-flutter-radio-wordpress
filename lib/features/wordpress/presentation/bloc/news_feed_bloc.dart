@@ -115,7 +115,7 @@ class NewsFeedBloc extends Bloc<NewsFeedEvent, NewsFeedState> {
         final latestValues = NewsFeedStateHelper.extractStateValues(state);
         
         // Update posts and clear loading state
-        var updatedState = NewsFeedStateHelper.updateCategoryPosts(
+        final updatedState = NewsFeedStateHelper.updateCategoryPosts(
           latestValues,
           categoryId,
           data,

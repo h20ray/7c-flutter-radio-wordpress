@@ -48,8 +48,8 @@ class _ProfilePageViewState extends State<ProfilePageView> {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     final safeAreaBottom = MediaQuery.of(context).padding.bottom;
-    final bottomSpacing = DesignTokens.spacingS;
-    final extraSpacing = DesignTokens.spacingXl;
+    const bottomSpacing = DesignTokens.spacingS;
+    const extraSpacing = DesignTokens.spacingXl;
     final totalBottomSpacing =
         FloatingBottomNavBar.totalHeight + bottomSpacing + safeAreaBottom + extraSpacing;
 
@@ -94,7 +94,7 @@ class _ProfilePageViewState extends State<ProfilePageView> {
             child: SafeArea(
               top: false,
               child: Padding(
-                padding: EdgeInsets.only(
+                padding: const EdgeInsets.only(
                   left: DesignTokens.spacingL,
                   right: DesignTokens.spacingL,
                   bottom: DesignTokens.spacingS,
@@ -112,9 +112,9 @@ class _ProfilePageViewState extends State<ProfilePageView> {
                         },
                       ),
                     ),
-                    SizedBox(width: DesignTokens.spacingM),
-                    FloatingPlayFab(
-                      key: const ValueKey('profile-play-fab'),
+                    const SizedBox(width: DesignTokens.spacingM),
+                    const FloatingPlayFab(
+                      key: ValueKey('profile-play-fab'),
                       size: 60,
                     ),
                   ],
@@ -178,7 +178,7 @@ class _ProfilePageViewState extends State<ProfilePageView> {
                     ? NetworkImage(user.avatarUrl!)
                     : null,
                 child: user.avatarUrl == null
-                    ? Icon(LucideIcons.user, size: 50)
+                    ? const Icon(LucideIcons.user, size: 50)
                     : null,
               ),
               const SizedBox(height: 16),
@@ -213,8 +213,8 @@ class _ProfilePageViewState extends State<ProfilePageView> {
         if (user.currentLevel != null)
           Card(
             child: ListTile(
-              leading: Icon(LucideIcons.trophy),
-              title: Text('Level'),
+              leading: const Icon(LucideIcons.trophy),
+              title: const Text('Level'),
               subtitle: Text(user.currentLevel!),
             ),
           ),

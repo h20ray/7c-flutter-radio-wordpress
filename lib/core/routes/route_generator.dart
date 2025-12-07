@@ -88,7 +88,7 @@ class RouteGenerator {
         if (post == null) {
           return _buildPageRoute(
             settings,
-            (context) => Scaffold(body: Center(child: Text('Post not found'))),
+            (context) => const Scaffold(body: Center(child: Text('Post not found'))),
           );
         }
         return _buildPostDetailRoute(settings, post);
@@ -282,7 +282,7 @@ class RouteGenerator {
                 children: [
                   const Icon(Icons.error_outline, size: 48, color: Colors.grey),
                   const SizedBox(height: 16),
-                  Text('Post not found'),
+                  const Text('Post not found'),
                   const SizedBox(height: 8),
                   Text(
                     url,
@@ -317,7 +317,7 @@ class RouteGenerator {
 
       return _buildPageRoute(
         settings,
-        (context) => Scaffold(
+        (context) => const Scaffold(
           body: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,

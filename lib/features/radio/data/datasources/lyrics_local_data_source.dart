@@ -66,8 +66,8 @@ class LyricsLocalDataSourceImpl implements LyricsLocalDataSource {
     final key = _getCacheKey(lyrics.artist, lyrics.title);
     
     // Calculate TTL (days to seconds)
-    final ttlDays = RadioConfig.lyricsCacheTtlDays;
-    final ttlSeconds = ttlDays * 86400;
+    const ttlDays = RadioConfig.lyricsCacheTtlDays;
+    const ttlSeconds = ttlDays * 86400;
     final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     
     // Store in WordPress-compatible format

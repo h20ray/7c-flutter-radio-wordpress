@@ -47,7 +47,7 @@ class LyricsPage extends StatelessWidget {
                 size: 64,
                 color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
               ),
-              SizedBox(height: DesignTokens.spacingL),
+              const SizedBox(height: DesignTokens.spacingL),
               Text(
                 'lyrics_no_current_song'.tr(),
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
@@ -123,7 +123,7 @@ class _LyricsContent extends StatelessWidget {
       ),
       slivers: [
         SliverPadding(
-          padding: EdgeInsets.all(DesignTokens.spacingL),
+          padding: const EdgeInsets.all(DesignTokens.spacingL),
           sliver: SliverToBoxAdapter(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -144,7 +144,7 @@ class _LyricsContent extends StatelessWidget {
                             )
                           : _buildAlbumArtFallback(colors),
                     ),
-                    SizedBox(width: DesignTokens.spacingL),
+                    const SizedBox(width: DesignTokens.spacingL),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -158,7 +158,7 @@ class _LyricsContent extends StatelessWidget {
                               letterSpacing: -0.5,
                             ),
                           ),
-                          SizedBox(height: DesignTokens.spacingXs),
+                          const SizedBox(height: DesignTokens.spacingXs),
                           Text(
                             lyrics.artist,
                             style: textTheme.titleMedium?.copyWith(
@@ -171,11 +171,11 @@ class _LyricsContent extends StatelessWidget {
                     ),
                   ],
                 ),
-                SizedBox(height: DesignTokens.spacingXl),
+                const SizedBox(height: DesignTokens.spacingXl),
                 SizedBox(
                   width: double.infinity,
                   child: Container(
-                    padding: EdgeInsets.all(DesignTokens.spacingL),
+                    padding: const EdgeInsets.all(DesignTokens.spacingL),
                     decoration: BoxDecoration(
                       color: colors.surfaces.surfaceContainerHighest.withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
@@ -190,9 +190,9 @@ class _LyricsContent extends StatelessWidget {
                     ),
                   ),
                 ),
-                SizedBox(height: DesignTokens.spacingL),
+                const SizedBox(height: DesignTokens.spacingL),
                 Container(
-                  padding: EdgeInsets.symmetric(
+                  padding: const EdgeInsets.symmetric(
                     horizontal: DesignTokens.spacingM,
                     vertical: DesignTokens.spacingS,
                   ),
@@ -208,7 +208,7 @@ class _LyricsContent extends StatelessWidget {
                         size: 16,
                         color: colors.textSecondary,
                       ),
-                      SizedBox(width: DesignTokens.spacingXs),
+                      const SizedBox(width: DesignTokens.spacingXs),
                       Text(
                         'Source: ${lyrics.source}',
                         style: textTheme.bodySmall?.copyWith(
@@ -219,7 +219,7 @@ class _LyricsContent extends StatelessWidget {
                     ],
                   ),
                 ),
-                SizedBox(height: DesignTokens.spacingXl),
+                const SizedBox(height: DesignTokens.spacingXl),
               ],
             ),
           ),
@@ -263,7 +263,7 @@ class _LyricsLoadingState extends StatelessWidget {
       ),
       slivers: [
         SliverPadding(
-          padding: EdgeInsets.all(DesignTokens.spacingL),
+          padding: const EdgeInsets.all(DesignTokens.spacingL),
           sliver: SliverToBoxAdapter(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -278,7 +278,7 @@ class _LyricsLoadingState extends StatelessWidget {
                       baseColor: skeletonColor.withValues(alpha: 0.3),
                       highlightColor: skeletonColor.withValues(alpha: 0.5),
                     ),
-                    SizedBox(width: DesignTokens.spacingL),
+                    const SizedBox(width: DesignTokens.spacingL),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -291,7 +291,7 @@ class _LyricsLoadingState extends StatelessWidget {
                             baseColor: skeletonColor.withValues(alpha: 0.3),
                             highlightColor: skeletonColor.withValues(alpha: 0.5),
                           ),
-                          SizedBox(height: DesignTokens.spacingXs),
+                          const SizedBox(height: DesignTokens.spacingXs),
                           ShimmerContainer(
                             width: 150,
                             height: 20,
@@ -304,9 +304,9 @@ class _LyricsLoadingState extends StatelessWidget {
                     ),
                   ],
                 ),
-                SizedBox(height: DesignTokens.spacingXl),
+                const SizedBox(height: DesignTokens.spacingXl),
                 Container(
-                  padding: EdgeInsets.all(DesignTokens.spacingL),
+                  padding: const EdgeInsets.all(DesignTokens.spacingL),
                   decoration: BoxDecoration(
                     color: colors.surfaces.surfaceContainerHighest.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
@@ -316,7 +316,7 @@ class _LyricsLoadingState extends StatelessWidget {
                     children: List.generate(
                       12,
                       (index) => Padding(
-                        padding: EdgeInsets.only(bottom: DesignTokens.spacingS),
+                        padding: const EdgeInsets.only(bottom: DesignTokens.spacingS),
                         child: ShimmerContainer(
                           width: index % 3 == 0 ? double.infinity : (index % 3 == 1 ? 250 : 180),
                           height: 16,
@@ -328,7 +328,7 @@ class _LyricsLoadingState extends StatelessWidget {
                     ),
                   ),
                 ),
-                SizedBox(height: DesignTokens.spacingL),
+                const SizedBox(height: DesignTokens.spacingL),
                 ShimmerContainer(
                   width: 120,
                   height: 20,
@@ -363,12 +363,12 @@ class _LyricsErrorState extends StatelessWidget {
 
     return Center(
       child: Padding(
-        padding: EdgeInsets.all(DesignTokens.spacingXl),
+        padding: const EdgeInsets.all(DesignTokens.spacingXl),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: EdgeInsets.all(DesignTokens.spacingL),
+              padding: const EdgeInsets.all(DesignTokens.spacingL),
               decoration: BoxDecoration(
                 color: colors.surfaces.surfaceContainerHighest.withValues(alpha: 0.3),
                 shape: BoxShape.circle,
@@ -379,7 +379,7 @@ class _LyricsErrorState extends StatelessWidget {
                 color: colors.textSecondary,
               ),
             ),
-            SizedBox(height: DesignTokens.spacingL),
+            const SizedBox(height: DesignTokens.spacingL),
             Text(
               'lyrics_not_found'.tr(),
               style: theme.textTheme.titleLarge?.copyWith(
@@ -388,7 +388,7 @@ class _LyricsErrorState extends StatelessWidget {
               ),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: DesignTokens.spacingS),
+            const SizedBox(height: DesignTokens.spacingS),
             Text(
               failure.message,
               style: theme.textTheme.bodyMedium?.copyWith(
@@ -396,7 +396,7 @@ class _LyricsErrorState extends StatelessWidget {
               ),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: DesignTokens.spacingXl),
+            const SizedBox(height: DesignTokens.spacingXl),
             FilledButton.icon(
               onPressed: () {
                 context.read<LyricsBloc>().add(
@@ -406,7 +406,7 @@ class _LyricsErrorState extends StatelessWidget {
               icon: const Icon(Icons.refresh),
               label: Text('retry'.tr()),
               style: FilledButton.styleFrom(
-                padding: EdgeInsets.symmetric(
+                padding: const EdgeInsets.symmetric(
                   horizontal: DesignTokens.spacingL,
                   vertical: DesignTokens.spacingM,
                 ),

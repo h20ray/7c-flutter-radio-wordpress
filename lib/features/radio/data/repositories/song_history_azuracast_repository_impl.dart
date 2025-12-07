@@ -47,7 +47,7 @@ class SongHistoryAzuracastRepositoryImpl implements SongHistoryRepository {
     final streamUrl = _getStreamUrl();
     
     if (streamUrl == null || streamUrl.isEmpty) {
-      return Left(ServerFailure(
+      return const Left(ServerFailure(
         'Stream URL not available. Please ensure radio is initialized.',
       ));
     }
@@ -172,7 +172,7 @@ class SongHistoryAzuracastRepositoryImpl implements SongHistoryRepository {
     required String title,
     String? albumArtUrl,
   }) async {
-    return Left(UnsupportedFailure(
+    return const Left(UnsupportedFailure(
       'Adding songs is not supported in Azuracast mode. Songs are fetched from the Azuracast API.',
     ));
   }

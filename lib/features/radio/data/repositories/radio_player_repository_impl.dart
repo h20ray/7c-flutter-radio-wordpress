@@ -340,7 +340,7 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
     if (_shouldDebounceState(newState)) {
       _debounceTimer?.cancel();
       _debounceTimer = Timer(
-          Duration(milliseconds: RadioConfig.debounceWindowMs), () {
+          const Duration(milliseconds: RadioConfig.debounceWindowMs), () {
         _playerStateController.add(_currentState);
       });
     } else {
@@ -387,7 +387,7 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
       if (RadioConfig.enableVerboseLogging) {
         DebugLogger.log('[RadioPlayerRepository] Initialization already in progress', tag: 'RadioPlayerRepository');
       }
-      return Left(ServerFailure('Initialization already in progress'));
+      return const Left(ServerFailure('Initialization already in progress'));
     }
 
     _isInitializing = true;
@@ -513,7 +513,7 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
       await remoteDataSource.initialize(_currentConfig!);
 
       // Get buffer time from config
-      final bufferTimeMs = RadioConfig.preBufferTimeMs;
+      const bufferTimeMs = RadioConfig.preBufferTimeMs;
 
       // Update state to show buffering
       _updateState(_currentState.copyWith(
@@ -523,7 +523,7 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
 
       // Wait for the stream to buffer
       DebugLogger.log('[RadioPlayerRepository] Pre-buffering stream for ${bufferTimeMs}ms', tag: 'RadioPlayerRepository');
-      await Future.delayed(Duration(milliseconds: bufferTimeMs));
+      await Future.delayed(const Duration(milliseconds: bufferTimeMs));
 
       // Clear buffering state
       _updateState(_currentState.copyWith(
@@ -728,7 +728,7 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
       if (albumArtUrl != null && albumArtUrl.isNotEmpty) {
         return Right(albumArtUrl);
       } else {
-        return Left(ServerFailure('Album art not found'));
+        return const Left(ServerFailure('Album art not found'));
       }
     } catch (e) {
       return Left(ServerFailure('Failed to get album art: ${e.toString()}'));

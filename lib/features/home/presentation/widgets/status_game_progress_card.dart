@@ -28,7 +28,7 @@ class StatusGameProgressCard extends StatelessWidget {
         () => Navigator.of(context).pushNamed(AppRoutes.levelDetails);
 
     final child = Padding(
-      padding: EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
+      padding: const EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
       child: Material(
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
@@ -65,7 +65,7 @@ class StatusGameProgressCard extends StatelessWidget {
     }
 
     return Transform.translate(
-      offset: Offset(0, -DesignTokens.spacingXl * 1.7),
+      offset: const Offset(0, -DesignTokens.spacingXl * 1.7),
       child: child,
     );
   }
@@ -82,7 +82,7 @@ class _StatusCardShell extends StatelessWidget {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeOutCubic,
-      padding: EdgeInsets.all(DesignTokens.spacingM),
+      padding: const EdgeInsets.all(DesignTokens.spacingM),
       constraints: const BoxConstraints(minHeight: 68),
       decoration: BoxDecoration(
         color: colors.cardBackground,
@@ -116,7 +116,7 @@ class _StatusCardBody extends StatelessWidget {
           backgroundColor: data.badgeBackgroundColor,
           onTap: onArtworkTap,
         ),
-        SizedBox(width: DesignTokens.spacingL),
+        const SizedBox(width: DesignTokens.spacingL),
         Expanded(
           child: _LevelMetadata(
             hours: data.totalListeningHours,
@@ -127,7 +127,7 @@ class _StatusCardBody extends StatelessWidget {
             progressColor: Color(data.badgeBackgroundColor),
           ),
         ),
-        SizedBox(width: DesignTokens.spacingS),
+        const SizedBox(width: DesignTokens.spacingS),
         Icon(
           LucideIcons.chevron_right,
           size: 20,
@@ -165,7 +165,7 @@ class _LevelMetadata extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         _ListeningIndicator(hours: hours, indicatorColor: indicatorColor),
-        SizedBox(height: 2),
+        const SizedBox(height: 2),
         Flexible(
           child: Text(
             levelName,
@@ -174,9 +174,9 @@ class _LevelMetadata extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
           ),
         ),
-        SizedBox(height: 2),
+        const SizedBox(height: 2),
         if (isMaxLevel)
-          _MaxLevelPill()
+          const _MaxLevelPill()
         else
           _MaterialProgressIndicator(
             progress: progress.clamp(0.0, 1.0),
@@ -206,7 +206,7 @@ class _ListeningIndicator extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Icon(LucideIcons.timer, size: 16, color: indicatorColor),
-        SizedBox(width: DesignTokens.spacingXs),
+        const SizedBox(width: DesignTokens.spacingXs),
         Text(
           '$formattedHours h',
           style: Theme.of(context).textTheme.labelLarge?.copyWith(
@@ -230,9 +230,9 @@ class _StatusCardSkeleton extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         _SkeletonBox(width: 220, height: 16, color: color),
-        SizedBox(height: 2),
+        const SizedBox(height: 2),
         _SkeletonBox(width: double.infinity, height: 16, color: color),
-        SizedBox(height: 2),
+        const SizedBox(height: 2),
         _SkeletonBox(width: double.infinity, height: 28, color: color),
       ],
     );
@@ -283,7 +283,7 @@ class _StatusCardError extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
-        SizedBox(height: DesignTokens.spacingXs),
+        const SizedBox(height: DesignTokens.spacingXs),
         Text(
           message,
           style: textTheme.bodySmall?.copyWith(color: colorScheme.error),
@@ -304,7 +304,7 @@ class _MaxLevelPill extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
-      padding: EdgeInsets.symmetric(
+      padding: const EdgeInsets.symmetric(
         horizontal: DesignTokens.spacingXs + 2,
         vertical: 2,
       ),
@@ -320,7 +320,7 @@ class _MaxLevelPill extends StatelessWidget {
             size: 10,
             color: colorScheme.onPrimaryContainer,
           ),
-          SizedBox(width: 3),
+          const SizedBox(width: 3),
           Text(
             'level_details_max_level_reached'.tr(),
             style: textTheme.labelSmall?.copyWith(

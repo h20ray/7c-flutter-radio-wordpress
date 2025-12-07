@@ -43,7 +43,7 @@ class TamtamaSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
+          padding: const EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
           child: Text(
             'home_tamtama_title'.tr(),
             style: TextStyle(
@@ -53,9 +53,9 @@ class TamtamaSection extends StatelessWidget {
             ),
           ),
         ),
-        SizedBox(height: DesignTokens.spacingM),
+        const SizedBox(height: DesignTokens.spacingM),
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
+          padding: const EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -71,7 +71,7 @@ class TamtamaSection extends StatelessWidget {
                     BoxShadow(
                       color: tokens.shadowSoft,
                       blurRadius: 8,
-                      offset: Offset(0, 2),
+                      offset: const Offset(0, 2),
                     ),
                   ],
                 ),
@@ -88,11 +88,11 @@ class TamtamaSection extends StatelessWidget {
                   ),
                 ),
               ),
-              SizedBox(width: DesignTokens.spacingM),
+              const SizedBox(width: DesignTokens.spacingM),
               Expanded(
                 child: Container(
                   constraints: const BoxConstraints(minHeight: 200),
-                  padding: EdgeInsets.all(DesignTokens.spacingM),
+                  padding: const EdgeInsets.all(DesignTokens.spacingM),
                   decoration: BoxDecoration(
                     color: colors.cardBackground,
                     borderRadius: BorderRadius.circular(
@@ -102,7 +102,7 @@ class TamtamaSection extends StatelessWidget {
                       BoxShadow(
                         color: tokens.shadowStrong,
                         blurRadius: 12,
-                        offset: Offset(0, 4),
+                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
@@ -120,7 +120,7 @@ class TamtamaSection extends StatelessWidget {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      SizedBox(height: DesignTokens.spacingS),
+                      const SizedBox(height: DesignTokens.spacingS),
                       Wrap(
                         spacing: DesignTokens.spacingS,
                         runSpacing: DesignTokens.spacingS,
@@ -146,13 +146,13 @@ class TamtamaSection extends StatelessWidget {
                             'tamtama_hunger'.tr(),
                             '${tamtama.hunger}%',
                             tamtama.isHungry
-                                ? Colors.orange.withValues(alpha: 0.2)
+                                ? Theme.of(context).colorScheme.tertiaryContainer.withValues(alpha: 0.5)
                                 : tokens.tagDefaultBackground,
                             tokens.tagText,
                           ),
                         ],
                       ),
-                      SizedBox(height: DesignTokens.spacingS),
+                      const SizedBox(height: DesignTokens.spacingS),
                       if (tamtama.lastFedAt != null)
                         Text(
                           'tamtama_last_fed'.tr(
@@ -167,7 +167,7 @@ class TamtamaSection extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                      SizedBox(height: DesignTokens.spacingM),
+                      const SizedBox(height: DesignTokens.spacingM),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         crossAxisAlignment: CrossAxisAlignment.center,
@@ -186,7 +186,7 @@ class TamtamaSection extends StatelessWidget {
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
-                                SizedBox(height: 2),
+                                const SizedBox(height: 2),
                                 Text(
                                   tamtama.needsAttention
                                       ? 'tamtama_needs_attention'.tr()
@@ -202,7 +202,7 @@ class TamtamaSection extends StatelessWidget {
                               ],
                             ),
                           ),
-                          SizedBox(width: DesignTokens.spacingS),
+                          const SizedBox(width: DesignTokens.spacingS),
                           Flexible(
                             child: ElevatedButton(
                               onPressed: () {
@@ -213,8 +213,8 @@ class TamtamaSection extends StatelessWidget {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: colors.primaryAccent,
                                 foregroundColor: colorScheme.onTertiary,
-                                minimumSize: Size(0, 36),
-                                padding: EdgeInsets.symmetric(horizontal: 12),
+                                minimumSize: const Size(0, 36),
+                                padding: const EdgeInsets.symmetric(horizontal: 12),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(
                                     DesignTokens.cornerRadiusButton,
@@ -223,7 +223,7 @@ class TamtamaSection extends StatelessWidget {
                               ),
                               child: Text(
                                 'tamtama_feed'.tr(),
-                                style: TextStyle(fontSize: 12),
+                                style: const TextStyle(fontSize: 12),
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 1,
                               ),
@@ -251,7 +251,7 @@ class TamtamaSection extends StatelessWidget {
   ) {
     return Container(
       height: 22,
-      padding: EdgeInsets.symmetric(horizontal: 8),
+      padding: const EdgeInsets.symmetric(horizontal: DesignTokens.spacingS),
       decoration: BoxDecoration(
         color: backgroundColor,
         borderRadius: BorderRadius.circular(11),
@@ -260,8 +260,8 @@ class TamtamaSection extends StatelessWidget {
         child: Text(
           '$label: $value',
           style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
+            fontSize: DesignTokens.fontSizeLabelSmall,
+            fontWeight: DesignTokens.fontWeightLabelSmall,
             color: textColor,
           ),
           overflow: TextOverflow.ellipsis,
@@ -274,7 +274,7 @@ class TamtamaSection extends StatelessWidget {
   Widget _buildLoading(BuildContext context) {
     final colors = context.appColors;
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
+      padding: const EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
       child: Container(
         height: 200,
         decoration: BoxDecoration(
@@ -288,7 +288,7 @@ class TamtamaSection extends StatelessWidget {
   Widget _buildError(BuildContext context, String message) {
     final colors = context.appColors;
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
+      padding: const EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
       child: Container(
         height: 200,
         decoration: BoxDecoration(

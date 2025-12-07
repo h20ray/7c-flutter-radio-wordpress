@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../../../../core/themes/design_tokens.dart';
 import 'radio_volume_control.dart';
 import 'radio_sleep_timer_control.dart';
 
@@ -15,7 +16,7 @@ class RadioSettingsDialog extends StatelessWidget {
       barrierDismissible: true,
       barrierLabel: 'Settings',
       barrierColor: Colors.black38,
-      transitionDuration: const Duration(milliseconds: 250),
+      transitionDuration: DesignTokens.animationDurationShort,
       pageBuilder: (context, animation, secondaryAnimation) =>
           const RadioSettingsDialog(),
       transitionBuilder: (context, animation, secondaryAnimation, child) {
@@ -24,7 +25,7 @@ class RadioSettingsDialog extends StatelessWidget {
             begin: const Offset(0, -0.3),
             end: Offset.zero,
           ).animate(
-            CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+            CurvedAnimation(parent: animation, curve: DesignTokens.animationCurveSpring),
           ),
           child: FadeTransition(opacity: animation, child: child),
         );
@@ -51,7 +52,7 @@ class RadioSettingsDialog extends StatelessWidget {
             child: Container(
               width: double.infinity,
               constraints: const BoxConstraints(maxWidth: 400),
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(DesignTokens.spacingXl),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,

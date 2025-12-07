@@ -59,7 +59,7 @@ class _ModeTabsState extends State<ModeTabs>
     final tokens = ModeTabsTokens.of(context);
 
     return Container(
-      margin: EdgeInsets.only(
+      margin: const EdgeInsets.only(
         top: 0,
         left: DesignTokens.spacingL,
         right: DesignTokens.spacingL,
@@ -69,7 +69,7 @@ class _ModeTabsState extends State<ModeTabs>
         color: tokens.container,
         borderRadius: BorderRadius.circular(22),
         boxShadow: [
-          BoxShadow(color: tokens.shadow, blurRadius: 8, offset: Offset(0, 2)),
+          BoxShadow(color: tokens.shadow, blurRadius: 8, offset: const Offset(0, 2)),
         ],
       ),
       child: Row(
@@ -84,8 +84,8 @@ class _ModeTabsState extends State<ModeTabs>
                 duration: DesignTokens.animationDurationMedium,
                 curve: DesignTokens.animationCurveSpring,
                 height: 36,
-                margin: EdgeInsets.all(4),
-                padding: EdgeInsets.symmetric(
+                margin: const EdgeInsets.all(4),
+                padding: const EdgeInsets.symmetric(
                   horizontal: DesignTokens.spacingL,
                 ),
                 decoration: BoxDecoration(

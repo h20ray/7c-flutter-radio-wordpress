@@ -258,8 +258,8 @@ class _NewsPageViewContentState extends State<_NewsPageViewContent> {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     final safeAreaBottom = MediaQuery.of(context).padding.bottom;
-    final bottomSpacing = DesignTokens.spacingS;
-    final extraSpacing = DesignTokens.spacingXl;
+    const bottomSpacing = DesignTokens.spacingS;
+    const extraSpacing = DesignTokens.spacingXl;
     final totalBottomSpacing = FloatingBottomNavBar.totalHeight + bottomSpacing + safeAreaBottom + extraSpacing;
 
     return PopScope(
@@ -458,7 +458,7 @@ class _NewsPageViewContentState extends State<_NewsPageViewContent> {
               child: SafeArea(
                 top: false,
                 child: Padding(
-                  padding: EdgeInsets.only(
+                  padding: const EdgeInsets.only(
                     left: DesignTokens.spacingL,
                     right: DesignTokens.spacingL,
                     bottom: DesignTokens.spacingS,
@@ -476,9 +476,9 @@ class _NewsPageViewContentState extends State<_NewsPageViewContent> {
                           },
                         ),
                       ),
-                      SizedBox(width: DesignTokens.spacingM),
-                      FloatingPlayFab(
-                        key: const ValueKey('news-play-fab'),
+                      const SizedBox(width: DesignTokens.spacingM),
+                      const FloatingPlayFab(
+                        key: ValueKey('news-play-fab'),
                         size: 60,
                       ),
                     ],

@@ -60,8 +60,8 @@ class _SettingsPageViewState extends State<SettingsPageView> {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     final safeAreaBottom = MediaQuery.of(context).padding.bottom;
-    final bottomSpacing = DesignTokens.spacingS;
-    final extraSpacing = DesignTokens.spacingXl;
+    const bottomSpacing = DesignTokens.spacingS;
+    const extraSpacing = DesignTokens.spacingXl;
     final totalBottomSpacing =
         FloatingBottomNavBar.totalHeight + bottomSpacing + safeAreaBottom + extraSpacing;
 
@@ -76,15 +76,15 @@ class _SettingsPageViewState extends State<SettingsPageView> {
               const SettingsAppBar(),
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  padding: const EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const SizedBox(height: 32),
+                      const SizedBox(height: DesignTokens.spacingXxl),
                       _buildThemeSection(context),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: DesignTokens.spacingXl),
                       const OfflineNewsSettingsSection(),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: DesignTokens.spacingXl),
                       SizedBox(height: totalBottomSpacing),
                     ],
                   ),
@@ -99,7 +99,7 @@ class _SettingsPageViewState extends State<SettingsPageView> {
             child: SafeArea(
               top: false,
               child: Padding(
-                padding: EdgeInsets.only(
+                padding: const EdgeInsets.only(
                   left: DesignTokens.spacingL,
                   right: DesignTokens.spacingL,
                   bottom: DesignTokens.spacingS,
@@ -133,7 +133,7 @@ class _SettingsPageViewState extends State<SettingsPageView> {
                         },
                       ),
                     ),
-                    SizedBox(width: DesignTokens.spacingM),
+                    const SizedBox(width: DesignTokens.spacingM),
                     const FloatingPlayFab(
                       key: ValueKey('settings-play-fab'),
                       size: 60,
@@ -163,7 +163,7 @@ class _SettingsPageViewState extends State<SettingsPageView> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(DesignTokens.spacingL),
             child: Row(
               children: [
                 Icon(
@@ -171,7 +171,7 @@ class _SettingsPageViewState extends State<SettingsPageView> {
                   color: colors.colorScheme.primary,
                   size: 24,
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: DesignTokens.spacingM),
                 Text(
                   'settings_theme'.tr(),
                   style: theme.textTheme.titleLarge?.copyWith(

@@ -240,7 +240,7 @@ class _AlbumArtWidgetState extends State<AlbumArtWidget> {
   BoxDecoration _getShapeDecoration() {
     switch (widget.shape) {
       case AlbumArtShape.circle:
-        return BoxDecoration(
+        return const BoxDecoration(
           shape: BoxShape.circle,
         );
       case AlbumArtShape.roundedRect:

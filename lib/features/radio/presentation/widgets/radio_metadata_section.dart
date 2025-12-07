@@ -98,7 +98,7 @@ class _LiveChip extends StatelessWidget {
     final indicatorColor = theme.colorScheme.onSurface;
 
     return Container(
-      padding: EdgeInsets.symmetric(
+      padding: const EdgeInsets.symmetric(
         horizontal: DesignTokens.spacingS,
         vertical: DesignTokens.spacingS,
       ),
@@ -114,7 +114,7 @@ class _LiveChip extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           _LiveIndicatorDot(isActive: isActive, color: indicatorColor),
-          SizedBox(width: DesignTokens.spacingS),
+          const SizedBox(width: DesignTokens.spacingS),
           Text(
             'LIVE',
             style: theme.textTheme.labelSmall?.copyWith(

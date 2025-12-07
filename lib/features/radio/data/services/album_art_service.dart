@@ -468,7 +468,7 @@ class AlbumArtService {
     // If fallback is already showing, calculate remaining time
     if (_fallbackDisplayStartTime != null) {
       final elapsed = DateTime.now().difference(_fallbackDisplayStartTime!);
-      final minDuration = Duration(
+      const minDuration = Duration(
         milliseconds: RadioConfig.minFallbackDisplayDuration,
       );
       final remaining = minDuration - elapsed;
@@ -494,7 +494,7 @@ class AlbumArtService {
       );
       _fallbackDisplayTimer?.cancel();
       _fallbackDisplayTimer = Timer(
-        Duration(milliseconds: RadioConfig.minFallbackDisplayDuration),
+        const Duration(milliseconds: RadioConfig.minFallbackDisplayDuration),
         _emitSuccessState,
       );
       DebugLogger.log(

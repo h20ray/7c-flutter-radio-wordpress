@@ -46,7 +46,7 @@ class RadioNowPlayingCard extends StatelessWidget {
       },
       builder: (context, viewData) {
         return Padding(
-          padding: EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
+          padding: const EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
           child: Material(
             color: Colors.transparent,
             borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
@@ -67,7 +67,7 @@ class RadioNowPlayingCard extends StatelessWidget {
     }
 
     return Transform.translate(
-      offset: Offset(0, -DesignTokens.spacingXl * 1.7),
+      offset: const Offset(0, -DesignTokens.spacingXl * 1.7),
       child: child,
     );
   }
@@ -160,7 +160,7 @@ class _DynamicNowPlayingCardState extends State<_DynamicNowPlayingCard> {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 320),
       curve: Curves.easeOutCubic,
-      padding: EdgeInsets.all(DesignTokens.spacingM),
+      padding: const EdgeInsets.all(DesignTokens.spacingM),
       constraints: const BoxConstraints(minHeight: 68),
       decoration: BoxDecoration(
         color: cardColor,
@@ -170,7 +170,7 @@ class _DynamicNowPlayingCardState extends State<_DynamicNowPlayingCard> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           const _AlbumArt(size: 68),
-          SizedBox(width: DesignTokens.spacingL),
+          const SizedBox(width: DesignTokens.spacingL),
           Expanded(
             child: _MetadataSection(
               title: widget.viewData.title,
@@ -181,7 +181,7 @@ class _DynamicNowPlayingCardState extends State<_DynamicNowPlayingCard> {
               indicatorColor: indicatorColor,
             ),
           ),
-          SizedBox(width: DesignTokens.spacingS),
+          const SizedBox(width: DesignTokens.spacingS),
           Icon(
             LucideIcons.chevron_right,
             size: 20,
@@ -277,7 +277,7 @@ class _MetadataSection extends StatelessWidget {
           textColor: indicatorColor,
           indicatorColor: indicatorColor,
         ),
-        SizedBox(height: 2),
+        const SizedBox(height: 2),
         Flexible(
           child: AnimatedSwitcher(
             duration: const Duration(milliseconds: 200),
@@ -294,7 +294,7 @@ class _MetadataSection extends StatelessWidget {
             ),
           ),
         ),
-        SizedBox(height: 2),
+        const SizedBox(height: 2),
         AnimatedSwitcher(
           duration: const Duration(milliseconds: 200),
           child: SmoothMarqueeAuto(
@@ -414,7 +414,7 @@ class _LiveIndicatorState extends State<_LiveIndicator>
             );
           },
         ),
-        SizedBox(width: DesignTokens.spacingS),
+        const SizedBox(width: DesignTokens.spacingS),
         Text(
           AppConfig.appName,
           style: Theme.of(context).textTheme.labelMedium?.copyWith(
@@ -451,7 +451,7 @@ class _NowPlayingViewData extends Equatable {
   }
 
   factory _NowPlayingViewData.fallback() {
-    return _NowPlayingViewData(
+    return const _NowPlayingViewData(
       title: RadioConfig.fallbackTitle,
       artist: RadioConfig.fallbackArtist,
       isPlaying: false,

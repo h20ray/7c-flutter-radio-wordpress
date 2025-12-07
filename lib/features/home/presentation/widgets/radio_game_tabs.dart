@@ -69,7 +69,7 @@ class _RadioGameTabsState extends State<RadioGameTabs>
             BoxShadow(
               color: tokens.shadow,
               blurRadius: 4,
-              offset: Offset(0, 1),
+              offset: const Offset(0, 1),
             ),
           ],
         ),
@@ -85,8 +85,8 @@ class _RadioGameTabsState extends State<RadioGameTabs>
                   duration: DesignTokens.animationDurationMedium,
                   curve: DesignTokens.animationCurveSpring,
                   height: 22,
-                  margin: EdgeInsets.all(2),
-                  padding: EdgeInsets.symmetric(
+                  margin: const EdgeInsets.all(2),
+                  padding: const EdgeInsets.symmetric(
                     horizontal: DesignTokens.spacingS,
                   ),
                   decoration: BoxDecoration(

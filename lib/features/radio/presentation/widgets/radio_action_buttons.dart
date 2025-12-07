@@ -83,14 +83,14 @@ class RadioActionButtons extends StatelessWidget {
       children: [
         const _GreetingChip(),
         if (menuChips.isNotEmpty) ...[
-          SizedBox(width: DesignTokens.spacingS),
+          const SizedBox(width: DesignTokens.spacingS),
           Expanded(
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: menuChips
                     .expand(
-                      (chip) => [chip, SizedBox(width: DesignTokens.spacingS)],
+                      (chip) => [chip, const SizedBox(width: DesignTokens.spacingS)],
                     )
                     .take(menuChips.length * 2 - 1)
                     .toList(),
@@ -123,7 +123,7 @@ class _MenuChip extends StatelessWidget {
       hapticType: HapticFeedbackType.selectionClick,
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.symmetric(
+        padding: const EdgeInsets.symmetric(
           horizontal: DesignTokens.spacingS,
           vertical: DesignTokens.spacingS,
         ),
@@ -139,7 +139,7 @@ class _MenuChip extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(icon, size: 16, color: tokens.unselectedText),
-            SizedBox(width: DesignTokens.spacingXs),
+            const SizedBox(width: DesignTokens.spacingXs),
             Text(
               label.tr(),
               style: theme.textTheme.labelSmall?.copyWith(
@@ -276,7 +276,7 @@ class _GreetingChipState extends State<_GreetingChip> {
                     borderRadius: BorderRadius.circular(28),
                   ),
                   child: Container(
-                    padding: EdgeInsets.all(DesignTokens.spacingL),
+                    padding: const EdgeInsets.all(DesignTokens.spacingL),
                     constraints: const BoxConstraints(maxWidth: 320),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
@@ -290,7 +290,7 @@ class _GreetingChipState extends State<_GreetingChip> {
                             color: dialogTheme.colorScheme.primary,
                           ),
                         ),
-                        SizedBox(height: DesignTokens.spacingM),
+                        const SizedBox(height: DesignTokens.spacingM),
                         Text(
                           displayQuote,
                           style: dialogTheme.textTheme.headlineSmall?.copyWith(
@@ -298,7 +298,7 @@ class _GreetingChipState extends State<_GreetingChip> {
                             color: dialogTheme.colorScheme.onSurface,
                           ),
                         ),
-                        SizedBox(height: DesignTokens.spacingL),
+                        const SizedBox(height: DesignTokens.spacingL),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
@@ -312,7 +312,7 @@ class _GreetingChipState extends State<_GreetingChip> {
                                       );
                                     },
                               style: TextButton.styleFrom(
-                                padding: EdgeInsets.symmetric(
+                                padding: const EdgeInsets.symmetric(
                                   horizontal: DesignTokens.spacingM,
                                   vertical: DesignTokens.spacingS,
                                 ),
@@ -329,11 +329,11 @@ class _GreetingChipState extends State<_GreetingChip> {
                                 ),
                               ),
                             ),
-                            SizedBox(width: DesignTokens.spacingS),
+                            const SizedBox(width: DesignTokens.spacingS),
                             TextButton(
                               onPressed: () => Navigator.pop(builderContext),
                               style: TextButton.styleFrom(
-                                padding: EdgeInsets.symmetric(
+                                padding: const EdgeInsets.symmetric(
                                   horizontal: DesignTokens.spacingM,
                                   vertical: DesignTokens.spacingS,
                                 ),
@@ -357,7 +357,7 @@ class _GreetingChipState extends State<_GreetingChip> {
         });
       },
       child: Container(
-        padding: EdgeInsets.symmetric(
+        padding: const EdgeInsets.symmetric(
           horizontal: DesignTokens.spacingS,
           vertical: DesignTokens.spacingS,
         ),
@@ -536,7 +536,7 @@ class _ShareChipState extends State<_ShareChip> {
                 borderRadius: BorderRadius.circular(28),
               ),
               child: Container(
-                padding: EdgeInsets.all(DesignTokens.spacingL),
+                padding: const EdgeInsets.all(DesignTokens.spacingL),
                 constraints: BoxConstraints(
                   maxWidth: mediaQuery.size.width * 0.9,
                   maxHeight: mediaQuery.size.height * 0.85,
@@ -568,14 +568,14 @@ class _ShareChipState extends State<_ShareChip> {
                         ),
                       ),
                     ),
-                    SizedBox(height: DesignTokens.spacingL),
+                    const SizedBox(height: DesignTokens.spacingL),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         TextButton(
                           onPressed: () => Navigator.pop(builderContext),
                           style: TextButton.styleFrom(
-                            padding: EdgeInsets.symmetric(
+                            padding: const EdgeInsets.symmetric(
                               horizontal: DesignTokens.spacingM,
                               vertical: DesignTokens.spacingS,
                             ),
@@ -587,7 +587,7 @@ class _ShareChipState extends State<_ShareChip> {
                             ),
                           ),
                         ),
-                        SizedBox(width: DesignTokens.spacingS),
+                        const SizedBox(width: DesignTokens.spacingS),
                         FilledButton(
                           onPressed: _isCapturing
                               ? null
@@ -602,7 +602,7 @@ class _ShareChipState extends State<_ShareChip> {
                                   );
                                 },
                           style: FilledButton.styleFrom(
-                            padding: EdgeInsets.symmetric(
+                            padding: const EdgeInsets.symmetric(
                               horizontal: DesignTokens.spacingM,
                               vertical: DesignTokens.spacingS,
                             ),
@@ -618,7 +618,7 @@ class _ShareChipState extends State<_ShareChip> {
                                     ),
                                   ),
                                 )
-                              : Text('Share'),
+                              : const Text('Share'),
                         ),
                       ],
                     ),
@@ -630,7 +630,7 @@ class _ShareChipState extends State<_ShareChip> {
         });
       },
       child: Container(
-        padding: EdgeInsets.symmetric(
+        padding: const EdgeInsets.symmetric(
           horizontal: DesignTokens.spacingS,
           vertical: DesignTokens.spacingS,
         ),
@@ -646,7 +646,7 @@ class _ShareChipState extends State<_ShareChip> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(LucideIcons.share_2, size: 16, color: tokens.unselectedText),
-            SizedBox(width: DesignTokens.spacingXs),
+            const SizedBox(width: DesignTokens.spacingXs),
             Text(
               'Share',
               style: theme.textTheme.labelSmall?.copyWith(

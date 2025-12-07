@@ -54,12 +54,12 @@ class LevelDetailsPageView extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CurrentLevelSection(data: data),
-                      SizedBox(height: DesignTokens.spacingXl),
+                      const SizedBox(height: DesignTokens.spacingXl),
                       LevelListSection(
                         currentHours: data.totalListeningHours,
                         currentLevelId: _getCurrentLevelId(data),
                       ),
-                      SizedBox(height: DesignTokens.spacingXl),
+                      const SizedBox(height: DesignTokens.spacingXl),
                     ],
                   ),
                   orElse: () => const LevelDetailsLoadingState(),

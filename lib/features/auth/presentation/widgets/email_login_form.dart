@@ -62,7 +62,7 @@ class _EmailLoginFormState extends State<EmailLoginForm> {
               decoration: InputDecoration(
                 labelText: 'auth_email_label'.tr(),
                 hintText: 'auth_email_hint'.tr(),
-                prefixIcon: Icon(Icons.email_outlined),
+                prefixIcon: const Icon(Icons.email_outlined),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -74,7 +74,7 @@ class _EmailLoginFormState extends State<EmailLoginForm> {
                 return null;
               },
             ),
-            SizedBox(height: DesignTokens.spacingL),
+            const SizedBox(height: DesignTokens.spacingL),
             TextFormField(
               controller: _passwordController,
               obscureText: _obscurePassword,
@@ -83,7 +83,7 @@ class _EmailLoginFormState extends State<EmailLoginForm> {
               decoration: InputDecoration(
                 labelText: 'auth_password_label'.tr(),
                 hintText: 'auth_password_hint'.tr(),
-                prefixIcon: Icon(Icons.lock_outline),
+                prefixIcon: const Icon(Icons.lock_outline),
                 suffixIcon: IconButton(
                   icon: Icon(
                     _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
@@ -102,11 +102,11 @@ class _EmailLoginFormState extends State<EmailLoginForm> {
                 return null;
               },
             ),
-            SizedBox(height: DesignTokens.spacingXl),
+            const SizedBox(height: DesignTokens.spacingXl),
             HapticFilledButton(
               onPressed: widget.isLoading ? null : _handleLogin,
               style: FilledButton.styleFrom(
-                padding: EdgeInsets.symmetric(vertical: DesignTokens.spacingM),
+                padding: const EdgeInsets.symmetric(vertical: DesignTokens.spacingM),
               ),
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 200),

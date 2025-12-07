@@ -19,11 +19,11 @@ class ShoutboxMessageList extends StatelessWidget {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: messages.length,
-      separatorBuilder: (_, index) => SizedBox(height: DesignTokens.spacingS),
+      separatorBuilder: (_, index) => const SizedBox(height: DesignTokens.spacingS),
       itemBuilder: (context, index) {
         final message = messages[index];
         return Container(
-          padding: EdgeInsets.all(DesignTokens.spacingM),
+          padding: const EdgeInsets.all(DesignTokens.spacingM),
           decoration: BoxDecoration(
             color: colors.cardBackground,
             borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
@@ -42,7 +42,7 @@ class ShoutboxMessageList extends StatelessWidget {
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ),
-              SizedBox(width: DesignTokens.spacingM),
+              const SizedBox(width: DesignTokens.spacingM),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -58,11 +58,11 @@ class ShoutboxMessageList extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        SizedBox(width: DesignTokens.spacingS),
+                        const SizedBox(width: DesignTokens.spacingS),
                         Row(
                           children: [
                             const Icon(LucideIcons.clock, size: 14),
-                            SizedBox(width: DesignTokens.spacingXs),
+                            const SizedBox(width: DesignTokens.spacingXs),
                             Text(
                               DateFormat(
                                 'MMM d, HH:mm',
@@ -74,7 +74,7 @@ class ShoutboxMessageList extends StatelessWidget {
                         ),
                       ],
                     ),
-                    SizedBox(height: DesignTokens.spacingXs),
+                    const SizedBox(height: DesignTokens.spacingXs),
                     Text(
                       message.message,
                       style: Theme.of(context).textTheme.bodyMedium,

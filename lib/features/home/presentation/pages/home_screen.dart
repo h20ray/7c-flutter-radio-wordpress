@@ -100,8 +100,8 @@ class _HomeScreenState extends State<HomeScreen> {
         headerHeight + (DesignTokens.cardHeightStandard - cardOverlap);
     
     final safeAreaBottom = MediaQuery.of(context).padding.bottom;
-    final bottomSpacing = DesignTokens.spacingS;
-    final extraSpacing = DesignTokens.spacingXl;
+    const bottomSpacing = DesignTokens.spacingS;
+    const extraSpacing = DesignTokens.spacingXl;
     final totalBottomSpacing =
         FloatingBottomNavBar.totalHeight + bottomSpacing + safeAreaBottom + extraSpacing;
 
@@ -170,7 +170,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     SliverToBoxAdapter(
                       child: Column(
                         children: [
-                          SizedBox(height: DesignTokens.spacingM),
+                          const SizedBox(height: DesignTokens.spacingM),
                           ModeTabs(
                             selectedIndex: _selectedTabIndex,
                             onTabChanged: (index) {
@@ -182,7 +182,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   );
                             },
                           ),
-                          SizedBox(height: DesignTokens.spacingM),
+                          const SizedBox(height: DesignTokens.spacingM),
                         ],
                       ),
                     ),
@@ -194,7 +194,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               placeholderBuilder: (context) => const _TamtamaPlaceholder(),
                               builder: (context) => const TamtamaSection(),
                             ),
-                            SizedBox(height: DesignTokens.spacingXl),
+                            const SizedBox(height: DesignTokens.spacingXl),
                           ],
                         ),
                       ),
@@ -204,7 +204,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         builder: (context) => const LatestNewsCarousel(),
                       ),
                     ),
-                    SliverToBoxAdapter(
+                    const SliverToBoxAdapter(
                       child: SizedBox(height: DesignTokens.spacingXl),
                     ),
                     SliverToBoxAdapter(
@@ -217,7 +217,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     SliverToBoxAdapter(
                       child: Column(
                         children: [
-                          SizedBox(height: DesignTokens.spacingXl),
+                          const SizedBox(height: DesignTokens.spacingXl),
                           SizedBox(height: totalBottomSpacing),
                         ],
                       ),
@@ -249,7 +249,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: SafeArea(
                     top: false,
                     child: Padding(
-                      padding: EdgeInsets.only(
+                      padding: const EdgeInsets.only(
                         left: DesignTokens.spacingL,
                         right: DesignTokens.spacingL,
                         bottom: DesignTokens.spacingS,
@@ -267,9 +267,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               },
                             ),
                           ),
-                          SizedBox(width: DesignTokens.spacingM),
-                          FloatingPlayFab(
-                            key: const ValueKey('home-play-fab'),
+                          const SizedBox(width: DesignTokens.spacingM),
+                          const FloatingPlayFab(
+                            key: ValueKey('home-play-fab'),
                             size: 60,
                           ),
                         ],
@@ -340,7 +340,7 @@ class _TamtamaPlaceholder extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
+      padding: const EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
       child: Container(
         height: 200,
         decoration: BoxDecoration(
@@ -357,7 +357,7 @@ class _CarouselPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return HomeNewsCardSkeleton(itemCount: 1);
+    return const HomeNewsCardSkeleton(itemCount: 1);
   }
 }
 

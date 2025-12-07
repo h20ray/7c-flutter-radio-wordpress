@@ -9,7 +9,7 @@ class LevelDetailsLoadingState extends StatelessWidget {
     final skeletonColor = Theme.of(context).colorScheme.surfaceContainerHighest;
 
     return Padding(
-      padding: EdgeInsets.all(DesignTokens.spacingL),
+      padding: const EdgeInsets.all(DesignTokens.spacingL),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -19,36 +19,36 @@ class LevelDetailsLoadingState extends StatelessWidget {
             color: skeletonColor,
             borderRadius: DesignTokens.cornerRadiusCard,
           ),
-          SizedBox(height: DesignTokens.spacingL),
+          const SizedBox(height: DesignTokens.spacingL),
           _SkeletonBox(
             width: 200,
             height: 24,
             color: skeletonColor,
           ),
-          SizedBox(height: DesignTokens.spacingS),
+          const SizedBox(height: DesignTokens.spacingS),
           _SkeletonBox(
             width: double.infinity,
             height: 16,
             color: skeletonColor,
           ),
-          SizedBox(height: DesignTokens.spacingM),
+          const SizedBox(height: DesignTokens.spacingM),
           _SkeletonBox(
             width: double.infinity,
             height: 8,
             color: skeletonColor,
             borderRadius: DesignTokens.cornerRadiusProgress,
           ),
-          SizedBox(height: DesignTokens.spacingXl * 2),
+          const SizedBox(height: DesignTokens.spacingXl * 2),
           _SkeletonBox(
             width: 150,
             height: 20,
             color: skeletonColor,
           ),
-          SizedBox(height: DesignTokens.spacingL),
+          const SizedBox(height: DesignTokens.spacingL),
           ...List.generate(
             3,
             (index) => Padding(
-              padding: EdgeInsets.only(bottom: DesignTokens.spacingM),
+              padding: const EdgeInsets.only(bottom: DesignTokens.spacingM),
               child: _SkeletonBox(
                 width: double.infinity,
                 height: 80,

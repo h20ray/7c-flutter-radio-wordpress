@@ -68,7 +68,7 @@ class _RadioSongHistorySectionState extends State<RadioSongHistorySection> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: EdgeInsets.only(bottom: DesignTokens.spacingM),
+              padding: const EdgeInsets.only(bottom: DesignTokens.spacingM),
               child: Text(
                 'song_history_title'.tr(),
                 style: theme.textTheme.titleLarge?.copyWith(
@@ -112,7 +112,7 @@ class _RadioSongHistorySectionState extends State<RadioSongHistorySection> {
                 loaded: (songs) {
                   if (songs.isEmpty) {
                     return Container(
-                      padding: EdgeInsets.all(DesignTokens.spacingL),
+                      padding: const EdgeInsets.all(DesignTokens.spacingL),
                       decoration: BoxDecoration(
                         color: colors.cardBackground,
                         borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
@@ -126,7 +126,7 @@ class _RadioSongHistorySectionState extends State<RadioSongHistorySection> {
                               size: 48,
                               color: colors.textSecondary.withValues(alpha: 0.3),
                             ),
-                            SizedBox(height: DesignTokens.spacingM),
+                            const SizedBox(height: DesignTokens.spacingM),
                             Text(
                               'song_history_empty'.tr(),
                               style: theme.textTheme.bodyMedium?.copyWith(

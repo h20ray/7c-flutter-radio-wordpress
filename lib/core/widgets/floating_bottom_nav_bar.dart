@@ -37,7 +37,7 @@ class FloatingBottomNavBar extends StatelessWidget {
     final navOpacity = isDark ? 0.95 : 0.9;
 
     return Container(
-      margin: EdgeInsets.symmetric(vertical: DesignTokens.spacingS),
+      margin: const EdgeInsets.symmetric(vertical: DesignTokens.spacingS),
       height: height,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(24),
@@ -126,7 +126,7 @@ class FloatingBottomNavBar extends StatelessWidget {
           child: AnimatedContainer(
             duration: DesignTokens.animationDurationMedium,
             curve: DesignTokens.animationCurveSpring,
-            padding: EdgeInsets.symmetric(vertical: DesignTokens.spacingS),
+            padding: const EdgeInsets.symmetric(vertical: DesignTokens.spacingS),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [

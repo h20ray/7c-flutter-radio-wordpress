@@ -32,8 +32,8 @@ class AzuraCastAlbumArtDataSource implements AlbumArtRemoteDataSource {
       var response = await dio.head(
         staticArtUrl,
         options: Options(
-          receiveTimeout: Duration(milliseconds: RadioConfig.albumArtRequestTimeoutMs),
-          sendTimeout: Duration(milliseconds: RadioConfig.albumArtRequestTimeoutMs),
+          receiveTimeout: const Duration(milliseconds: RadioConfig.albumArtRequestTimeoutMs),
+          sendTimeout: const Duration(milliseconds: RadioConfig.albumArtRequestTimeoutMs),
           followRedirects: true,
           validateStatus: (status) {
             return status != null && status < 500;
@@ -48,8 +48,8 @@ class AzuraCastAlbumArtDataSource implements AlbumArtRemoteDataSource {
         response = await dio.head(
           artUrl,
           options: Options(
-            receiveTimeout: Duration(milliseconds: RadioConfig.albumArtRequestTimeoutMs),
-            sendTimeout: Duration(milliseconds: RadioConfig.albumArtRequestTimeoutMs),
+            receiveTimeout: const Duration(milliseconds: RadioConfig.albumArtRequestTimeoutMs),
+            sendTimeout: const Duration(milliseconds: RadioConfig.albumArtRequestTimeoutMs),
             followRedirects: true,
             validateStatus: (status) {
               return status != null && status < 500;
@@ -75,8 +75,8 @@ class AzuraCastAlbumArtDataSource implements AlbumArtRemoteDataSource {
           final getResponse = await dio.get(
             finalUrl,
             options: Options(
-              receiveTimeout: Duration(milliseconds: RadioConfig.albumArtRequestTimeoutMs ~/ 2),
-              sendTimeout: Duration(milliseconds: RadioConfig.albumArtRequestTimeoutMs ~/ 2),
+              receiveTimeout: const Duration(milliseconds: RadioConfig.albumArtRequestTimeoutMs ~/ 2),
+              sendTimeout: const Duration(milliseconds: RadioConfig.albumArtRequestTimeoutMs ~/ 2),
               followRedirects: true,
               validateStatus: (status) => status != null && status < 500,
             ),
@@ -120,8 +120,8 @@ class AppleMusicAlbumArtDataSource implements AlbumArtRemoteDataSource {
       final response = await dio.get(
         url,
         options: Options(
-          receiveTimeout: Duration(milliseconds: RadioConfig.albumArtRequestTimeoutMs),
-          sendTimeout: Duration(milliseconds: RadioConfig.albumArtRequestTimeoutMs),
+          receiveTimeout: const Duration(milliseconds: RadioConfig.albumArtRequestTimeoutMs),
+          sendTimeout: const Duration(milliseconds: RadioConfig.albumArtRequestTimeoutMs),
         ),
       );
 

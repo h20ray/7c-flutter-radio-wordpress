@@ -38,7 +38,7 @@ class RequestRepositoryImpl implements RequestRepository {
   }
 
   bool _shouldUseAzuracast() {
-    final mode = RadioConfig.requestMode;
+    const mode = RadioConfig.requestMode;
     if (mode == 'webview') return false;
     if (mode == 'azuracast') return true;
     
@@ -58,7 +58,7 @@ class RequestRepositoryImpl implements RequestRepository {
     bool random = false,
   }) async {
     if (!_shouldUseAzuracast() || azuracastDataSource == null) {
-      return Left(UnsupportedFailure(
+      return const Left(UnsupportedFailure(
         'Azuracast request mode is not available. Please use WebView mode.',
       ));
     }
@@ -95,7 +95,7 @@ class RequestRepositoryImpl implements RequestRepository {
     String? artist,
   }) async {
     if (!_shouldUseAzuracast() || azuracastDataSource == null) {
-      return Left(UnsupportedFailure(
+      return const Left(UnsupportedFailure(
         'Azuracast request mode is not available. Please use WebView mode.',
       ));
     }

@@ -48,7 +48,7 @@ class OfflineNewsSettingsSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
-            padding: EdgeInsets.all(DesignTokens.spacingL),
+            padding: const EdgeInsets.all(DesignTokens.spacingL),
             child: Row(
               children: [
                 Icon(
@@ -56,7 +56,7 @@ class OfflineNewsSettingsSection extends StatelessWidget {
                   color: colors.colorScheme.primary,
                   size: 24,
                 ),
-                SizedBox(width: DesignTokens.spacingS),
+                const SizedBox(width: DesignTokens.spacingS),
                 Text(
                   'settings_offline_news_title'.tr(),
                   style: TextStyle(
@@ -70,15 +70,15 @@ class OfflineNewsSettingsSection extends StatelessWidget {
           ),
           const Divider(height: 1),
           Padding(
-            padding: EdgeInsets.all(DesignTokens.spacingL),
+            padding: const EdgeInsets.all(DesignTokens.spacingL),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 if (stats != null) ...[
                   _buildSimpleStats(context, stats),
-                  SizedBox(height: DesignTokens.spacingL),
+                  const SizedBox(height: DesignTokens.spacingL),
                 ],
-                SizedBox(height: DesignTokens.spacingM),
+                const SizedBox(height: DesignTokens.spacingM),
                 ListTile(
                   leading: Icon(
                     LucideIcons.list,
@@ -102,7 +102,7 @@ class OfflineNewsSettingsSection extends StatelessWidget {
                     );
                   },
                 ),
-                SizedBox(height: DesignTokens.spacingM),
+                const SizedBox(height: DesignTokens.spacingM),
                 ListTile(
                   leading: Icon(
                     LucideIcons.trash,
@@ -120,7 +120,7 @@ class OfflineNewsSettingsSection extends StatelessWidget {
                 ),
                 if (isSaving)
                   Padding(
-                    padding: EdgeInsets.all(DesignTokens.spacingM),
+                    padding: const EdgeInsets.all(DesignTokens.spacingM),
                     child: Center(
                       child: CircularProgressIndicator(
                         color: colors.colorScheme.primary,
@@ -129,9 +129,9 @@ class OfflineNewsSettingsSection extends StatelessWidget {
                   ),
                 if (error != null)
                   Padding(
-                    padding: EdgeInsets.all(DesignTokens.spacingM),
+                    padding: const EdgeInsets.all(DesignTokens.spacingM),
                     child: Container(
-                      padding: EdgeInsets.all(DesignTokens.spacingS),
+                      padding: const EdgeInsets.all(DesignTokens.spacingS),
                       decoration: BoxDecoration(
                         color: colors.colorScheme.error.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
@@ -157,7 +157,7 @@ class OfflineNewsSettingsSection extends StatelessWidget {
     final colors = context.appColors;
 
     return Container(
-      padding: EdgeInsets.all(DesignTokens.spacingL),
+      padding: const EdgeInsets.all(DesignTokens.spacingL),
       decoration: BoxDecoration(
         color: colors.cardBackground,
         borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
@@ -174,7 +174,7 @@ class OfflineNewsSettingsSection extends StatelessWidget {
     final colors = context.appColors;
 
     return Container(
-      padding: EdgeInsets.all(DesignTokens.spacingL),
+      padding: const EdgeInsets.all(DesignTokens.spacingL),
       decoration: BoxDecoration(
         color: colors.cardBackground,
         borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
@@ -186,14 +186,14 @@ class OfflineNewsSettingsSection extends StatelessWidget {
             color: colors.colorScheme.error,
             size: 48,
           ),
-          SizedBox(height: DesignTokens.spacingM),
+          const SizedBox(height: DesignTokens.spacingM),
           Text(
             'settings_offline_error_loading'.tr(),
             style: TextStyle(
               color: colors.textSecondary,
             ),
           ),
-          SizedBox(height: DesignTokens.spacingM),
+          const SizedBox(height: DesignTokens.spacingM),
           TextButton(
             onPressed: () {
               context.read<SettingsBloc>().add(
@@ -211,7 +211,7 @@ class OfflineNewsSettingsSection extends StatelessWidget {
     final colors = context.appColors;
     
     return Container(
-      padding: EdgeInsets.all(DesignTokens.spacingM),
+      padding: const EdgeInsets.all(DesignTokens.spacingM),
       decoration: BoxDecoration(
         color: colors.cardBackground.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(8),
@@ -262,7 +262,7 @@ class OfflineNewsSettingsSection extends StatelessWidget {
             color: colors.colorScheme.primary,
             size: 24,
           ),
-          SizedBox(height: DesignTokens.spacingXs),
+          const SizedBox(height: DesignTokens.spacingXs),
           Text(
             value,
             style: TextStyle(
@@ -271,7 +271,7 @@ class OfflineNewsSettingsSection extends StatelessWidget {
               color: colors.textPrimary,
             ),
           ),
-          SizedBox(height: DesignTokens.spacingXs),
+          const SizedBox(height: DesignTokens.spacingXs),
           Text(
             label,
             style: TextStyle(

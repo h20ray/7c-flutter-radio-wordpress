@@ -43,12 +43,12 @@ class AppTheme {
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          padding: EdgeInsets.symmetric(
+          padding: const EdgeInsets.symmetric(
             horizontal: DesignTokens.spacingL,
             vertical: DesignTokens.spacingM,
           ),
           shape: const StadiumBorder(),
-          textStyle: TextStyle(
+          textStyle: const TextStyle(
             fontSize: DesignTokens.fontSizeLabelLarge,
             fontWeight: DesignTokens.fontWeightLabelLarge,
             letterSpacing: DesignTokens.letterSpacingLabelLarge,
@@ -58,12 +58,12 @@ class AppTheme {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          padding: EdgeInsets.symmetric(
+          padding: const EdgeInsets.symmetric(
             horizontal: DesignTokens.spacingL,
             vertical: DesignTokens.spacingM,
           ),
           shape: const StadiumBorder(),
-          textStyle: TextStyle(
+          textStyle: const TextStyle(
             fontSize: DesignTokens.fontSizeLabelLarge,
             fontWeight: DesignTokens.fontWeightLabelLarge,
             letterSpacing: DesignTokens.letterSpacingLabelLarge,
@@ -73,12 +73,12 @@ class AppTheme {
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          padding: EdgeInsets.symmetric(
+          padding: const EdgeInsets.symmetric(
             horizontal: DesignTokens.spacingM,
             vertical: DesignTokens.spacingS,
           ),
           shape: const StadiumBorder(),
-          textStyle: TextStyle(
+          textStyle: const TextStyle(
             fontSize: DesignTokens.fontSizeBodyMedium,
             fontWeight: DesignTokens.fontWeightLabelLarge,
             letterSpacing: DesignTokens.letterSpacingLabelLarge,
@@ -88,7 +88,7 @@ class AppTheme {
       ),
       iconButtonTheme: IconButtonThemeData(
         style: IconButton.styleFrom(
-          minimumSize: Size(DesignTokens.spacingXl * 2.5, DesignTokens.spacingXl * 2.5),
+          minimumSize: const Size(DesignTokens.spacingXl * 2.5, DesignTokens.spacingXl * 2.5),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(DesignTokens.spacingS),
           ),
@@ -145,12 +145,12 @@ class AppTheme {
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          padding: EdgeInsets.symmetric(
+          padding: const EdgeInsets.symmetric(
             horizontal: DesignTokens.spacingL,
             vertical: DesignTokens.spacingM,
           ),
           shape: const StadiumBorder(),
-          textStyle: TextStyle(
+          textStyle: const TextStyle(
             fontSize: DesignTokens.fontSizeLabelLarge,
             fontWeight: DesignTokens.fontWeightLabelLarge,
             letterSpacing: DesignTokens.letterSpacingLabelLarge,
@@ -160,12 +160,12 @@ class AppTheme {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          padding: EdgeInsets.symmetric(
+          padding: const EdgeInsets.symmetric(
             horizontal: DesignTokens.spacingL,
             vertical: DesignTokens.spacingM,
           ),
           shape: const StadiumBorder(),
-          textStyle: TextStyle(
+          textStyle: const TextStyle(
             fontSize: DesignTokens.fontSizeLabelLarge,
             fontWeight: DesignTokens.fontWeightLabelLarge,
             letterSpacing: DesignTokens.letterSpacingLabelLarge,
@@ -175,12 +175,12 @@ class AppTheme {
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          padding: EdgeInsets.symmetric(
+          padding: const EdgeInsets.symmetric(
             horizontal: DesignTokens.spacingM,
             vertical: DesignTokens.spacingS,
           ),
           shape: const StadiumBorder(),
-          textStyle: TextStyle(
+          textStyle: const TextStyle(
             fontSize: DesignTokens.fontSizeBodyMedium,
             fontWeight: DesignTokens.fontWeightLabelLarge,
             letterSpacing: DesignTokens.letterSpacingLabelLarge,
@@ -190,7 +190,7 @@ class AppTheme {
       ),
       iconButtonTheme: IconButtonThemeData(
         style: IconButton.styleFrom(
-          minimumSize: Size(DesignTokens.spacingXl * 2.5, DesignTokens.spacingXl * 2.5),
+          minimumSize: const Size(DesignTokens.spacingXl * 2.5, DesignTokens.spacingXl * 2.5),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(DesignTokens.spacingS),
           ),

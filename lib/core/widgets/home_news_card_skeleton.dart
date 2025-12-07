@@ -18,13 +18,13 @@ class HomeNewsCardSkeleton extends StatelessWidget {
       children: List.generate(
         itemCount,
         (index) => Container(
-          margin: EdgeInsets.fromLTRB(
+          margin: const EdgeInsets.fromLTRB(
             DesignTokens.spacingL,
             DesignTokens.spacingS,
             DesignTokens.spacingL,
             0,
           ),
-          padding: EdgeInsets.all(DesignTokens.spacingM),
+          padding: const EdgeInsets.all(DesignTokens.spacingM),
           decoration: BoxDecoration(
             color: colors.cardBackground,
             borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
@@ -38,7 +38,7 @@ class HomeNewsCardSkeleton extends StatelessWidget {
                 color: skeletonColor,
                 borderRadius: 16,
               ),
-              SizedBox(width: DesignTokens.spacingM),
+              const SizedBox(width: DesignTokens.spacingM),
               Expanded(
                 child: LayoutBuilder(
                   builder: (context, constraints) {
@@ -51,13 +51,13 @@ class HomeNewsCardSkeleton extends StatelessWidget {
                           height: 16,
                           color: skeletonColor,
                         ),
-                        SizedBox(height: DesignTokens.spacingXs),
+                        const SizedBox(height: DesignTokens.spacingXs),
                         SkeletonBox(
                           width: constraints.maxWidth * 0.85,
                           height: 16,
                           color: skeletonColor,
                         ),
-                        SizedBox(height: DesignTokens.spacingS),
+                        const SizedBox(height: DesignTokens.spacingS),
                         Row(
                           children: [
                             SkeletonBox(
@@ -66,7 +66,7 @@ class HomeNewsCardSkeleton extends StatelessWidget {
                               color: skeletonColor,
                               borderRadius: 12,
                             ),
-                            SizedBox(width: DesignTokens.spacingXs),
+                            const SizedBox(width: DesignTokens.spacingXs),
                             SkeletonBox(
                               width: 50,
                               height: 20,

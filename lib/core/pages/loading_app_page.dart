@@ -141,7 +141,7 @@ class _LoadingAppPageState extends State<LoadingAppPage> {
     _loadingNotifier.updateProgress(1.0, LoadingStatus.complete);
 
     final elapsed = DateTime.now().difference(startTime);
-    final minDisplayTime = const Duration(seconds: 2);
+    const minDisplayTime = Duration(seconds: 2);
     
     if (elapsed < minDisplayTime) {
       final remainingTime = minDisplayTime - elapsed;

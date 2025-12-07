@@ -129,7 +129,7 @@ class HeaderSection extends StatelessWidget {
                         ))
                           MenuItemButton(
                             style: M3XMenuStyle.itemStyle,
-                            leadingIcon: Icon(LucideIcons.log_in, size: 20),
+                            leadingIcon: const Icon(LucideIcons.log_in, size: 20),
                             child: Text('auth_login_button'.tr()),
                             onPressed: () {
                               HapticFeedbackHelper.lightImpact();
@@ -142,7 +142,7 @@ class HeaderSection extends StatelessWidget {
                         )) ...[
                           MenuItemButton(
                             style: M3XMenuStyle.itemStyle,
-                            leadingIcon: Icon(LucideIcons.user, size: 20),
+                            leadingIcon: const Icon(LucideIcons.user, size: 20),
                             child: Text('home_nav_profile'.tr()),
                             onPressed: () {
                               HapticFeedbackHelper.lightImpact();
@@ -151,7 +151,7 @@ class HeaderSection extends StatelessWidget {
                           ),
                           MenuItemButton(
                             style: M3XMenuStyle.itemStyle,
-                            leadingIcon: Icon(LucideIcons.settings, size: 20),
+                            leadingIcon: const Icon(LucideIcons.settings, size: 20),
                             child: Text('auth_account_settings'.tr()),
                             onPressed: () {
                               HapticFeedbackHelper.lightImpact();
@@ -164,7 +164,7 @@ class HeaderSection extends StatelessWidget {
                           ),
                           MenuItemButton(
                             style: M3XMenuStyle.itemStyle,
-                            leadingIcon: Icon(LucideIcons.log_out, size: 20),
+                            leadingIcon: const Icon(LucideIcons.log_out, size: 20),
                             child: Text('auth_logout'.tr()),
                             onPressed: () {
                               HapticFeedbackHelper.lightImpact();
@@ -199,7 +199,7 @@ class HeaderSection extends StatelessWidget {
                         ),
                         MenuItemButton(
                           style: M3XMenuStyle.itemStyle,
-                          leadingIcon: Icon(LucideIcons.settings, size: 20),
+                          leadingIcon: const Icon(LucideIcons.settings, size: 20),
                           child: Text('settings_title'.tr()),
                           onPressed: () {
                             HapticFeedbackHelper.lightImpact();
@@ -211,7 +211,7 @@ class HeaderSection extends StatelessWidget {
                         const SizedBox(height: M3XMenuStyle.gapSize),
                         SubmenuButton(
                           style: M3XMenuStyle.itemStyle,
-                          leadingIcon: Icon(LucideIcons.share_2, size: 20),
+                          leadingIcon: const Icon(LucideIcons.share_2, size: 20),
                           menuChildren: [
                             FutureBuilder<Map<String, String>>(
                               future: SocialMediaService()
@@ -361,7 +361,7 @@ class HeaderSection extends StatelessWidget {
                         ),
                       ],
                     ),
-                    SizedBox(width: DesignTokens.spacingL),
+                    const SizedBox(width: DesignTokens.spacingL),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -380,7 +380,7 @@ class HeaderSection extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                             maxLines: 1,
                           ),
-                          SizedBox(height: 2),
+                          const SizedBox(height: 2),
                           Text(
                             '${'radio_greeting_hi'.tr()} ${_getGreeting().tr()}',
                             style: TextStyle(
@@ -397,13 +397,13 @@ class HeaderSection extends StatelessWidget {
                   ],
                 ),
               ),
-              SizedBox(width: DesignTokens.spacingS),
+              const SizedBox(width: DesignTokens.spacingS),
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
                     height: 32,
-                    padding: EdgeInsets.symmetric(
+                    padding: const EdgeInsets.symmetric(
                       horizontal: DesignTokens.spacingM,
                     ),
                     decoration: BoxDecoration(
@@ -425,7 +425,7 @@ class HeaderSection extends StatelessWidget {
                       ),
                     ),
                   ),
-                  SizedBox(width: DesignTokens.spacingS),
+                  const SizedBox(width: DesignTokens.spacingS),
                   Container(
                     width: 32,
                     height: 32,
@@ -444,7 +444,7 @@ class HeaderSection extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(height: DesignTokens.spacingL),
+          const SizedBox(height: DesignTokens.spacingL),
           Align(
             alignment: Alignment.centerRight,
             child: RadioGameTabs(

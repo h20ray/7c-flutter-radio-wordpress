@@ -152,7 +152,7 @@ class _RadioPageBackgroundState extends State<RadioPageBackground>
         : const Color(0xFF2C3E50);
     
     try {
-      final fallbackProvider = AssetImage(RadioConfig.fallbackArtworkPath);
+      const fallbackProvider = AssetImage(RadioConfig.fallbackArtworkPath);
       final palette = await _paletteService.fetchForImage(
         fallbackProvider,
         cacheKey: 'fallback_artwork',

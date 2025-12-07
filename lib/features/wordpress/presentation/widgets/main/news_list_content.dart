@@ -74,10 +74,10 @@ class NewsListContent extends StatelessWidget {
             final isLoadingMore = isLoadingByCategory[selectedCategoryId] ?? false;
             
             if (regularPosts.isEmpty && isLoadingMore) {
-               return SliverToBoxAdapter(
+               return const SliverToBoxAdapter(
                 child: Padding(
                   padding: EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
-                  child: const NewsListSkeleton(),
+                  child: NewsListSkeleton(),
                 ),
               );
             }
@@ -90,19 +90,19 @@ class NewsListContent extends StatelessWidget {
               offlinePostIds: offlinePostIds,
             );
           },
-          loading: (categoryId) => SliverToBoxAdapter(
+          loading: (categoryId) => const SliverToBoxAdapter(
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
-              child: const NewsListSkeleton(),
+              child: NewsListSkeleton(),
             ),
           ),
           error: (failure, categoryId) => const SliverToBoxAdapter(
             child: NewsErrorState(),
           ),
-          orElse: () => SliverToBoxAdapter(
+          orElse: () => const SliverToBoxAdapter(
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
-              child: const NewsListSkeleton(),
+              child: NewsListSkeleton(),
             ),
           ),
         );
@@ -120,12 +120,12 @@ class NewsListContent extends StatelessWidget {
     required VoidCallback onClear,
   }) {
     if (isLoadingSearch && (searchResults == null || searchResults.isEmpty)) {
-      return SliverPadding(
+      return const SliverPadding(
         padding: EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
         sliver: SliverToBoxAdapter(
           child: Padding(
             padding: EdgeInsets.only(top: DesignTokens.spacingL),
-            child: const NewsListSkeleton(itemCount: 1),
+            child: NewsListSkeleton(itemCount: 1),
           ),
         ),
       );
@@ -139,7 +139,7 @@ class NewsListContent extends StatelessWidget {
       }
 
       return SliverPadding(
-        padding: EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
+        padding: const EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
         sliver: SliverList(
           delegate: SliverChildBuilderDelegate(
             (context, index) {
@@ -173,12 +173,12 @@ class NewsListContent extends StatelessWidget {
       );
     }
 
-    return SliverPadding(
+    return const SliverPadding(
       padding: EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
       sliver: SliverToBoxAdapter(
         child: Padding(
           padding: EdgeInsets.only(top: DesignTokens.spacingL),
-          child: const NewsListSkeleton(itemCount: 1),
+          child: NewsListSkeleton(itemCount: 1),
         ),
       ),
     );
@@ -199,7 +199,7 @@ class NewsListContent extends StatelessWidget {
     }
 
     return SliverPadding(
-      padding: EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
+      padding: const EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate(
           (context, index) {

@@ -23,8 +23,8 @@ class RadioSongHistoryItem extends StatelessWidget {
     final shadow = AppShadowTokens.elevation4(context);
 
     return Container(
-      margin: EdgeInsets.only(bottom: DesignTokens.spacingM),
-      padding: EdgeInsets.all(DesignTokens.spacingM),
+      margin: const EdgeInsets.only(bottom: DesignTokens.spacingM),
+      padding: const EdgeInsets.all(DesignTokens.spacingM),
       decoration: BoxDecoration(
         color: colors.cardBackground,
         borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
@@ -65,7 +65,7 @@ class RadioSongHistoryItem extends StatelessWidget {
               ),
               child: Icon(Icons.music_note, color: colors.textSecondary),
             ),
-          SizedBox(width: DesignTokens.spacingM),
+          const SizedBox(width: DesignTokens.spacingM),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -78,7 +78,7 @@ class RadioSongHistoryItem extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                SizedBox(height: DesignTokens.spacingXs),
+                const SizedBox(height: DesignTokens.spacingXs),
                 Text(
                   song.artist,
                   style: theme.textTheme.bodyMedium?.copyWith(
@@ -87,7 +87,7 @@ class RadioSongHistoryItem extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                SizedBox(height: DesignTokens.spacingXs),
+                const SizedBox(height: DesignTokens.spacingXs),
                 Text(
                   _formatTimestamp(song.timestamp),
                   style: theme.textTheme.bodySmall?.copyWith(

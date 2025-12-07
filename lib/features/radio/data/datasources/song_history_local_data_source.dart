@@ -59,9 +59,9 @@ class SongHistoryLocalDataSourceImpl implements SongHistoryLocalDataSource {
           .toList();
     }
 
-    final duplicatePreventionSeconds = RadioConfig.songHistoryDuplicatePreventionSeconds;
+    const duplicatePreventionSeconds = RadioConfig.songHistoryDuplicatePreventionSeconds;
     final now = DateTime.now();
-    final cutoffTime = now.subtract(Duration(seconds: duplicatePreventionSeconds));
+    final cutoffTime = now.subtract(const Duration(seconds: duplicatePreventionSeconds));
 
     final normalizedArtist = song.artist.toLowerCase().trim();
     final normalizedTitle = song.title.toLowerCase().trim();
@@ -88,7 +88,7 @@ class SongHistoryLocalDataSourceImpl implements SongHistoryLocalDataSource {
     if (!isDuplicate) {
       songsList.insert(0, song.toMap());
 
-      final maxEntries = RadioConfig.songHistoryMaxEntries;
+      const maxEntries = RadioConfig.songHistoryMaxEntries;
       if (songsList.length > maxEntries) {
         songsList = songsList.take(maxEntries).toList();
       }

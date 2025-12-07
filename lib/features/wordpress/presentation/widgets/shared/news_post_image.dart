@@ -26,7 +26,7 @@ class NewsPostImage extends StatelessWidget {
       child: AspectRatio(
         aspectRatio: 16 / 9,
         child: ClipRRect(
-          borderRadius: BorderRadius.only(
+          borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(DesignTokens.cornerRadiusCard),
             topRight: Radius.circular(DesignTokens.cornerRadiusCard),
           ),

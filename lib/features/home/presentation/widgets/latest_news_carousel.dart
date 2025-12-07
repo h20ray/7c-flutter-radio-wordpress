@@ -129,7 +129,7 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
 
   Size _computeCardSize(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
-    final horizontalPadding = DesignTokens.spacingL * 2;
+    const horizontalPadding = DesignTokens.spacingL * 2;
     final cardWidth = width > horizontalPadding
         ? width - horizontalPadding
         : width;
@@ -153,7 +153,7 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
+          padding: const EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -165,7 +165,7 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                   color: colors.textPrimary,
                 ),
               ),
-              SizedBox(height: 4),
+              const SizedBox(height: 4),
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -179,14 +179,14 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  SizedBox(width: DesignTokens.spacingS),
+                  const SizedBox(width: DesignTokens.spacingS),
                   _buildNewsProviderChip(context),
                 ],
               ),
             ],
           ),
         ),
-        SizedBox(height: DesignTokens.spacingM),
+        const SizedBox(height: DesignTokens.spacingM),
         BlocBuilder<NewsFeedBloc, NewsFeedState>(
           buildWhen: (previous, current) {
             final previousPosts = previous.maybeWhen(
@@ -299,7 +299,7 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                             },
                           ),
                         ),
-                        SizedBox(height: DesignTokens.spacingS),
+                        const SizedBox(height: DesignTokens.spacingS),
                         ValueListenableBuilder<int>(
                           valueListenable: _currentPageNotifier,
                           builder: (context, currentPage, child) {
@@ -310,7 +310,7 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                                 (index) => Container(
                                   width: 6,
                                   height: 6,
-                                  margin: EdgeInsets.symmetric(horizontal: 2),
+                                  margin: const EdgeInsets.symmetric(horizontal: 2),
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     color: currentPage == index
@@ -368,7 +368,7 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                           },
                         ),
                       ),
-                      SizedBox(height: DesignTokens.spacingS),
+                      const SizedBox(height: DesignTokens.spacingS),
                       ValueListenableBuilder<int>(
                         valueListenable: _currentPageNotifier,
                         builder: (context, currentPage, child) {
@@ -379,7 +379,7 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                               (index) => Container(
                                 width: 6,
                                 height: 6,
-                                margin: EdgeInsets.symmetric(horizontal: 2),
+                                margin: const EdgeInsets.symmetric(horizontal: 2),
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   color: currentPage == index
@@ -458,7 +458,7 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
             BoxShadow(
               color: tokens.shadow,
               blurRadius: 8,
-              offset: Offset(0, 2),
+              offset: const Offset(0, 2),
             ),
           ],
         ),
@@ -510,7 +510,7 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                       ),
                     ),
                     Padding(
-                      padding: EdgeInsets.all(DesignTokens.spacingL),
+                      padding: const EdgeInsets.all(DesignTokens.spacingL),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -518,7 +518,7 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                           if (post.categoryName != null &&
                               post.categoryName!.isNotEmpty)
                             Container(
-                              padding: EdgeInsets.symmetric(
+                              padding: const EdgeInsets.symmetric(
                                 horizontal: 8,
                                 vertical: 4,
                               ),
@@ -546,7 +546,7 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                                   color: Colors.white,
                                   shadows: [
                                     Shadow(
-                                      offset: Offset(0, 1),
+                                      offset: const Offset(0, 1),
                                       blurRadius: 3,
                                       color: Colors.black.withValues(
                                         alpha: 0.5,
@@ -558,7 +558,7 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                                 overflow: TextOverflow.ellipsis,
                               ),
                               if (post.date != null) ...[
-                                SizedBox(height: DesignTokens.spacingS),
+                                const SizedBox(height: DesignTokens.spacingS),
                                 Text(
                                   _formatDate(post.date!, context),
                                   style: TextStyle(
@@ -566,7 +566,7 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                                     color: Colors.white.withValues(alpha: 0.9),
                                     shadows: [
                                       Shadow(
-                                        offset: Offset(0, 1),
+                                        offset: const Offset(0, 1),
                                         blurRadius: 2,
                                         color: Colors.black.withValues(
                                           alpha: 0.5,
@@ -630,7 +630,7 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
   Widget _buildNewsProviderChip(BuildContext context) {
     final colors = context.appColors;
     return Container(
-      padding: EdgeInsets.symmetric(
+      padding: const EdgeInsets.symmetric(
         horizontal: DesignTokens.spacingXs,
         vertical: DesignTokens.spacingXs / 3,
       ),

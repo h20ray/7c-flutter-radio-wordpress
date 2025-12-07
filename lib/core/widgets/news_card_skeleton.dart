@@ -19,7 +19,7 @@ class NewsCardSkeleton extends StatelessWidget {
     final tokens = NewsCardTokens.of(context);
     final skeletonColor = Theme.of(context).colorScheme.surfaceContainerHighest;
     final screenWidth = MediaQuery.sizeOf(context).width;
-    final horizontalPadding = DesignTokens.spacingL * 2;
+    const horizontalPadding = DesignTokens.spacingL * 2;
     final cardWidth = screenWidth > horizontalPadding
         ? screenWidth - horizontalPadding
         : screenWidth;
@@ -73,7 +73,7 @@ class NewsCardSkeleton extends StatelessWidget {
                 ),
               ),
               Padding(
-                padding: EdgeInsets.all(DesignTokens.spacingL),
+                padding: const EdgeInsets.all(DesignTokens.spacingL),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -92,7 +92,7 @@ class NewsCardSkeleton extends StatelessWidget {
                           height: 20,
                           color: skeletonColor,
                         ),
-                        SizedBox(height: DesignTokens.spacingS),
+                        const SizedBox(height: DesignTokens.spacingS),
                         SkeletonBox(
                           width: 100,
                           height: 14,

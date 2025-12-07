@@ -23,7 +23,7 @@ class NewsEmptyState extends StatelessWidget {
       height: 400,
       child: Center(
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: DesignTokens.spacingXl),
+          padding: const EdgeInsets.symmetric(horizontal: DesignTokens.spacingXl),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -69,7 +69,7 @@ class NewsEmptyState extends StatelessWidget {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: colors.colorScheme.primary,
                     foregroundColor: colors.colorScheme.onPrimary,
-                    padding: EdgeInsets.symmetric(
+                    padding: const EdgeInsets.symmetric(
                       horizontal: DesignTokens.spacingL,
                       vertical: DesignTokens.spacingM,
                     ),
@@ -102,7 +102,7 @@ class NewsSearchLoadingState extends StatelessWidget {
               colors.primaryAccent,
             ),
           ),
-          SizedBox(height: DesignTokens.spacingM),
+          const SizedBox(height: DesignTokens.spacingM),
           Text(
             'news_search_hint'.tr(),
             style: TextStyle(
@@ -124,7 +124,7 @@ class NewsErrorState extends StatelessWidget {
     final colors = context.appColors;
 
     return Padding(
-      padding: EdgeInsets.symmetric(
+      padding: const EdgeInsets.symmetric(
         horizontal: DesignTokens.spacingXl,
         vertical: DesignTokens.spacingXl,
       ),
@@ -171,7 +171,7 @@ class NewsErrorState extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: colors.colorScheme.primary,
                 foregroundColor: colors.colorScheme.onPrimary,
-                padding: EdgeInsets.symmetric(
+                padding: const EdgeInsets.symmetric(
                   horizontal: DesignTokens.spacingL,
                   vertical: DesignTokens.spacingM,
                 ),

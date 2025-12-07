@@ -64,14 +64,14 @@ class _NewsSearchBottomSheetState extends State<NewsSearchBottomSheet> {
       height: MediaQuery.of(context).size.height * 0.7,
       decoration: BoxDecoration(
         color: widget.colors.primaryBackground,
-        borderRadius: BorderRadius.vertical(
+        borderRadius: const BorderRadius.vertical(
           top: Radius.circular(DesignTokens.cornerRadiusCard),
         ),
       ),
       child: Column(
         children: [
           Padding(
-            padding: EdgeInsets.all(DesignTokens.spacingL),
+            padding: const EdgeInsets.all(DesignTokens.spacingL),
             child: Row(
               children: [
                 Expanded(
@@ -106,7 +106,7 @@ class _NewsSearchBottomSheetState extends State<NewsSearchBottomSheet> {
                     ),
                   ),
                 ),
-                SizedBox(width: DesignTokens.spacingS),
+                const SizedBox(width: DesignTokens.spacingS),
                 TextButton(
                   onPressed: () {
                     Navigator.pop(context);
@@ -155,7 +155,7 @@ class _NewsSearchBottomSheetState extends State<NewsSearchBottomSheet> {
                               size: 48,
                               color: colors.textSecondary,
                             ),
-                            SizedBox(height: DesignTokens.spacingM),
+                            const SizedBox(height: DesignTokens.spacingM),
                             Text(
                               'news_search_failed'.tr(),
                               style: TextStyle(
@@ -179,7 +179,7 @@ class _NewsSearchBottomSheetState extends State<NewsSearchBottomSheet> {
                               size: 64,
                               color: colors.textSecondary,
                             ),
-                            SizedBox(height: DesignTokens.spacingM),
+                            const SizedBox(height: DesignTokens.spacingM),
                             Text(
                               'news_search_no_results'.tr(),
                               style: TextStyle(
@@ -205,7 +205,7 @@ class _NewsSearchBottomSheetState extends State<NewsSearchBottomSheet> {
                         return false;
                       },
                       child: ListView.builder(
-                        padding: EdgeInsets.all(DesignTokens.spacingL),
+                        padding: const EdgeInsets.all(DesignTokens.spacingL),
                         itemCount: results.length + (isLoadingSearch ? 1 : 0),
                         itemBuilder: (context, index) {
                           if (index == results.length) {

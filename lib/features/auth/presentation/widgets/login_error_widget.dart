@@ -34,8 +34,8 @@ class LoginErrorWidget extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     return Container(
-      padding: EdgeInsets.all(DesignTokens.spacingM),
-      margin: EdgeInsets.only(bottom: DesignTokens.spacingM),
+      padding: const EdgeInsets.all(DesignTokens.spacingM),
+      margin: const EdgeInsets.only(bottom: DesignTokens.spacingM),
       decoration: BoxDecoration(
         color: colorScheme.errorContainer,
         borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
@@ -51,7 +51,7 @@ class LoginErrorWidget extends StatelessWidget {
             color: colorScheme.onErrorContainer,
             size: 20,
           ),
-          SizedBox(width: DesignTokens.spacingM),
+          const SizedBox(width: DesignTokens.spacingM),
           Expanded(
             child: Text(
               _getErrorMessage(failure),

@@ -20,7 +20,7 @@ class NewsSearchResultsHeader extends StatelessWidget {
     final colors = context.appColors;
 
     return Padding(
-      padding: EdgeInsets.only(
+      padding: const EdgeInsets.only(
         top: DesignTokens.spacingL,
         bottom: DesignTokens.spacingS,
       ),
@@ -41,7 +41,7 @@ class NewsSearchResultsHeader extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Icon(Icons.close, size: 16),
-                SizedBox(width: DesignTokens.spacingXs),
+                const SizedBox(width: DesignTokens.spacingXs),
                 Text('news_search_clear'.tr()),
               ],
             ),

@@ -40,14 +40,14 @@ class NewsSearchBoxState extends State<NewsSearchBox> with SingleTickerProviderS
     _focusNode.addListener(_onFocusChange);
     
     _animationController = AnimationController(
-      duration: const Duration(milliseconds: 300),
+      duration: DesignTokens.animationDurationMedium,
       vsync: this,
     );
     
     _widthAnimation = Tween<double>(begin: 1.0, end: 0.75).animate(
       CurvedAnimation(
         parent: _animationController,
-        curve: Curves.easeInOut,
+        curve: DesignTokens.animationCurveDefault,
       ),
     );
   }
@@ -124,7 +124,7 @@ class NewsSearchBoxState extends State<NewsSearchBox> with SingleTickerProviderS
                               )
                             : null,
                         border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(
+                        contentPadding: const EdgeInsets.symmetric(
                           horizontal: DesignTokens.spacingM,
                           vertical: DesignTokens.spacingS,
                         ),
@@ -134,7 +134,7 @@ class NewsSearchBoxState extends State<NewsSearchBox> with SingleTickerProviderS
                     ),
                   ),
                 ),
-                SizedBox(width: DesignTokens.spacingS),
+                const SizedBox(width: DesignTokens.spacingS),
               ],
             );
           },

@@ -20,10 +20,10 @@ class CurrentLevelSection extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Padding(
-      padding: EdgeInsets.all(DesignTokens.spacingL),
+      padding: const EdgeInsets.all(DesignTokens.spacingL),
       child: Card(
         child: Padding(
-          padding: EdgeInsets.all(DesignTokens.spacingXl),
+          padding: const EdgeInsets.all(DesignTokens.spacingXl),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -34,7 +34,7 @@ class CurrentLevelSection extends StatelessWidget {
                 backgroundColor: data.badgeBackgroundColor,
                 initialLoopCount: 7,
               ),
-              SizedBox(height: DesignTokens.spacingL),
+              const SizedBox(height: DesignTokens.spacingL),
               Text(
                 data.levelName,
                 style: textTheme.headlineSmall?.copyWith(
@@ -42,7 +42,7 @@ class CurrentLevelSection extends StatelessWidget {
                 ),
                 textAlign: TextAlign.center,
               ),
-              SizedBox(height: DesignTokens.spacingS),
+              const SizedBox(height: DesignTokens.spacingS),
               Text(
                 data.levelDescription,
                 style: textTheme.bodyMedium?.copyWith(
@@ -50,11 +50,11 @@ class CurrentLevelSection extends StatelessWidget {
                 ),
                 textAlign: TextAlign.center,
               ),
-              SizedBox(height: DesignTokens.spacingXl),
+              const SizedBox(height: DesignTokens.spacingXl),
               _ListeningHoursIndicator(
                 hours: data.totalListeningHours,
               ),
-              SizedBox(height: DesignTokens.spacingL),
+              const SizedBox(height: DesignTokens.spacingL),
               if (!data.isMaxLevel) ...[
                 _ProgressToNextLevel(
                   progress: data.progressToNextLevel,
@@ -63,7 +63,7 @@ class CurrentLevelSection extends StatelessWidget {
                   currentHours: data.totalListeningHours,
                 ),
               ] else ...[
-                _MaxLevelIndicator(),
+                const _MaxLevelIndicator(),
               ],
             ],
           ),
@@ -87,7 +87,7 @@ class _ListeningHoursIndicator extends StatelessWidget {
         : hours.toStringAsFixed(1);
 
     return Container(
-      padding: EdgeInsets.symmetric(
+      padding: const EdgeInsets.symmetric(
         horizontal: DesignTokens.spacingL,
         vertical: DesignTokens.spacingM,
       ),
@@ -103,7 +103,7 @@ class _ListeningHoursIndicator extends StatelessWidget {
             size: 20,
             color: colorScheme.primary,
           ),
-          SizedBox(width: DesignTokens.spacingS),
+          const SizedBox(width: DesignTokens.spacingS),
             Text(
               'level_details_listening_hours'.tr(
                 namedArgs: {'hours': formattedHours},
@@ -174,7 +174,7 @@ class _ProgressToNextLevel extends StatelessWidget {
             ),
           ],
         ),
-        SizedBox(height: DesignTokens.spacingS),
+        const SizedBox(height: DesignTokens.spacingS),
         ClipRRect(
           borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusProgress),
           child: LinearProgressIndicator(
@@ -184,7 +184,7 @@ class _ProgressToNextLevel extends StatelessWidget {
             valueColor: AlwaysStoppedAnimation<Color>(progressColor),
           ),
         ),
-        SizedBox(height: DesignTokens.spacingS),
+        const SizedBox(height: DesignTokens.spacingS),
         Text(
           isMinutes
               ? 'level_details_minutes_needed_for'.tr(
@@ -221,7 +221,7 @@ class _MaxLevelIndicator extends StatelessWidget {
       height: _progressSectionHeight,
       child: Center(
         child: Container(
-          padding: EdgeInsets.symmetric(
+          padding: const EdgeInsets.symmetric(
             horizontal: DesignTokens.spacingM,
             vertical: DesignTokens.spacingS,
           ),
@@ -237,7 +237,7 @@ class _MaxLevelIndicator extends StatelessWidget {
                 color: colorScheme.onPrimaryContainer,
                 size: 20,
               ),
-              SizedBox(width: DesignTokens.spacingS),
+              const SizedBox(width: DesignTokens.spacingS),
               Text(
                 'level_details_max_level_reached'.tr(),
                 style: textTheme.bodyMedium?.copyWith(

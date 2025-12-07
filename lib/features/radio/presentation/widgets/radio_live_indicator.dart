@@ -116,7 +116,7 @@ class _RadioLiveIndicatorState extends State<RadioLiveIndicator>
             );
           },
         ),
-        SizedBox(width: DesignTokens.spacingS),
+        const SizedBox(width: DesignTokens.spacingS),
         Text(
           'LIVE',
           style: Theme.of(context).textTheme.labelMedium?.copyWith(
@@ -125,7 +125,7 @@ class _RadioLiveIndicatorState extends State<RadioLiveIndicator>
             letterSpacing: 0.5,
           ),
         ),
-        SizedBox(width: DesignTokens.spacingM),
+        const SizedBox(width: DesignTokens.spacingM),
         Text(
           greetingKey.tr(),
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(

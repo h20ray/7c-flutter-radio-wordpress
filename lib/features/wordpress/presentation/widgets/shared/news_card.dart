@@ -30,7 +30,7 @@ class NewsCard extends StatelessWidget {
     final chipTokens = NewsFilterChipTokens.of(context);
 
     return Container(
-      margin: EdgeInsets.only(
+      margin: const EdgeInsets.only(
         bottom: DesignTokens.spacingL,
       ),
       decoration: BoxDecoration(
@@ -73,7 +73,7 @@ class NewsCard extends StatelessWidget {
                           top: DesignTokens.spacingS,
                           right: DesignTokens.spacingS,
                           child: Container(
-                            padding: const EdgeInsets.all(6),
+                            padding: const EdgeInsets.all(DesignTokens.spacingS - 2),
                             decoration: BoxDecoration(
                               color: Colors.black.withValues(alpha: 0.6),
                               borderRadius: BorderRadius.circular(8),
@@ -88,7 +88,7 @@ class NewsCard extends StatelessWidget {
                     ],
                   ),
             Padding(
-              padding: EdgeInsets.all(DesignTokens.spacingM),
+              padding: const EdgeInsets.all(DesignTokens.spacingM),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -99,7 +99,7 @@ class NewsCard extends StatelessWidget {
                     chipTokens: chipTokens,
                     isOffline: isOffline,
                   ),
-                  SizedBox(height: DesignTokens.spacingS),
+                  const SizedBox(height: DesignTokens.spacingS),
                   Text(
                     post.title,
                     style: TextStyle(
@@ -177,7 +177,7 @@ class _NewsMetadataRow extends StatelessWidget {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  'Offline',
+                  'news_offline_label'.tr(),
                   style: TextStyle(
                     fontSize: DesignTokens.fontSizeLabelSmall,
                     fontWeight: DesignTokens.fontWeightLabelSmall,

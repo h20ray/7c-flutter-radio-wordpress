@@ -96,11 +96,11 @@ class NewsAppBarState extends State<NewsAppBar> {
                 duration: const Duration(milliseconds: 200),
                 child: _isSearchFocused
                     ? Padding(
-                        padding: EdgeInsets.only(right: DesignTokens.spacingS),
+                        padding: const EdgeInsets.only(right: DesignTokens.spacingS),
                         child: HapticFilledButton(
                           onPressed: isLoadingSearch ? null : widget.onSearch,
                           style: FilledButton.styleFrom(
-                            padding: EdgeInsets.symmetric(
+                            padding: const EdgeInsets.symmetric(
                               horizontal: DesignTokens.spacingM,
                               vertical: DesignTokens.spacingS,
                             ),
@@ -109,7 +109,7 @@ class NewsAppBarState extends State<NewsAppBar> {
                           ),
                           child: Text(
                             _getSearchButtonText(),
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: DesignTokens.fontSizeBody,
                             ),
                           ),

@@ -109,12 +109,12 @@ class _LevelAnimationBadgeState extends State<LevelAnimationBadge>
   }
 
   int get _tapLoopMin {
-    final minLoops = GameRadioTimeConfig.levelAnimationTapLoopMin;
+    const minLoops = GameRadioTimeConfig.levelAnimationTapLoopMin;
     return minLoops < 1 ? 1 : minLoops;
   }
 
   int get _tapLoopMax {
-    final maxLoops = GameRadioTimeConfig.levelAnimationTapLoopMax;
+    const maxLoops = GameRadioTimeConfig.levelAnimationTapLoopMax;
     final minLoops = _tapLoopMin;
     return maxLoops < minLoops ? minLoops : maxLoops;
   }

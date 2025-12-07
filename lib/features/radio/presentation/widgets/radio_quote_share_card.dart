@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../../config/share_config.dart';
 import '../../../../config/radio_config.dart';
+import '../../../../core/themes/design_tokens.dart';
+import '../../../../core/themes/share_card_tokens.dart';
 import '../../../../core/widgets/app_network_image.dart';
 
 class RadioQuoteShareCard extends StatelessWidget {
@@ -17,6 +19,7 @@ class RadioQuoteShareCard extends StatelessWidget {
   Widget build(BuildContext context) {
     const double width = 360;
     const double height = 640;
+    final tokens = ShareCardTokens.of(context);
 
     final String backgroundImageUrl = albumArtUrl ?? RadioConfig.fallbackArtworkPath;
     final bool isNetworkImage = albumArtUrl != null && albumArtUrl!.isNotEmpty;
@@ -24,7 +27,7 @@ class RadioQuoteShareCard extends StatelessWidget {
     return Container(
       width: width,
       height: height,
-      color: Colors.black,
+      color: tokens.background,
       child: Stack(
         fit: StackFit.expand,
         children: [
@@ -43,7 +46,7 @@ class RadioQuoteShareCard extends StatelessWidget {
               width: width,
               height: height,
               errorBuilder: (context, error, stackTrace) => Container(
-                color: Colors.black,
+                color: tokens.background,
               ),
             ),
 
@@ -52,19 +55,14 @@ class RadioQuoteShareCard extends StatelessWidget {
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [
-                  Colors.black.withValues(alpha: 0.4),
-                  Colors.black.withValues(alpha: 0.2),
-                  Colors.black.withValues(alpha: 0.6),
-                  Colors.black.withValues(alpha: 0.85),
-                ],
+                colors: tokens.overlayGradient,
                 stops: const [0.0, 0.3, 0.7, 1.0],
               ),
             ),
           ),
 
           Padding(
-            padding: const EdgeInsets.all(32.0),
+            padding: const EdgeInsets.all(DesignTokens.spacingXxl + DesignTokens.spacingS),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -74,36 +72,36 @@ class RadioQuoteShareCard extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(8),
+                        padding: const EdgeInsets.all(DesignTokens.spacingS),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: tokens.iconBackground,
                           shape: BoxShape.circle,
                         ),
                         child: ShareConfig.useLogoAsset
                             ? Image.asset(
                                 ShareConfig.logoAssetPath,
-                                width: 20,
-                                height: 20,
+                                width: DimensionTokens.iconSizeMedium,
+                                height: DimensionTokens.iconSizeMedium,
                                 fit: BoxFit.contain,
                                 errorBuilder: (context, error, stackTrace) =>
-                                    const Icon(
+                                    Icon(
                                   Icons.radio,
-                                  color: Colors.black,
-                                  size: 20,
+                                  color: tokens.iconForeground,
+                                  size: DimensionTokens.iconSizeMedium,
                                 ),
                               )
-                            : const Icon(
+                            : Icon(
                                 Icons.radio,
-                                color: Colors.black,
-                                size: 20,
+                                color: tokens.iconForeground,
+                                size: DimensionTokens.iconSizeMedium,
                               ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: DesignTokens.spacingM),
                       Text(
                         ShareConfig.appName,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
+                        style: TextStyle(
+                          color: tokens.textPrimary,
+                          fontSize: DesignTokens.fontSizeBodyLarge,
                           fontWeight: FontWeight.bold,
                           letterSpacing: 1.0,
                         ),
@@ -121,16 +119,16 @@ class RadioQuoteShareCard extends StatelessWidget {
                         children: [
                           Icon(
                             Icons.format_quote,
-                            color: Colors.white.withValues(alpha: 0.9),
-                            size: 48,
+                            color: tokens.textPrimary.withValues(alpha: 0.9),
+                            size: DimensionTokens.avatarSizeMedium,
                           ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: DesignTokens.spacingXl),
                           Text(
                             quote,
                             textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 32,
+                            style: TextStyle(
+                              color: tokens.textPrimary,
+                              fontSize: DesignTokens.fontSizeHeadlineLarge + DesignTokens.spacingS,
                               fontWeight: FontWeight.w700,
                               height: 1.4,
                               fontFamily: 'Inter',
@@ -143,15 +141,15 @@ class RadioQuoteShareCard extends StatelessWidget {
                   ),
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: DesignTokens.spacingXl),
 
                 Align(
                   alignment: Alignment.bottomCenter,
                   child: Text(
                     ShareConfig.appNameFull,
                     style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.8),
-                      fontSize: 14,
+                      color: tokens.textSecondary,
+                      fontSize: DesignTokens.fontSizeBodyMedium,
                       fontWeight: FontWeight.w600,
                       letterSpacing: 0.5,
                     ),
