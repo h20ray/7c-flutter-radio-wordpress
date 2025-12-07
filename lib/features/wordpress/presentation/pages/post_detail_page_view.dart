@@ -14,7 +14,6 @@ import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../config/app_config.dart';
-import '../../../../core/di/injection_container.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/services/deep_link_service.dart';
 import '../../../../core/themes/app_color_system.dart';
@@ -23,7 +22,6 @@ import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/cache/news_image_cache_manager.dart';
 import '../../../../core/widgets/glass_app_bar_background.dart';
 import '../../domain/entities/post_entity.dart';
-import '../../domain/repositories/wordpress_repository.dart';
 import '../bloc/news_feed_bloc.dart';
 import '../widgets/main/news_share_card.dart';
 
@@ -45,8 +43,6 @@ class _PostDetailPageViewState extends State<PostDetailPageView> {
 
   late PostEntity _currentPost;
   int? _trackedCategoryId;
-  bool _isOffline = false;
-  bool _isCheckingOffline = true;
 
   @override
   void initState() {
@@ -58,56 +54,10 @@ class _PostDetailPageViewState extends State<PostDetailPageView> {
       WidgetsBinding.instance.addPostFrameCallback((duration) {
         if (mounted) {
           _requestBackgroundRefresh();
-          _checkOfflineStatus();
         }
       });
   }
   
-  Future<void> _checkOfflineStatus() async {
-    try {
-      final repository = getIt<WordPressRepository>();
-      final result = await repository.isPostOffline(_currentPost.id);
-      result.fold(
-        (_) {
-          if (mounted) {
-            setState(() {
-              _isCheckingOffline = false;
-            });
-          }
-        },
-        (isOffline) {
-          if (mounted) {
-            setState(() {
-              _isOffline = isOffline;
-              _isCheckingOffline = false;
-            });
-          }
-        },
-      );
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isCheckingOffline = false;
-        });
-      }
-    }
-  }
-  
-  // Auto-save removed - all cached posts are automatically available offline
-  
-  Future<void> _savePostOffline() async {
-    final bloc = context.read<NewsFeedBloc>();
-    bloc.add(NewsFeedEvent.savePostOffline(_currentPost));
-    await _checkOfflineStatus();
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('news_bookmark_saved'.tr()),
-          duration: const Duration(seconds: 2),
-        ),
-      );
-    }
-  }
 
   @override
   void didUpdateWidget(covariant PostDetailPageView oldWidget) {
@@ -423,21 +373,6 @@ class _PostDetailPageViewState extends State<PostDetailPageView> {
                 child: Container(),
               ),
               actions: [
-                if (!_isCheckingOffline)
-                  IconButton(
-                    icon: Icon(
-                      _isOffline 
-                          ? Icons.bookmark 
-                          : Icons.bookmark_border,
-                      color: _isOffline 
-                          ? Theme.of(context).colorScheme.primary
-                          : null,
-                    ),
-                    onPressed: _isOffline ? null : _savePostOffline,
-                    tooltip: _isOffline 
-                        ? null 
-                        : 'news_bookmark_add_tooltip'.tr(),
-                  ),
                 IconButton(
                   icon: const Icon(LucideIcons.share_2),
                   onPressed: _captureAndShare,

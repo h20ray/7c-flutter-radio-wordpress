@@ -16,14 +16,25 @@ class OfflineNewsListDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     final repository = getIt<WordPressRepository>();
+    final mediaQuery = MediaQuery.of(context);
+    final safeAreaInsets = mediaQuery.padding;
+    final availableHeight = mediaQuery.size.height - 
+        safeAreaInsets.top - 
+        safeAreaInsets.bottom - 
+        (DesignTokens.spacingXxl * 2);
 
     return Dialog(
+      insetPadding: EdgeInsets.symmetric(
+        horizontal: DesignTokens.spacingL,
+        vertical: safeAreaInsets.top + DesignTokens.spacingL,
+      ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
       ),
-      child: Container(
+      child: ConstrainedBox(
         constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.8,
+          maxHeight: availableHeight.clamp(200.0, double.infinity),
+          maxWidth: mediaQuery.size.width - (DesignTokens.spacingL * 2),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -33,23 +44,33 @@ class OfflineNewsListDialog extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'settings_offline_posts_list'.tr(),
-                    style: TextStyle(
-                      fontSize: DesignTokens.fontSizeH2,
-                      fontWeight: FontWeight.w600,
-                      color: colors.textPrimary,
+                  Expanded(
+                    child: Text(
+                      'settings_offline_posts_list'.tr(),
+                      style: TextStyle(
+                        fontSize: DesignTokens.fontSizeH2,
+                        fontWeight: DesignTokens.fontWeightH2,
+                        color: colors.textPrimary,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   IconButton(
-                    icon: Icon(Icons.close, color: colors.textSecondary),
+                    icon: Icon(
+                      Icons.close,
+                      color: colors.textSecondary,
+                      size: DimensionTokens.iconSizeMedium,
+                    ),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
               ),
             ),
-            const Divider(height: 1),
-            Flexible(
+            const Divider(
+              height: DimensionTokens.dividerThickness,
+              thickness: DimensionTokens.dividerThickness,
+            ),
+            Expanded(
               child: FutureBuilder<Either<Failure, List<PostEntity>>>(
                 future: repository.getOfflinePosts(),
                 builder: (context, snapshot) {
@@ -65,12 +86,18 @@ class OfflineNewsListDialog extends StatelessWidget {
                   }
 
                   if (snapshot.hasError) {
-                    return Padding(
-                      padding: const EdgeInsets.all(DesignTokens.spacingL),
-                      child: Center(
-                        child: Text(
-                          'settings_offline_error_loading'.tr(),
-                          style: TextStyle(color: colors.textSecondary),
+                    return SingleChildScrollView(
+                      child: Padding(
+                        padding: const EdgeInsets.all(DesignTokens.spacingL),
+                        child: Center(
+                          child: Text(
+                            'settings_offline_error_loading'.tr(),
+                            style: TextStyle(
+                              color: colors.textSecondary,
+                              fontSize: DesignTokens.fontSizeBodyMedium,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
                         ),
                       ),
                     );
@@ -82,53 +109,68 @@ class OfflineNewsListDialog extends StatelessWidget {
                   }
 
                   return result.fold(
-                    (failure) => Padding(
-                      padding: const EdgeInsets.all(DesignTokens.spacingL),
-                      child: Center(
-                        child: Text(
-                          'settings_offline_error_loading'.tr(),
-                          style: TextStyle(color: colors.colorScheme.error),
+                    (failure) => SingleChildScrollView(
+                      child: Padding(
+                        padding: const EdgeInsets.all(DesignTokens.spacingL),
+                        child: Center(
+                          child: Text(
+                            'settings_offline_error_loading'.tr(),
+                            style: TextStyle(
+                              color: colors.colorScheme.error,
+                              fontSize: DesignTokens.fontSizeBodyMedium,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
                         ),
                       ),
                     ),
                     (posts) {
                       if (posts.isEmpty) {
-                        return Padding(
-                          padding: const EdgeInsets.all(DesignTokens.spacingL),
-                          child: Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.offline_pin_outlined,
-                                  size: 48,
-                                  color: colors.textSecondary,
-                                ),
-                                const SizedBox(height: DesignTokens.spacingM),
-                                Text(
-                                  'settings_offline_no_posts'.tr(),
-                                  style: TextStyle(
+                        return SingleChildScrollView(
+                          child: Padding(
+                            padding: const EdgeInsets.all(DesignTokens.spacingL),
+                            child: Center(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.offline_pin_outlined,
+                                    size: DimensionTokens.avatarSizeMedium,
                                     color: colors.textSecondary,
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(height: DesignTokens.spacingM),
+                                  Text(
+                                    'settings_offline_no_posts'.tr(),
+                                    style: TextStyle(
+                                      color: colors.textSecondary,
+                                      fontSize: DesignTokens.fontSizeBodyMedium,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         );
                       }
 
                       return ListView.builder(
-                        shrinkWrap: true,
+                        padding: EdgeInsets.zero,
                         itemCount: posts.length,
                         itemBuilder: (context, index) {
                           final post = posts[index];
                           return ListTile(
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: DesignTokens.spacingL,
+                              vertical: DesignTokens.spacingS,
+                            ),
                             title: Text(
                               post.title,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
-                                fontSize: DesignTokens.fontSizeBody,
+                                fontSize: DesignTokens.fontSizeBodyMedium,
+                                fontWeight: DesignTokens.fontWeightBody,
                                 color: colors.textPrimary,
                               ),
                             ),
@@ -137,13 +179,17 @@ class OfflineNewsListDialog extends StatelessWidget {
                                     _formatDate(post.date!),
                                     style: TextStyle(
                                       fontSize: DesignTokens.fontSizeCaption,
+                                      fontWeight: DesignTokens.fontWeightCaption,
                                       color: colors.textSecondary,
                                     ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                   )
                                 : null,
                             trailing: Icon(
                               Icons.chevron_right,
                               color: colors.textSecondary,
+                              size: DimensionTokens.iconSizeMedium,
                             ),
                             onTap: () {
                               Navigator.of(context).pop();

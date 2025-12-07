@@ -25,7 +25,7 @@ class OfflineNewsStatsCard extends StatelessWidget {
           color: stats.isPostsLimitReached || stats.isSizeLimitReached
               ? colors.colorScheme.error
               : colors.borderSubtle,
-          width: 1,
+          width: DimensionTokens.borderWidthThin,
         ),
       ),
       child: Column(
@@ -34,8 +34,8 @@ class OfflineNewsStatsCard extends StatelessWidget {
           Text(
             'settings_offline_stats_title'.tr(),
             style: TextStyle(
-              fontSize: DesignTokens.fontSizeBody,
-              fontWeight: FontWeight.w600,
+              fontSize: DesignTokens.fontSizeBodyMedium,
+              fontWeight: DesignTokens.fontWeightH2,
               color: colors.textPrimary,
             ),
           ),
@@ -86,7 +86,7 @@ class OfflineNewsStatsCard extends StatelessWidget {
               value,
               style: TextStyle(
                 fontSize: DesignTokens.fontSizeCaption,
-                fontWeight: FontWeight.w600,
+                fontWeight: DesignTokens.fontWeightH2,
                 color: isWarning ? colors.colorScheme.error : colors.textPrimary,
               ),
             ),
@@ -94,10 +94,10 @@ class OfflineNewsStatsCard extends StatelessWidget {
         ),
         const SizedBox(height: DesignTokens.spacingXs),
         ClipRRect(
-          borderRadius: BorderRadius.circular(4),
+          borderRadius: BorderRadius.circular(DesignTokens.spacingXs),
           child: LinearProgressIndicator(
             value: percent / 100,
-            minHeight: 6,
+            minHeight: DesignTokens.progressIndicatorHeight + DesignTokens.spacingS / 4,
             backgroundColor: colors.borderSubtle,
             valueColor: AlwaysStoppedAnimation<Color>(
               isWarning ? colors.colorScheme.error : colors.colorScheme.primary,

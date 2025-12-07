@@ -34,8 +34,8 @@ class OfflineNewsLimitSlider extends StatelessWidget {
               child: Text(
                 label,
                 style: TextStyle(
-                  fontSize: DesignTokens.fontSizeBody,
-                  fontWeight: FontWeight.w500,
+                  fontSize: DesignTokens.fontSizeBodyMedium,
+                  fontWeight: DesignTokens.fontWeightTitleMedium,
                   color: colors.textPrimary,
                 ),
                 overflow: TextOverflow.ellipsis,
@@ -49,13 +49,13 @@ class OfflineNewsLimitSlider extends StatelessWidget {
               ),
               decoration: BoxDecoration(
                 color: colors.colorScheme.primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusAlbumArt),
               ),
               child: Text(
                 '$value $unit',
                 style: TextStyle(
-                  fontSize: DesignTokens.fontSizeBody,
-                  fontWeight: FontWeight.w600,
+                  fontSize: DesignTokens.fontSizeBodyMedium,
+                  fontWeight: DesignTokens.fontWeightH2,
                   color: colors.colorScheme.primary,
                 ),
               ),

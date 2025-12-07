@@ -12,6 +12,25 @@ import 'haptic_widgets.dart';
 
 enum NavItem { home, radio, news, shoutbox, profile }
 
+extension NavItemExtension on NavItem {
+  static NavItem? fromRouteName(String? routeName) {
+    switch (routeName) {
+      case AppRoutes.home:
+        return NavItem.home;
+      case AppRoutes.radio:
+        return NavItem.radio;
+      case AppRoutes.news:
+        return NavItem.news;
+      case AppRoutes.shoutbox:
+        return NavItem.shoutbox;
+      case AppRoutes.profile:
+        return NavItem.profile;
+      default:
+        return null;
+    }
+  }
+}
+
 class FloatingBottomNavBar extends StatelessWidget {
   final NavItem selectedItem;
   final ValueChanged<NavItem> onItemSelected;

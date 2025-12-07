@@ -30,28 +30,18 @@ class OfflineNewsService {
     
     if (isAlreadyOffline) {
       await localDataSource.removePost(post.id);
-      final newCount = await localDataSource.getOfflinePostCount();
-      final newSizeBytes = await localDataSource.getEstimatedSizeBytes();
-      final newSizeMB = newSizeBytes ~/ (1024 * 1024);
-      
-      if (newCount < _maxPosts && (newSizeMB + postSizeMB) <= _maxSizeMB) {
-        await localDataSource.savePost(post);
-        await _enforceLimits();
-      } else {
-        await localDataSource.savePost(post);
-        await _enforceLimits();
-      }
-    } else {
-      if (currentCount >= _maxPosts) {
-        await _evictOldestPost();
-      }
-      
-      if ((currentSizeMB + postSizeMB) > _maxSizeMB) {
-        await _evictUntilSizeFits(postSizeMB);
-      }
-      
-      await localDataSource.savePost(post);
+      return;
     }
+    
+    if (currentCount >= _maxPosts) {
+      await _evictOldestPost();
+    }
+    
+    if ((currentSizeMB + postSizeMB) > _maxSizeMB) {
+      await _evictUntilSizeFits(postSizeMB);
+    }
+    
+    await localDataSource.savePost(post);
   }
   
   Future<void> removePost(int postId) async {
@@ -81,20 +71,6 @@ class OfflineNewsService {
   
   Future<void> clearAll() async {
     await localDataSource.clearAll();
-  }
-  
-  Future<void> _enforceLimits() async {
-    final currentCount = await localDataSource.getOfflinePostCount();
-    final currentSizeMB = await getEstimatedSizeMB();
-    
-    if (currentCount > _maxPosts) {
-      final excess = currentCount - _maxPosts;
-      await localDataSource.evictOldestPosts(excess);
-    }
-    
-    if (currentSizeMB > _maxSizeMB) {
-      await _evictUntilSizeFits(0);
-    }
   }
   
   Future<void> _evictOldestPost() async {

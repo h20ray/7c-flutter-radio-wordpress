@@ -9,6 +9,8 @@ import '../../../../core/themes/design_tokens.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/widgets/floating_bottom_nav_bar.dart';
 import '../../../../core/widgets/floating_play_fab.dart';
+import '../../../../core/widgets/collapsible_settings_section.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../widgets/settings_app_bar.dart';
 import '../widgets/offline_news_settings_section.dart';
 import '../bloc/settings_bloc.dart';
@@ -84,7 +86,8 @@ class _SettingsPageViewState extends State<SettingsPageView> {
                       _buildThemeSection(context),
                       const SizedBox(height: DesignTokens.spacingXl),
                       const OfflineNewsSettingsSection(),
-                      const SizedBox(height: DesignTokens.spacingXl),
+                      const SizedBox(height: DesignTokens.spacingXxl),
+                      _buildLogoutSection(context),
                       SizedBox(height: totalBottomSpacing),
                     ],
                   ),
@@ -136,7 +139,7 @@ class _SettingsPageViewState extends State<SettingsPageView> {
                     const SizedBox(width: DesignTokens.spacingM),
                     const FloatingPlayFab(
                       key: ValueKey('settings-play-fab'),
-                      size: 60,
+                      size: DimensionTokens.avatarSizeLarge + DesignTokens.spacingXs,
                     ),
                   ],
                 ),
@@ -149,50 +152,34 @@ class _SettingsPageViewState extends State<SettingsPageView> {
   }
 
   Widget _buildThemeSection(BuildContext context) {
-    final colors = context.appColors;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final adaptiveTheme = AdaptiveTheme.of(context);
+    final colors = context.appColors;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: colors.cardBackground,
-        borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
-      ),
+    return CollapsibleSettingsSection(
+      icon: isDark ? LucideIcons.moon : LucideIcons.sun,
+      title: 'settings_theme'.tr(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Padding(
-            padding: const EdgeInsets.all(DesignTokens.spacingL),
-            child: Row(
-              children: [
-                Icon(
-                  isDark ? LucideIcons.moon : LucideIcons.sun,
-                  color: colors.colorScheme.primary,
-                  size: 24,
-                ),
-                const SizedBox(width: DesignTokens.spacingM),
-                Text(
-                  'settings_theme'.tr(),
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: colors.textPrimary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const Divider(height: 1),
           ListTile(
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: DesignTokens.spacingL,
+              vertical: DesignTokens.spacingS,
+            ),
+            minVerticalPadding: DesignTokens.spacingM,
             leading: Icon(
               LucideIcons.sun,
               color: colors.textSecondary,
-              size: 20,
+              size: DimensionTokens.iconSizeMedium,
             ),
             title: Text(
               'settings_theme_light'.tr(),
               style: TextStyle(
-                fontSize: DesignTokens.fontSizeBody,
+                fontSize: DesignTokens.fontSizeBodyLarge,
+                fontWeight: DesignTokens.fontWeightBody,
+                letterSpacing: DesignTokens.letterSpacingBodyLarge,
                 color: colors.textPrimary,
               ),
             ),
@@ -200,24 +187,34 @@ class _SettingsPageViewState extends State<SettingsPageView> {
                 ? Icon(
                     LucideIcons.check,
                     color: colors.colorScheme.primary,
-                    size: 20,
+                    size: DimensionTokens.iconSizeMedium,
                   )
                 : null,
             onTap: () {
               adaptiveTheme.setLight();
             },
           ),
-          const Divider(height: 1),
+          const Divider(
+            height: DimensionTokens.dividerThickness,
+            thickness: DimensionTokens.dividerThickness,
+          ),
           ListTile(
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: DesignTokens.spacingL,
+              vertical: DesignTokens.spacingS,
+            ),
+            minVerticalPadding: DesignTokens.spacingM,
             leading: Icon(
               LucideIcons.moon,
               color: colors.textSecondary,
-              size: 20,
+              size: DimensionTokens.iconSizeMedium,
             ),
             title: Text(
               'settings_theme_dark'.tr(),
               style: TextStyle(
-                fontSize: DesignTokens.fontSizeBody,
+                fontSize: DesignTokens.fontSizeBodyLarge,
+                fontWeight: DesignTokens.fontWeightBody,
+                letterSpacing: DesignTokens.letterSpacingBodyLarge,
                 color: colors.textPrimary,
               ),
             ),
@@ -225,24 +222,34 @@ class _SettingsPageViewState extends State<SettingsPageView> {
                 ? Icon(
                     LucideIcons.check,
                     color: colors.colorScheme.primary,
-                    size: 20,
+                    size: DimensionTokens.iconSizeMedium,
                   )
                 : null,
             onTap: () {
               adaptiveTheme.setDark();
             },
           ),
-          const Divider(height: 1),
+          const Divider(
+            height: DimensionTokens.dividerThickness,
+            thickness: DimensionTokens.dividerThickness,
+          ),
           ListTile(
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: DesignTokens.spacingL,
+              vertical: DesignTokens.spacingS,
+            ),
+            minVerticalPadding: DesignTokens.spacingM,
             leading: Icon(
               LucideIcons.monitor,
               color: colors.textSecondary,
-              size: 20,
+              size: DimensionTokens.iconSizeMedium,
             ),
             title: Text(
               'settings_theme_system'.tr(),
               style: TextStyle(
-                fontSize: DesignTokens.fontSizeBody,
+                fontSize: DesignTokens.fontSizeBodyLarge,
+                fontWeight: DesignTokens.fontWeightBody,
+                letterSpacing: DesignTokens.letterSpacingBodyLarge,
                 color: colors.textPrimary,
               ),
             ),
@@ -250,7 +257,7 @@ class _SettingsPageViewState extends State<SettingsPageView> {
                 ? Icon(
                     LucideIcons.check,
                     color: colors.colorScheme.primary,
-                    size: 20,
+                    size: DimensionTokens.iconSizeMedium,
                   )
                 : null,
             onTap: () {
@@ -259,6 +266,64 @@ class _SettingsPageViewState extends State<SettingsPageView> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildLogoutSection(BuildContext context) {
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (context, authState) {
+        return authState.maybeWhen(
+          authenticated: (_) => Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: DesignTokens.spacingL,
+              vertical: DesignTokens.spacingXl,
+            ),
+            child: SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  context.read<AuthBloc>().add(
+                        const AuthEvent.logout(),
+                      );
+                },
+                icon: const Icon(
+                  LucideIcons.log_out,
+                  size: DimensionTokens.iconSizeMedium,
+                ),
+                label: Text(
+                  'auth_logout'.tr(),
+                  style: const TextStyle(
+                    fontSize: DesignTokens.fontSizeLabelLarge,
+                    fontWeight: DesignTokens.fontWeightLabelLarge,
+                    letterSpacing: DesignTokens.letterSpacingLabelLarge,
+                  ),
+                ),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: context.appColors.colorScheme.error,
+                  side: BorderSide(
+                    color: context.appColors.colorScheme.error,
+                    width: DimensionTokens.borderWidthThin,
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: DesignTokens.spacingXl,
+                    vertical: DesignTokens.spacingL,
+                  ),
+                  minimumSize: const Size(
+                    0,
+                    DimensionTokens.buttonHeightLarge,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(
+                      DesignTokens.cornerRadiusButton,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          orElse: () => const SizedBox.shrink(),
+        );
+      },
     );
   }
 }

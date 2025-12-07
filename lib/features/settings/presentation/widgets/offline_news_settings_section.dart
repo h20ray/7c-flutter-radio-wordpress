@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../../core/themes/app_color_system.dart';
 import '../../../../core/themes/design_tokens.dart';
+import '../../../../core/widgets/collapsible_settings_section.dart';
 import '../bloc/settings_bloc.dart';
 import 'offline_news_list_dialog.dart';
 
@@ -39,116 +40,107 @@ class OfflineNewsSettingsSection extends StatelessWidget {
   }) {
     final colors = context.appColors;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: colors.cardBackground,
-        borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(DesignTokens.spacingL),
-            child: Row(
-              children: [
-                Icon(
-                  LucideIcons.bookmark,
-                  color: colors.colorScheme.primary,
-                  size: 24,
+    return CollapsibleSettingsSection(
+      icon: LucideIcons.bookmark,
+      title: 'settings_offline_news_title'.tr(),
+      child: Padding(
+        padding: const EdgeInsets.all(DesignTokens.spacingL),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (stats != null) ...[
+              _buildSimpleStats(context, stats),
+              const SizedBox(height: DesignTokens.spacingL),
+            ],
+            const SizedBox(height: DesignTokens.spacingM),
+            ListTile(
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: DesignTokens.spacingL,
+                vertical: DesignTokens.spacingS,
+              ),
+              minVerticalPadding: DesignTokens.spacingM,
+              leading: Icon(
+                LucideIcons.list,
+                color: colors.colorScheme.primary,
+                size: DimensionTokens.iconSizeMedium,
+              ),
+              title: Text(
+                'settings_offline_view_posts'.tr(),
+                style: TextStyle(
+                  fontSize: DesignTokens.fontSizeBodyLarge,
+                  fontWeight: DesignTokens.fontWeightBody,
+                  letterSpacing: DesignTokens.letterSpacingBodyLarge,
+                  color: colors.textPrimary,
                 ),
-                const SizedBox(width: DesignTokens.spacingS),
-                Text(
-                  'settings_offline_news_title'.tr(),
-                  style: TextStyle(
-                    fontSize: DesignTokens.fontSizeH2,
-                    fontWeight: FontWeight.w600,
-                    color: colors.textPrimary,
-                  ),
-                ),
-              ],
+              ),
+              trailing: Icon(
+                LucideIcons.chevron_right,
+                color: colors.textSecondary,
+                size: DimensionTokens.iconSizeMedium,
+              ),
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => const OfflineNewsListDialog(),
+                );
+              },
             ),
-          ),
-          const Divider(height: 1),
-          Padding(
-            padding: const EdgeInsets.all(DesignTokens.spacingL),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if (stats != null) ...[
-                  _buildSimpleStats(context, stats),
-                  const SizedBox(height: DesignTokens.spacingL),
-                ],
-                const SizedBox(height: DesignTokens.spacingM),
-                ListTile(
-                  leading: Icon(
-                    LucideIcons.list,
+            const SizedBox(height: DesignTokens.spacingM),
+            ListTile(
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: DesignTokens.spacingL,
+                vertical: DesignTokens.spacingS,
+              ),
+              minVerticalPadding: DesignTokens.spacingM,
+              leading: Icon(
+                LucideIcons.trash,
+                color: colors.colorScheme.error,
+                size: DimensionTokens.iconSizeMedium,
+              ),
+              title: Text(
+                'settings_offline_clear_all'.tr(),
+                style: TextStyle(
+                  fontSize: DesignTokens.fontSizeBodyLarge,
+                  fontWeight: DesignTokens.fontWeightBody,
+                  letterSpacing: DesignTokens.letterSpacingBodyLarge,
+                  color: colors.colorScheme.error,
+                ),
+              ),
+              enabled: !isSaving && stats != null && stats.currentPostCount > 0,
+              onTap: () => _showClearAllConfirmation(context),
+            ),
+            if (isSaving)
+              Padding(
+                padding: const EdgeInsets.all(DesignTokens.spacingM),
+                child: Center(
+                  child: CircularProgressIndicator(
                     color: colors.colorScheme.primary,
                   ),
-                  title: Text(
-                    'settings_offline_view_posts'.tr(),
-                    style: TextStyle(
-                      fontSize: DesignTokens.fontSizeBody,
-                      color: colors.textPrimary,
+                ),
+              ),
+            if (error != null)
+              Padding(
+                padding: const EdgeInsets.all(DesignTokens.spacingM),
+                child: Container(
+                  padding: const EdgeInsets.all(DesignTokens.spacingS),
+                  decoration: BoxDecoration(
+                    color: colors.colorScheme.error.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(
+                      DesignTokens.cornerRadiusCard,
                     ),
                   ),
-                  trailing: Icon(
-                    Icons.chevron_right,
-                    color: colors.textSecondary,
-                  ),
-                  onTap: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) => const OfflineNewsListDialog(),
-                    );
-                  },
-                ),
-                const SizedBox(height: DesignTokens.spacingM),
-                ListTile(
-                  leading: Icon(
-                    LucideIcons.trash,
-                    color: colors.colorScheme.error,
-                  ),
-                  title: Text(
-                    'settings_offline_clear_all'.tr(),
+                  child: Text(
+                    'settings_offline_error'.tr(),
                     style: TextStyle(
-                      fontSize: DesignTokens.fontSizeBody,
                       color: colors.colorScheme.error,
+                      fontSize: DesignTokens.fontSizeCaption,
+                      fontWeight: DesignTokens.fontWeightCaption,
                     ),
                   ),
-                  enabled: !isSaving && stats != null && stats.currentPostCount > 0,
-                  onTap: () => _showClearAllConfirmation(context),
                 ),
-                if (isSaving)
-                  Padding(
-                    padding: const EdgeInsets.all(DesignTokens.spacingM),
-                    child: Center(
-                      child: CircularProgressIndicator(
-                        color: colors.colorScheme.primary,
-                      ),
-                    ),
-                  ),
-                if (error != null)
-                  Padding(
-                    padding: const EdgeInsets.all(DesignTokens.spacingM),
-                    child: Container(
-                      padding: const EdgeInsets.all(DesignTokens.spacingS),
-                      decoration: BoxDecoration(
-                        color: colors.colorScheme.error.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        'settings_offline_error'.tr(),
-                        style: TextStyle(
-                          color: colors.colorScheme.error,
-                          fontSize: DesignTokens.fontSizeCaption,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ],
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -173,36 +165,38 @@ class OfflineNewsSettingsSection extends StatelessWidget {
   Widget _buildErrorContent(BuildContext context, failure) {
     final colors = context.appColors;
 
-    return Container(
-      padding: const EdgeInsets.all(DesignTokens.spacingL),
-      decoration: BoxDecoration(
-        color: colors.cardBackground,
-        borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
-      ),
-      child: Column(
-        children: [
-          Icon(
-            Icons.error_outline,
-            color: colors.colorScheme.error,
-            size: 48,
-          ),
-          const SizedBox(height: DesignTokens.spacingM),
-          Text(
-            'settings_offline_error_loading'.tr(),
-            style: TextStyle(
-              color: colors.textSecondary,
+    return CollapsibleSettingsSection(
+      icon: LucideIcons.bookmark,
+      title: 'settings_offline_news_title'.tr(),
+      child: Padding(
+        padding: const EdgeInsets.all(DesignTokens.spacingL),
+        child: Column(
+          children: [
+            Icon(
+              LucideIcons.circle_alert,
+              color: colors.colorScheme.error,
+              size: DimensionTokens.avatarSizeMedium,
             ),
-          ),
-          const SizedBox(height: DesignTokens.spacingM),
-          TextButton(
-            onPressed: () {
-              context.read<SettingsBloc>().add(
-                    const SettingsEvent.loadOfflineNewsSettings(),
-                  );
-            },
-            child: Text('retry'.tr()),
-          ),
-        ],
+            const SizedBox(height: DesignTokens.spacingM),
+            Text(
+              'settings_offline_error_loading'.tr(),
+              style: TextStyle(
+                color: colors.textSecondary,
+                fontSize: DesignTokens.fontSizeBodyMedium,
+                fontWeight: DesignTokens.fontWeightBody,
+              ),
+            ),
+            const SizedBox(height: DesignTokens.spacingM),
+            TextButton(
+              onPressed: () {
+                context.read<SettingsBloc>().add(
+                      const SettingsEvent.loadOfflineNewsSettings(),
+                    );
+              },
+              child: Text('retry'.tr()),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -214,10 +208,10 @@ class OfflineNewsSettingsSection extends StatelessWidget {
       padding: const EdgeInsets.all(DesignTokens.spacingM),
       decoration: BoxDecoration(
         color: colors.cardBackground.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
         border: Border.all(
           color: colors.borderSubtle,
-          width: 1,
+          width: DimensionTokens.borderWidthThin,
         ),
       ),
       child: Row(
@@ -231,8 +225,8 @@ class OfflineNewsSettingsSection extends StatelessWidget {
             colors: colors,
           ),
           Container(
-            width: 1,
-            height: 40,
+            width: DimensionTokens.borderWidthThin,
+            height: DimensionTokens.buttonHeightMedium,
             color: colors.borderSubtle,
           ),
           _buildStatItem(
@@ -260,14 +254,14 @@ class OfflineNewsSettingsSection extends StatelessWidget {
           Icon(
             icon,
             color: colors.colorScheme.primary,
-            size: 24,
+            size: DimensionTokens.iconSizeLarge,
           ),
           const SizedBox(height: DesignTokens.spacingXs),
           Text(
             value,
             style: TextStyle(
               fontSize: DesignTokens.fontSizeH2,
-              fontWeight: FontWeight.w600,
+              fontWeight: DesignTokens.fontWeightH2,
               color: colors.textPrimary,
             ),
           ),
@@ -276,6 +270,7 @@ class OfflineNewsSettingsSection extends StatelessWidget {
             label,
             style: TextStyle(
               fontSize: DesignTokens.fontSizeCaption,
+              fontWeight: DesignTokens.fontWeightCaption,
               color: colors.textSecondary,
             ),
             textAlign: TextAlign.center,

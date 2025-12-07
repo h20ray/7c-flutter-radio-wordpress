@@ -58,6 +58,19 @@ class _ShoutboxPageViewState extends State<ShoutboxPageView> {
     });
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    final routeName = route?.settings.name;
+    final navItem = NavItemExtension.fromRouteName(routeName);
+    if (navItem != null && navItem != _selectedNavItem) {
+      setState(() {
+        _selectedNavItem = navItem;
+      });
+    }
+  }
+
   void _startAutoRefresh() {
     _refreshTimer?.cancel();
     _refreshTimer = Timer.periodic(const Duration(seconds: 10), (_) {

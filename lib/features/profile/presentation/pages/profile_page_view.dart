@@ -30,6 +30,19 @@ class _ProfilePageViewState extends State<ProfilePageView> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    final routeName = route?.settings.name;
+    final navItem = NavItemExtension.fromRouteName(routeName);
+    if (navItem != null && navItem != _selectedNavItem) {
+      setState(() {
+        _selectedNavItem = navItem;
+      });
+    }
+  }
+
+  @override
   void dispose() {
     _scrollController.dispose();
     super.dispose();

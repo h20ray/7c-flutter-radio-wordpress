@@ -60,32 +60,11 @@ class NewsCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (hasImage)
-                  Stack(
-                    children: [
-                      RepaintBoundary(
-                        child: NewsPostImage(
-                          imageUrl: post.featuredImageUrl!,
-                          semanticLabel: post.title,
-                        ),
-                      ),
-                      if (isOffline)
-                        Positioned(
-                          top: DesignTokens.spacingS,
-                          right: DesignTokens.spacingS,
-                          child: Container(
-                            padding: const EdgeInsets.all(DesignTokens.spacingS - 2),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withValues(alpha: 0.6),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Icon(
-                              Icons.offline_pin,
-                              color: Colors.white,
-                              size: 16,
-                            ),
-                          ),
-                        ),
-                    ],
+                  RepaintBoundary(
+                    child: NewsPostImage(
+                      imageUrl: post.featuredImageUrl!,
+                      semanticLabel: post.title,
+                    ),
                   ),
             Padding(
               padding: const EdgeInsets.all(DesignTokens.spacingM),
@@ -155,37 +134,6 @@ class _NewsMetadataRow extends StatelessWidget {
           _NewsPillChip(
             text: _formatNewsDate(post.date!, context),
             colors: colors,
-          ),
-        if (isOffline)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(
-              color: colors.gradientStart.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: colors.gradientStart.withValues(alpha: 0.5),
-                width: 1,
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.offline_pin,
-                  size: 12,
-                  color: colors.gradientStart,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  'news_offline_label'.tr(),
-                  style: TextStyle(
-                    fontSize: DesignTokens.fontSizeLabelSmall,
-                    fontWeight: DesignTokens.fontWeightLabelSmall,
-                    color: colors.gradientStart,
-                  ),
-                ),
-              ],
-            ),
           ),
       ],
     );
