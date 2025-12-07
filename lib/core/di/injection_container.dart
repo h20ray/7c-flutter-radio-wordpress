@@ -10,6 +10,7 @@ import '../services/network_status_service.dart';
 import '../services/level_up_celebration_service.dart';
 import '../services/palette_service.dart';
 import '../services/image_capture_service.dart';
+import '../services/instagram_sticker_service.dart';
 import '../services/sleep_timer_service.dart';
 import '../utils/debug_logger.dart';
 
@@ -176,6 +177,9 @@ Future<void> initDependencies() async {
   );
   getIt.registerLazySingleton<ImageCaptureService>(
     () => ImageCaptureService(),
+  );
+  getIt.registerLazySingleton<InstagramStickerService>(
+    () => InstagramStickerService(),
   );
   getIt.registerLazySingleton<SleepTimerService>(
     () => SleepTimerService(),

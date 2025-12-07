@@ -3,6 +3,15 @@
         android:label="Tujuh Cahaya Radio"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_provider_paths" />
+        </provider>
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -54,5 +63,10 @@
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
         </intent>
+        <intent>
+            <action android:name="com.instagram.share.ADD_TO_STORY"/>
+            <data android:mimeType="image/*"/>
+        </intent>
+        <package android:name="com.instagram.android" />
     </queries>
 </manifest>

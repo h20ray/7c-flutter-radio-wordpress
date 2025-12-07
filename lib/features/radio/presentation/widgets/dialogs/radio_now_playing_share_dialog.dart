@@ -51,7 +51,10 @@ class RadioNowPlayingShareDialog extends StatefulWidget {
 
 class _RadioNowPlayingShareDialogState
     extends State<RadioNowPlayingShareDialog> {
-  bool _useBlankBackground = false;
+  /// Converts a Color to hex string format for Instagram (e.g., '#FF5733')
+  String _colorToHex(Color color) {
+    return '#${color.toARGB32().toRadixString(16).substring(2).toUpperCase()}';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,6 +63,14 @@ class _RadioNowPlayingShareDialogState
         ? '${widget.title}${widget.artist != null && widget.artist!.trim().isNotEmpty ? ' - ${widget.artist}' : ''}'
         : 'Now Playing on ${ShareConfig.appNameFull}';
 
+    // Get gradient colors from palette (vibrant for top, darkVibrant for bottom)
+    final topColor = widget.palette != null 
+        ? _colorToHex(widget.palette!.vibrant) 
+        : null;
+    final bottomColor = widget.palette != null 
+        ? _colorToHex(widget.palette!.darkVibrant) 
+        : null;
+
     return SharePreviewDialog(
       previewWidget: RadioShareCard(
         artist: widget.artist,
@@ -67,18 +78,20 @@ class _RadioNowPlayingShareDialogState
         albumArtUrl: widget.albumArtUrl,
         palette: widget.palette,
         isPlaying: widget.isPlaying,
-        useBlankBackground: _useBlankBackground,
       ),
       shareText: shareText,
       shareSubject: 'share_now_playing_subject'.tr(),
       aspectRatio: 9 / 16,
-      showInstagramToggle: true,
-      isInstagramMode: _useBlankBackground,
-      onToggleInstagramMode: (value) {
-        setState(() {
-          _useBlankBackground = value;
-        });
-      },
+      stickerWidgetBuilder: () => RadioShareCard(
+        artist: widget.artist,
+        title: widget.title,
+        albumArtUrl: widget.albumArtUrl,
+        palette: widget.palette,
+        isPlaying: widget.isPlaying,
+        isStickerFormat: true,
+      ),
+      stickerTopColor: topColor,
+      stickerBottomColor: bottomColor,
     );
   }
 }
