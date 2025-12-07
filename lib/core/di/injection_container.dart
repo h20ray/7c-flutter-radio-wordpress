@@ -8,6 +8,8 @@ import '../audio/audio_focus_manager.dart';
 import '../services/system_volume_service.dart';
 import '../services/network_status_service.dart';
 import '../services/level_up_celebration_service.dart';
+import '../services/palette_service.dart';
+import '../services/image_capture_service.dart';
 import '../utils/debug_logger.dart';
 
 // Radio feature imports
@@ -47,6 +49,7 @@ import '../../features/radio/data/datasources/request_azuracast_data_source.dart
 import '../../features/radio/data/repositories/request_repository_impl.dart';
 import '../../features/radio/domain/repositories/request_repository.dart';
 import '../../features/radio/presentation/bloc/request_bloc.dart';
+import '../../features/radio/data/repositories/greeting_repository.dart';
 
 // Shoutbox feature imports
 import '../../features/shoutbox/data/datasources/shoutbox_remote_datasource.dart';
@@ -166,6 +169,12 @@ Future<void> initDependencies() async {
   getIt.registerLazySingleton<NetworkStatusService>(
     () => NetworkStatusService.instance,
   );
+  getIt.registerLazySingleton<PaletteService>(
+    () => PaletteService(),
+  );
+  getIt.registerLazySingleton<ImageCaptureService>(
+    () => ImageCaptureService(),
+  );
 
   // Initialize features
   _initRadio();
@@ -180,6 +189,9 @@ Future<void> initDependencies() async {
   
   // Initialize network status service
   await getIt<NetworkStatusService>().initialize();
+
+  // Initialize greeting repository
+  await getIt<GreetingRepository>().initialize();
 
   // Setup auth token interceptor after all dependencies are registered
   final apiClient = getIt<ApiClient>();
@@ -325,6 +337,11 @@ void _initRadio() {
     ),
   );
   getIt.registerFactory(() => RequestBloc(repository: getIt()));
+
+  // Greeting
+  getIt.registerLazySingleton<GreetingRepository>(
+    () => GreetingRepository(),
+  );
 }
 
 void _initShoutbox() {
