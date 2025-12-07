@@ -263,7 +263,7 @@ class _NewsPageViewContentState extends State<_NewsPageViewContent> {
     final totalBottomSpacing = FloatingBottomNavBar.totalHeight + bottomSpacing + safeAreaBottom + extraSpacing;
 
     return PopScope(
-      canPop: false,
+      canPop: true,
       onPopInvokedWithResult: (bool didPop, dynamic result) async {
         if (didPop) return;
         
@@ -271,6 +271,7 @@ class _NewsPageViewContentState extends State<_NewsPageViewContent> {
         final appBarState = NewsAppBar.of(context);
         if (appBarState != null && appBarState.isSearchFocused) {
           appBarState.unfocusSearch();
+          return; // Don't navigate if search was focused, just unfocus
         }
         
         // Also unfocus any focused text field using FocusScope
@@ -280,7 +281,11 @@ class _NewsPageViewContentState extends State<_NewsPageViewContent> {
           return; // Don't navigate if something was focused, just unfocus
         }
         
-        await Navigator.pushReplacementNamed(context, AppRoutes.home);
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        } else {
+          await Navigator.pushReplacementNamed(context, AppRoutes.home);
+        }
       },
       child: Scaffold(
         resizeToAvoidBottomInset: false,

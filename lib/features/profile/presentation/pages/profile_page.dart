@@ -16,10 +16,14 @@ class ProfilePage extends StatelessWidget {
     final radioPlayerBloc = getIt<RadioPlayerBloc>();
 
     return PopScope(
-      canPop: false,
+      canPop: true,
       onPopInvokedWithResult: (bool didPop, dynamic result) async {
         if (didPop) return;
-        unawaited(Navigator.pushReplacementNamed(context, AppRoutes.home));
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        } else {
+          unawaited(Navigator.pushReplacementNamed(context, AppRoutes.home));
+        }
       },
       child: MultiBlocProvider(
         providers: [

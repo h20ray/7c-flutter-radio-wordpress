@@ -224,8 +224,8 @@ class AppGradientColors {
       primaryHeroEnd: palettes.primaryTone(isLight ? 60 : 30),
       accentOverlayStart: palettes.secondaryTone(isLight ? 40 : 80),
       accentOverlayEnd: palettes.secondaryTone(isLight ? 60 : 40),
-      neutralScrim: palettes.neutralTone(isLight ? 10 : 90).withValues(
-        alpha: isLight ? 0.75 : 0.6,
+      neutralScrim: Colors.black.withValues(
+        alpha: 0.6,
       ),
       surfaceGlow: palettes.neutralVariantTone(isLight ? 90 : 20).withValues(
         alpha: isLight ? 0.4 : 0.3,

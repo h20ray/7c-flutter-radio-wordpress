@@ -114,19 +114,19 @@ class _SettingsPageViewState extends State<SettingsPageView> {
                           if (item != NavItem.profile) {
                             switch (item) {
                               case NavItem.home:
-                                Navigator.pushReplacementNamed(context, AppRoutes.home);
+                                Navigator.pushNamed(context, AppRoutes.home);
                                 break;
                               case NavItem.radio:
-                                Navigator.pushReplacementNamed(context, AppRoutes.radio);
+                                Navigator.pushNamed(context, AppRoutes.radio);
                                 break;
                               case NavItem.news:
-                                Navigator.pushReplacementNamed(context, AppRoutes.news);
+                                Navigator.pushNamed(context, AppRoutes.news);
                                 break;
                               case NavItem.shoutbox:
                                 Navigator.pushNamed(context, AppRoutes.shoutbox);
                                 break;
                               case NavItem.profile:
-                                Navigator.pushReplacementNamed(context, AppRoutes.profile);
+                                Navigator.pushNamed(context, AppRoutes.profile);
                                 break;
                             }
                           }

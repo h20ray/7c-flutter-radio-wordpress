@@ -25,10 +25,14 @@ class RadioPageView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: false,
+      canPop: true,
       onPopInvokedWithResult: (bool didPop, dynamic result) async {
         if (didPop) return;
-        unawaited(Navigator.pushReplacementNamed(context, AppRoutes.home));
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        } else {
+          unawaited(Navigator.pushReplacementNamed(context, AppRoutes.home));
+        }
       },
       child: Scaffold(
         body: Stack(

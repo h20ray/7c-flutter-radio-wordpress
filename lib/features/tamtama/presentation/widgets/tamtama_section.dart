@@ -16,20 +16,35 @@ class TamtamaSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final buildStart = DateTime.now();
     return BlocBuilder<TamtamaBloc, TamtamaState>(
-      builder: (context, state) {
-        final buildDuration = DateTime.now().difference(buildStart);
-        DebugLogger.log(
-          'TamtamaSection.build took ${buildDuration.inMicroseconds}µs',
-          tag: 'PERF_TAMTAMA',
+      buildWhen: (previous, current) {
+        if (previous.runtimeType != current.runtimeType) {
+          return true;
+        }
+        return previous.maybeWhen(
+          loaded: (prevTamtama) => current.maybeWhen(
+            loaded: (currTamtama) => prevTamtama != currTamtama,
+            orElse: () => true,
+          ),
+          orElse: () => false,
         );
-        return state.maybeWhen(
+      },
+      builder: (context, state) {
+        final buildStart = DateTime.now();
+        final result = state.maybeWhen(
           loaded: (tamtama) => _buildTamtamaContent(context, tamtama),
           loading: () => _buildLoading(context),
           error: (message) => _buildError(context, message),
           orElse: () => _buildLoading(context),
         );
+        final buildDuration = DateTime.now().difference(buildStart);
+        if (buildDuration.inMicroseconds > 10000) {
+          DebugLogger.log(
+            'TamtamaSection.build took ${buildDuration.inMicroseconds}µs',
+            tag: 'PERF_TAMTAMA',
+          );
+        }
+        return result;
       },
     );
   }
@@ -59,32 +74,31 @@ class TamtamaSection extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 140,
-                height: 200,
-                decoration: BoxDecoration(
-                  color: tokens.hostFrameBackground,
-                  borderRadius: BorderRadius.circular(
-                    DesignTokens.cornerRadiusCard,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: tokens.shadowSoft,
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
+              RepaintBoundary(
+                child: Container(
+                  width: 140,
+                  height: 200,
+                  decoration: BoxDecoration(
+                    color: tokens.hostFrameBackground,
+                    borderRadius: BorderRadius.circular(
+                      DesignTokens.cornerRadiusCard,
                     ),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(
-                    DesignTokens.cornerRadiusCard,
-                  ),
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      BackgroundSprite(index: tamtama.backgroundIndex),
-                      EggSprite(eggIndex: tamtama.eggIndex),
+                    boxShadow: [
+                      BoxShadow(
+                        color: tokens.shadowSoft,
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
                     ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(
+                      DesignTokens.cornerRadiusCard,
+                    ),
+                    child: _TamtamaSpriteContainer(
+                      backgroundIndex: tamtama.backgroundIndex,
+                      eggIndex: tamtama.eggIndex,
+                    ),
                   ),
                 ),
               ),
@@ -121,36 +135,16 @@ class TamtamaSection extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: DesignTokens.spacingS),
-                      Wrap(
-                        spacing: DesignTokens.spacingS,
-                        runSpacing: DesignTokens.spacingS,
-                        children: [
-                          _buildStatTag(
-                            context,
-                            'tamtama_level'.tr(),
-                            '${tamtama.level}',
-                            tokens.tagDefaultBackground,
-                            tokens.tagText,
-                          ),
-                          _buildStatTag(
-                            context,
-                            'tamtama_happiness'.tr(),
-                            '${tamtama.happiness}%',
-                            tamtama.isHappy
-                                ? tokens.tagLiveBackground
-                                : tokens.tagDefaultBackground,
-                            tokens.tagText,
-                          ),
-                          _buildStatTag(
-                            context,
-                            'tamtama_hunger'.tr(),
-                            '${tamtama.hunger}%',
-                            tamtama.isHungry
-                                ? Theme.of(context).colorScheme.tertiaryContainer.withValues(alpha: 0.5)
-                                : tokens.tagDefaultBackground,
-                            tokens.tagText,
-                          ),
-                        ],
+                      _TamtamaStatTags(
+                        level: tamtama.level,
+                        happiness: tamtama.happiness,
+                        hunger: tamtama.hunger,
+                        isHappy: tamtama.isHappy,
+                        isHungry: tamtama.isHungry,
+                        tagDefaultBackground: tokens.tagDefaultBackground,
+                        tagLiveBackground: tokens.tagLiveBackground,
+                        tagText: tokens.tagText,
+                        tertiaryContainer: colorScheme.tertiaryContainer,
                       ),
                       const SizedBox(height: DesignTokens.spacingS),
                       if (tamtama.lastFedAt != null)
@@ -242,34 +236,6 @@ class TamtamaSection extends StatelessWidget {
     );
   }
 
-  Widget _buildStatTag(
-    BuildContext context,
-    String label,
-    String value,
-    Color backgroundColor,
-    Color textColor,
-  ) {
-    return Container(
-      height: 22,
-      padding: const EdgeInsets.symmetric(horizontal: DesignTokens.spacingS),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(11),
-      ),
-      child: Center(
-        child: Text(
-          '$label: $value',
-          style: TextStyle(
-            fontSize: DesignTokens.fontSizeLabelSmall,
-            fontWeight: DesignTokens.fontWeightLabelSmall,
-            color: textColor,
-          ),
-          overflow: TextOverflow.ellipsis,
-          maxLines: 1,
-        ),
-      ),
-    );
-  }
 
   Widget _buildLoading(BuildContext context) {
     final colors = context.appColors;
@@ -324,6 +290,125 @@ class TamtamaSection extends StatelessWidget {
         namedArgs: {'days': '${difference.inDays}'},
       );
     }
+  }
+}
+
+class _TamtamaSpriteContainer extends StatelessWidget {
+  final int backgroundIndex;
+  final int eggIndex;
+
+  const _TamtamaSpriteContainer({
+    required this.backgroundIndex,
+    required this.eggIndex,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        BackgroundSprite(
+          key: ValueKey('bg_$backgroundIndex'),
+          index: backgroundIndex,
+        ),
+        EggSprite(
+          key: ValueKey('egg_$eggIndex'),
+          eggIndex: eggIndex,
+        ),
+      ],
+    );
+  }
+}
+
+class _TamtamaStatTags extends StatelessWidget {
+  final int level;
+  final int happiness;
+  final int hunger;
+  final bool isHappy;
+  final bool isHungry;
+  final Color tagDefaultBackground;
+  final Color tagLiveBackground;
+  final Color tagText;
+  final Color tertiaryContainer;
+
+  const _TamtamaStatTags({
+    required this.level,
+    required this.happiness,
+    required this.hunger,
+    required this.isHappy,
+    required this.isHungry,
+    required this.tagDefaultBackground,
+    required this.tagLiveBackground,
+    required this.tagText,
+    required this.tertiaryContainer,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: DesignTokens.spacingS,
+      runSpacing: DesignTokens.spacingS,
+      children: [
+        _StatTag(
+          label: 'tamtama_level'.tr(),
+          value: '$level',
+          backgroundColor: tagDefaultBackground,
+          textColor: tagText,
+        ),
+        _StatTag(
+          label: 'tamtama_happiness'.tr(),
+          value: '$happiness%',
+          backgroundColor: isHappy ? tagLiveBackground : tagDefaultBackground,
+          textColor: tagText,
+        ),
+        _StatTag(
+          label: 'tamtama_hunger'.tr(),
+          value: '$hunger%',
+          backgroundColor: isHungry
+              ? tertiaryContainer.withValues(alpha: 0.5)
+              : tagDefaultBackground,
+          textColor: tagText,
+        ),
+      ],
+    );
+  }
+}
+
+class _StatTag extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color backgroundColor;
+  final Color textColor;
+
+  const _StatTag({
+    required this.label,
+    required this.value,
+    required this.backgroundColor,
+    required this.textColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 22,
+      padding: const EdgeInsets.symmetric(horizontal: DesignTokens.spacingS),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(11),
+      ),
+      child: Center(
+        child: Text(
+          '$label: $value',
+          style: TextStyle(
+            fontSize: DesignTokens.fontSizeLabelSmall,
+            fontWeight: DesignTokens.fontWeightLabelSmall,
+            color: textColor,
+          ),
+          overflow: TextOverflow.ellipsis,
+          maxLines: 1,
+        ),
+      ),
+    );
   }
 }
 

@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
+import '../../../../core/routes/app_routes.dart';
 import '../../../../core/themes/app_color_system.dart';
 import '../../../../core/themes/design_tokens.dart';
 import '../../../../core/utils/debug_logger.dart';
@@ -80,7 +81,6 @@ class _HomeScreenState extends State<HomeScreen> {
       cancelTextKey: 'dialog_cancel',
       icon: LucideIcons.log_out,
       iconColor: Theme.of(context).colorScheme.error,
-      barrierColor: Colors.black.withValues(alpha: 0.5),
     );
 
     if (result == true) {
@@ -115,7 +115,15 @@ class _HomeScreenState extends State<HomeScreen> {
       canPop: false,
       onPopInvokedWithResult: (bool didPop, dynamic result) async {
         if (didPop) return;
-        await _onWillPop();
+        final navigator = Navigator.of(context);
+        final currentRoute = ModalRoute.of(context);
+        final isHomeRoute = currentRoute?.settings.name == AppRoutes.home;
+        
+        if (navigator.canPop()) {
+          navigator.pop();
+        } else if (isHomeRoute) {
+          await _onWillPop();
+        }
       },
       child: AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle.light,

@@ -139,7 +139,7 @@ class HeaderSection extends StatelessWidget {
                         if (authState.maybeWhen(
                           authenticated: (_) => true,
                           orElse: () => false,
-                        )) ...[
+                        ))
                           MenuItemButton(
                             style: M3XMenuStyle.itemStyle,
                             leadingIcon: const Icon(LucideIcons.user, size: 20),
@@ -149,30 +149,13 @@ class HeaderSection extends StatelessWidget {
                               Navigator.pushNamed(context, '/profile');
                             },
                           ),
-                          MenuItemButton(
-                            style: M3XMenuStyle.itemStyle,
-                            leadingIcon: const Icon(LucideIcons.settings, size: 20),
-                            child: Text('auth_account_settings'.tr()),
-                            onPressed: () {
-                              HapticFeedbackHelper.lightImpact();
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('account_settings_coming_soon'.tr()),
-                                ),
-                              );
-                            },
-                          ),
-                          MenuItemButton(
-                            style: M3XMenuStyle.itemStyle,
-                            leadingIcon: const Icon(LucideIcons.log_out, size: 20),
-                            child: Text('auth_logout'.tr()),
-                            onPressed: () {
-                              HapticFeedbackHelper.lightImpact();
-                              context.read<AuthBloc>().add(
-                                const AuthEvent.logout(),
-                              );
-                            },
-                          ),
+                        if (authState.maybeWhen(
+                          authenticated: (_) => true,
+                          orElse: () => false,
+                        )) ...[
+                          const SizedBox(height: M3XMenuStyle.gapSize),
+                          const Divider(height: 1, indent: 16, endIndent: 16),
+                          const SizedBox(height: M3XMenuStyle.gapSize),
                         ],
                         Builder(
                           builder: (context) {
@@ -359,6 +342,25 @@ class HeaderSection extends StatelessWidget {
                           ],
                           child: const Text('Follow Us'),
                         ),
+                        if (authState.maybeWhen(
+                          authenticated: (_) => true,
+                          orElse: () => false,
+                        )) ...[
+                          const SizedBox(height: M3XMenuStyle.gapSize),
+                          const Divider(height: 1, indent: 16, endIndent: 16),
+                          const SizedBox(height: M3XMenuStyle.gapSize),
+                          MenuItemButton(
+                            style: M3XMenuStyle.itemStyle,
+                            leadingIcon: const Icon(LucideIcons.log_out, size: 20),
+                            child: Text('auth_logout'.tr()),
+                            onPressed: () {
+                              HapticFeedbackHelper.lightImpact();
+                              context.read<AuthBloc>().add(
+                                const AuthEvent.logout(),
+                              );
+                            },
+                          ),
+                        ],
                       ],
                     ),
                     const SizedBox(width: DesignTokens.spacingL),

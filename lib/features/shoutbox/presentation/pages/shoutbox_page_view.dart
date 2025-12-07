@@ -132,7 +132,7 @@ class _ShoutboxPageViewState extends State<ShoutboxPageView> {
         navBarHeight + safeAreaBottom + DesignTokens.spacingM;
 
     return PopScope(
-      canPop: false,
+      canPop: true,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
         // If composer is visible, hide it instead of navigating away
@@ -141,7 +141,11 @@ class _ShoutboxPageViewState extends State<ShoutboxPageView> {
           _hideComposer();
           return;
         }
-        unawaited(Navigator.pushReplacementNamed(context, AppRoutes.home));
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        } else {
+          unawaited(Navigator.pushReplacementNamed(context, AppRoutes.home));
+        }
       },
       child: Scaffold(
         resizeToAvoidBottomInset: false,
@@ -321,84 +325,94 @@ class _ShoutboxPageViewState extends State<ShoutboxPageView> {
                 ),
               ),
               // Composer overlay - positioned at screen bottom, above keyboard
-              if (_isComposerVisible)
-                Positioned(
-                  left: DesignTokens.spacingL,
-                  right: DesignTokens.spacingL,
-                  bottom: mediaQuery.viewInsets.bottom + DesignTokens.spacingS,
-                  child: Material(
-                    color: Colors.transparent,
-                    child: AnimatedContainer(
-                      duration: DesignTokens.animationDurationMedium,
-                      curve: DesignTokens.animationCurveSpring,
-                      child: BlocBuilder<AuthBloc, AuthState>(
-                        builder: (context, authState) {
-                          return authState.maybeWhen(
-                            authenticated: (_) => ShoutboxComposer(
-                              key: const ValueKey('composer'),
-                              textFieldKey: _composerTextFieldKey,
-                              onSend: _onSend,
-                              onFocusChanged: (isFocused) {
-                                if (!isFocused) {
-                                  _hideComposer();
-                                }
-                              },
-                            ),
-                            orElse: () => const _ShoutboxLoginCard(),
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                ),
+              AnimatedPositioned(
+                duration: DesignTokens.animationDurationMedium,
+                curve: DesignTokens.animationCurveSpring,
+                left: DesignTokens.spacingL,
+                right: DesignTokens.spacingL,
+                bottom: _isComposerVisible
+                    ? mediaQuery.viewInsets.bottom + DesignTokens.spacingS
+                    : -200,
+                child: _isComposerVisible
+                    ? Material(
+                        color: Colors.transparent,
+                        child: BlocBuilder<AuthBloc, AuthState>(
+                          builder: (context, authState) {
+                            return authState.maybeWhen(
+                              authenticated: (_) => ShoutboxComposer(
+                                key: const ValueKey('composer'),
+                                textFieldKey: _composerTextFieldKey,
+                                onSend: _onSend,
+                                onFocusChanged: (isFocused) {
+                                  if (!isFocused) {
+                                    _hideComposer();
+                                  }
+                                },
+                              ),
+                              orElse: () => const _ShoutboxLoginCard(),
+                            );
+                          },
+                        ),
+                      )
+                    : const SizedBox.shrink(),
+              ),
               // Bottom bar with NavBar and Play FAB
-              if (!_isComposerVisible) ...[
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  child: SafeArea(
-                    top: false,
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                        left: DesignTokens.spacingL,
-                        right: DesignTokens.spacingL,
-                        bottom: DesignTokens.spacingS,
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Expanded(
-                            child: FloatingBottomNavBar(
-                              selectedItem: _selectedNavItem,
-                              onItemSelected: (item) {
-                                setState(() {
-                                  _selectedNavItem = item;
-                                });
-                              },
-                            ),
+              AnimatedPositioned(
+                duration: DesignTokens.animationDurationMedium,
+                curve: DesignTokens.animationCurveSpring,
+                left: 0,
+                right: 0,
+                bottom: _isComposerVisible ? -200 : 0,
+                child: SafeArea(
+                  top: false,
+                  child: Padding(
+                    padding: const EdgeInsets.only(
+                      left: DesignTokens.spacingL,
+                      right: DesignTokens.spacingL,
+                      bottom: DesignTokens.spacingS,
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: FloatingBottomNavBar(
+                            selectedItem: _selectedNavItem,
+                            onItemSelected: (item) {
+                              setState(() {
+                                _selectedNavItem = item;
+                              });
+                            },
                           ),
-                          const SizedBox(width: DesignTokens.spacingM),
-                          const FloatingPlayFab(size: 60),
-                        ],
-                      ),
+                        ),
+                        const SizedBox(width: DesignTokens.spacingM),
+                        const FloatingPlayFab(size: 60),
+                      ],
                     ),
                   ),
                 ),
-                // Chat FAB - positioned above Play FAB with proper spacing
-                Positioned(
-                  right: DesignTokens.spacingL,
-                  bottom: safeAreaBottom +
-                      DesignTokens.spacingS +
-                      60 + // PlayFab height
-                      DesignTokens.spacingXl, // 24px spacing between FABs
+              ),
+              // Chat FAB - positioned above Play FAB with proper spacing
+              AnimatedPositioned(
+                duration: DesignTokens.animationDurationMedium,
+                curve: DesignTokens.animationCurveSpring,
+                right: DesignTokens.spacingL,
+                bottom: _isComposerVisible
+                    ? -200
+                    : safeAreaBottom +
+                        DesignTokens.spacingS +
+                        60 + // PlayFab height
+                        DesignTokens.spacingXl, // 24px spacing between FABs
+                child: AnimatedOpacity(
+                  duration: DesignTokens.animationDurationMedium,
+                  curve: DesignTokens.animationCurveSpring,
+                  opacity: _isComposerVisible ? 0.0 : 1.0,
                   child: FloatingChatFab(
                     onTap: _showComposer,
                     size: 52,
                     badgeCount: _isAtBottom ? 0 : _newMessagesCount,
                   ),
                 ),
-              ],
+              ),
             ],
           ),
         ),
