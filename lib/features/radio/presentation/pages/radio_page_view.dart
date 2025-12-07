@@ -6,6 +6,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/themes/design_tokens.dart';
+import '../../../../core/mixins/nav_bar_route_sync_mixin.dart';
 import '../../../../core/widgets/floating_bottom_nav_bar.dart';
 import '../../../../core/widgets/floating_play_fab.dart';
 import '../bloc/radio_bloc.dart';
@@ -90,9 +91,11 @@ class _RadioPageViewContent extends StatefulWidget {
   State<_RadioPageViewContent> createState() => _RadioPageViewContentState();
 }
 
-class _RadioPageViewContentState extends State<_RadioPageViewContent> {
+class _RadioPageViewContentState extends State<_RadioPageViewContent> with NavBarRouteSyncMixin {
   late ScrollController _scrollController;
-  NavItem _selectedNavItem = NavItem.radio;
+
+  @override
+  NavItem get defaultNavItem => NavItem.radio;
 
   @override
   void initState() {
@@ -100,18 +103,7 @@ class _RadioPageViewContentState extends State<_RadioPageViewContent> {
     _scrollController = ScrollController();
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final route = ModalRoute.of(context);
-    final routeName = route?.settings.name;
-    final navItem = NavItemExtension.fromRouteName(routeName);
-    if (navItem != null && navItem != _selectedNavItem) {
-      setState(() {
-        _selectedNavItem = navItem;
-      });
-    }
-  }
+  // didChangeDependencies handled by NavBarRouteSyncMixin
 
   @override
   void dispose() {
@@ -214,12 +206,8 @@ class _RadioPageViewContentState extends State<_RadioPageViewContent> {
                 children: [
                   Expanded(
                     child: FloatingBottomNavBar(
-                      selectedItem: _selectedNavItem,
-                      onItemSelected: (item) {
-                        setState(() {
-                          _selectedNavItem = item;
-                        });
-                      },
+                      selectedItem: selectedNavItem,
+                      onItemSelected: onNavItemSelected,
                     ),
                   ),
                   const SizedBox(width: DesignTokens.spacingM),

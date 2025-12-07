@@ -8,6 +8,7 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/themes/app_color_system.dart';
 import '../../../../core/themes/design_tokens.dart';
+import '../../../../core/mixins/nav_bar_route_sync_mixin.dart';
 import '../../../../core/widgets/floating_bottom_nav_bar.dart';
 import '../../../../core/widgets/floating_chat_fab.dart';
 import '../../../../core/widgets/floating_play_fab.dart';
@@ -26,10 +27,13 @@ class ShoutboxPageView extends StatefulWidget {
   State<ShoutboxPageView> createState() => _ShoutboxPageViewState();
 }
 
-class _ShoutboxPageViewState extends State<ShoutboxPageView> {
+class _ShoutboxPageViewState extends State<ShoutboxPageView> with NavBarRouteSyncMixin {
   final _scrollController = ScrollController();
   final _composerTextFieldKey = GlobalKey();
-  NavItem _selectedNavItem = NavItem.shoutbox;
+
+  @override
+  NavItem get defaultNavItem => NavItem.shoutbox;
+
   Timer? _refreshTimer;
   bool _isAtBottom = true;
   int _newMessagesCount = 0;
@@ -58,18 +62,7 @@ class _ShoutboxPageViewState extends State<ShoutboxPageView> {
     });
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final route = ModalRoute.of(context);
-    final routeName = route?.settings.name;
-    final navItem = NavItemExtension.fromRouteName(routeName);
-    if (navItem != null && navItem != _selectedNavItem) {
-      setState(() {
-        _selectedNavItem = navItem;
-      });
-    }
-  }
+  // didChangeDependencies handled by NavBarRouteSyncMixin
 
   void _startAutoRefresh() {
     _refreshTimer?.cancel();
@@ -389,12 +382,8 @@ class _ShoutboxPageViewState extends State<ShoutboxPageView> {
                       children: [
                         Expanded(
                           child: FloatingBottomNavBar(
-                            selectedItem: _selectedNavItem,
-                            onItemSelected: (item) {
-                              setState(() {
-                                _selectedNavItem = item;
-                              });
-                            },
+                            selectedItem: selectedNavItem,
+                            onItemSelected: onNavItemSelected,
                           ),
                         ),
                         const SizedBox(width: DesignTokens.spacingM),

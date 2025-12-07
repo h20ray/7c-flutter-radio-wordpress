@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/themes/app_color_system.dart';
 import '../../../../core/themes/design_tokens.dart';
+import '../../../../core/mixins/nav_bar_route_sync_mixin.dart';
 import '../../../../core/widgets/floating_bottom_nav_bar.dart';
 import '../../../../core/widgets/floating_play_fab.dart';
 import '../../../auth/domain/entities/user_entity.dart';
@@ -19,9 +20,11 @@ class ProfilePageView extends StatefulWidget {
   State<ProfilePageView> createState() => _ProfilePageViewState();
 }
 
-class _ProfilePageViewState extends State<ProfilePageView> {
+class _ProfilePageViewState extends State<ProfilePageView> with NavBarRouteSyncMixin {
   late ScrollController _scrollController;
-  NavItem _selectedNavItem = NavItem.profile;
+
+  @override
+  NavItem get defaultNavItem => NavItem.profile;
 
   @override
   void initState() {
@@ -29,18 +32,7 @@ class _ProfilePageViewState extends State<ProfilePageView> {
     _scrollController = ScrollController();
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final route = ModalRoute.of(context);
-    final routeName = route?.settings.name;
-    final navItem = NavItemExtension.fromRouteName(routeName);
-    if (navItem != null && navItem != _selectedNavItem) {
-      setState(() {
-        _selectedNavItem = navItem;
-      });
-    }
-  }
+  // didChangeDependencies handled by NavBarRouteSyncMixin
 
   @override
   void dispose() {
@@ -117,12 +109,8 @@ class _ProfilePageViewState extends State<ProfilePageView> {
                   children: [
                     Expanded(
                       child: FloatingBottomNavBar(
-                        selectedItem: _selectedNavItem,
-                        onItemSelected: (item) {
-                          setState(() {
-                            _selectedNavItem = item;
-                          });
-                        },
+                        selectedItem: selectedNavItem,
+                        onItemSelected: onNavItemSelected,
                       ),
                     ),
                     const SizedBox(width: DesignTokens.spacingM),

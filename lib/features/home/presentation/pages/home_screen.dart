@@ -10,6 +10,7 @@ import '../../../../core/themes/app_color_system.dart';
 import '../../../../core/themes/design_tokens.dart';
 import '../../../../core/utils/debug_logger.dart';
 import '../../../../core/widgets/confirmation_dialog.dart';
+import '../../../../core/mixins/nav_bar_route_sync_mixin.dart';
 import '../../../../core/widgets/floating_bottom_nav_bar.dart';
 import '../../../../core/widgets/floating_play_fab.dart';
 import '../../../../core/widgets/home_news_card_skeleton.dart';
@@ -29,10 +30,12 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with NavBarRouteSyncMixin {
   int _selectedTabIndex = 0;
   int _selectedRadioGameTab = 0;
-  NavItem _selectedNavItem = NavItem.home;
+
+  @override
+  NavItem get defaultNavItem => NavItem.home;
 
   late ScrollController _scrollController;
   bool _showStickyPlayer = false;
@@ -50,18 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final route = ModalRoute.of(context);
-    final routeName = route?.settings.name;
-    final navItem = NavItemExtension.fromRouteName(routeName);
-    if (navItem != null && navItem != _selectedNavItem) {
-      setState(() {
-        _selectedNavItem = navItem;
-      });
-    }
-  }
+  // didChangeDependencies handled by NavBarRouteSyncMixin
 
   @override
   void dispose() {
@@ -280,12 +272,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         children: [
                           Expanded(
                             child: FloatingBottomNavBar(
-                              selectedItem: _selectedNavItem,
-                              onItemSelected: (item) {
-                                setState(() {
-                                  _selectedNavItem = item;
-                                });
-                              },
+                              selectedItem: selectedNavItem,
+                              onItemSelected: onNavItemSelected,
                             ),
                           ),
                           const SizedBox(width: DesignTokens.spacingM),

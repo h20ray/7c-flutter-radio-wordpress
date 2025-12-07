@@ -8,6 +8,7 @@ import '../../../../core/themes/design_tokens.dart';
 import '../../../../core/utils/search_query_helper.dart';
 import '../../../../core/routes/app_routes.dart';
 
+import '../../../../core/mixins/nav_bar_route_sync_mixin.dart';
 import '../../../../core/widgets/floating_bottom_nav_bar.dart';
 import '../../../../core/widgets/floating_play_fab.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
@@ -51,8 +52,10 @@ class _NewsPageViewContent extends StatefulWidget {
   State<_NewsPageViewContent> createState() => _NewsPageViewContentState();
 }
 
-class _NewsPageViewContentState extends State<_NewsPageViewContent> {
-  NavItem _selectedNavItem = NavItem.news;
+class _NewsPageViewContentState extends State<_NewsPageViewContent> with NavBarRouteSyncMixin {
+  @override
+  NavItem get defaultNavItem => NavItem.news;
+
   late ScrollController _scrollController;
   late TextEditingController _searchController;
   bool _didInitialAutoLoadCheck = false;
@@ -68,18 +71,7 @@ class _NewsPageViewContentState extends State<_NewsPageViewContent> {
     _searchController.addListener(_onSearchTextChanged);
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final route = ModalRoute.of(context);
-    final routeName = route?.settings.name;
-    final navItem = NavItemExtension.fromRouteName(routeName);
-    if (navItem != null && navItem != _selectedNavItem) {
-      setState(() {
-        _selectedNavItem = navItem;
-      });
-    }
-  }
+  // didChangeDependencies handled by NavBarRouteSyncMixin
 
   void _onSearchTextChanged() {
     if (!mounted) return;
@@ -486,12 +478,8 @@ class _NewsPageViewContentState extends State<_NewsPageViewContent> {
                     children: [
                       Expanded(
                         child: FloatingBottomNavBar(
-                          selectedItem: _selectedNavItem,
-                          onItemSelected: (item) {
-                            setState(() {
-                              _selectedNavItem = item;
-                            });
-                          },
+                          selectedItem: selectedNavItem,
+                          onItemSelected: onNavItemSelected,
                         ),
                       ),
                       const SizedBox(width: DesignTokens.spacingM),
