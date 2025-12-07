@@ -134,26 +134,30 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
       emit(currentState.copyWith(isSaving: true));
       
       final result = await clearAllOfflinePosts();
-      result.fold(
-        (failure) => emit(currentState.copyWith(
+      if (emit.isDone) return;
+      
+      final failure = result.fold<Failure?>((l) => l, (_) => null);
+      if (failure != null) {
+        emit(currentState.copyWith(
           isSaving: false,
           error: failure,
+        ));
+        return;
+      }
+      
+      final statsResult = await getOfflineNewsStats();
+      if (emit.isDone) return;
+      statsResult.fold(
+        (failure) => emit(currentState.copyWith(
+          isSaving: false,
+          stats: null,
+          error: failure,
         )),
-        (_) async {
-          final statsResult = await getOfflineNewsStats();
-          statsResult.fold(
-            (failure) => emit(currentState.copyWith(
-              isSaving: false,
-              stats: null,
-              error: failure,
-            )),
-            (stats) => emit(currentState.copyWith(
-              isSaving: false,
-              stats: stats,
-              error: null,
-            )),
-          );
-        },
+        (stats) => emit(currentState.copyWith(
+          isSaving: false,
+          stats: stats,
+          error: null,
+        )),
       );
     }
   }
