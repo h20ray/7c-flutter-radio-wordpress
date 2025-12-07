@@ -14,6 +14,7 @@ class ImageCaptureService {
     int? waitDelayMs,
     int? initialDelayMs,
     int? finalDelayMs,
+    String? fileNamePrefix,
   }) async {
     try {
       if (initialDelayMs != null && initialDelayMs > 0) {
@@ -51,13 +52,15 @@ class ImageCaptureService {
       }
 
       final directory = await getTemporaryDirectory();
-      final fileName = 'share_${DateTime.now().millisecondsSinceEpoch}.png';
+      final prefix = fileNamePrefix ?? 'share';
+      final fileName = '${prefix}_${DateTime.now().millisecondsSinceEpoch}.png';
       final file = File('${directory.path}/$fileName');
       await file.writeAsBytes(pngBytes);
 
       return file;
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint('ImageCaptureService: Error capturing widget: $e');
+      debugPrintStack(stackTrace: stackTrace);
       return null;
     }
   }
