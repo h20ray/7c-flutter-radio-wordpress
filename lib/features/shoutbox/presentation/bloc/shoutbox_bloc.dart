@@ -58,7 +58,7 @@ class ShoutboxBloc extends Bloc<ShoutboxEvent, ShoutboxState> {
     return messages.map((m) => m.id).reduce((a, b) => a > b ? a : b);
   }
 
-  /// Merge new messages with existing, removing duplicates and sorting by ID desc
+  /// Merge new messages with existing, removing duplicates and sorting by ID asc
   List<ShoutboxMessageEntity> _mergeMessages(
     List<ShoutboxMessageEntity> existing,
     List<ShoutboxMessageEntity> newMessages,
@@ -75,9 +75,9 @@ class ShoutboxBloc extends Bloc<ShoutboxEvent, ShoutboxState> {
       messageMap[msg.id] = msg;
     }
     
-    // Convert to list and sort by ID descending (newest first)
+    // Convert to list and sort by ID ascending (oldest first, newest last)
     final merged = messageMap.values.toList();
-    merged.sort((a, b) => b.id.compareTo(a.id));
+    merged.sort((a, b) => a.id.compareTo(b.id));
     return merged;
   }
 
@@ -190,8 +190,8 @@ class ShoutboxBloc extends Bloc<ShoutboxEvent, ShoutboxState> {
           // The UI should handle showing error via a separate mechanism (snackbar)
         },
         (newMessage) {
-          // Prepend the new message (optimistic update already done via sending state)
-          final updatedMessages = [newMessage, ...currentMessages];
+          // Append the new message (oldest first, newest last)
+          final updatedMessages = [...currentMessages, newMessage];
           final newLastId = newMessage.id > currentLastId ? newMessage.id : currentLastId;
           emit(ShoutboxState.loaded(updatedMessages, lastId: newLastId));
         },

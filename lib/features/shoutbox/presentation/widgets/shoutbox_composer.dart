@@ -1,20 +1,25 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
-import '../../../../core/themes/app_color_system.dart';
+import '../../../../core/themes/component_tokens.dart';
 import '../../../../core/themes/design_tokens.dart';
 import '../bloc/shoutbox_bloc.dart';
 
 class ShoutboxComposer extends StatefulWidget {
   final void Function(String message) onSend;
   final int maxLength;
+  final ValueChanged<bool>? onFocusChanged;
+  final GlobalKey? textFieldKey;
 
   const ShoutboxComposer({
     super.key,
     required this.onSend,
     this.maxLength = 500,
+    this.onFocusChanged,
+    this.textFieldKey,
   });
 
   @override
@@ -23,25 +28,47 @@ class ShoutboxComposer extends StatefulWidget {
 
 class _ShoutboxComposerState extends State<ShoutboxComposer> {
   late final TextEditingController _messageController;
-  int _characterCount = 0;
+  late final FocusNode _focusNode;
+  bool _isFocused = false;
+
+  // Only show counter when near limit
+  static const int _showCounterThreshold = 50;
 
   @override
   void initState() {
     super.initState();
     _messageController = TextEditingController();
-    _messageController.addListener(_updateCharacterCount);
+    _messageController.addListener(_onTextChanged);
+    _focusNode = FocusNode();
+    _focusNode.addListener(_onFocusChange);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && widget.textFieldKey != null) {
+        _focusNode.requestFocus();
+      }
+    });
   }
 
-  void _updateCharacterCount() {
-    setState(() {
-      _characterCount = _messageController.text.length;
-    });
+  void _onTextChanged() {
+    setState(() {});
+  }
+
+  void _onFocusChange() {
+    final wasFocused = _isFocused;
+    final isNowFocused = _focusNode.hasFocus;
+    if (wasFocused != isNowFocused) {
+      setState(() {
+        _isFocused = isNowFocused;
+      });
+      widget.onFocusChanged?.call(isNowFocused);
+    }
   }
 
   @override
   void dispose() {
-    _messageController.removeListener(_updateCharacterCount);
+    _messageController.removeListener(_onTextChanged);
     _messageController.dispose();
+    _focusNode.removeListener(_onFocusChange);
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -50,15 +77,29 @@ class _ShoutboxComposerState extends State<ShoutboxComposer> {
     return trimmed.isNotEmpty && trimmed.length <= widget.maxLength;
   }
 
+  int get _remainingCharacters =>
+      widget.maxLength - _messageController.text.length;
+
+  bool get _shouldShowCounter => _remainingCharacters <= _showCounterThreshold;
+
+  Color _getCharacterCountColor(ShoutboxTokens tokens) {
+    final remaining = _remainingCharacters;
+    if (remaining < 0) {
+      return tokens.characterCountError;
+    } else if (remaining < 20) {
+      return tokens.characterCountWarning;
+    }
+    return tokens.characterCountNormal;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final colors = context.appColors;
     final theme = Theme.of(context);
-    final isOverLimit = _characterCount > widget.maxLength;
+    final tokens = ShoutboxTokens.of(context);
+    final shadows = AppShadowTokens.of(context);
 
     return BlocListener<ShoutboxBloc, ShoutboxState>(
       listener: (context, state) {
-        // Clear message field after successful send
         state.maybeWhen(
           loaded: (messages, lastId) {
             if (_messageController.text.isNotEmpty) {
@@ -69,89 +110,120 @@ class _ShoutboxComposerState extends State<ShoutboxComposer> {
         );
       },
       child: Container(
-        padding: EdgeInsets.all(DesignTokens.spacingM),
+        constraints: const BoxConstraints(minHeight: 56),
         decoration: BoxDecoration(
-          color: colors.cardBackground,
-          borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
+          color: tokens.composerBackground,
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(
+            color: _isFocused
+                ? theme.colorScheme.primary.withValues(alpha: 0.5)
+                : tokens.composerBorder,
+            width: _isFocused ? 1.5 : 1,
+          ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
-              blurRadius: 16,
-              offset: const Offset(0, 8),
+              color: shadows.level2,
+              blurRadius: 8,
+              offset: const Offset(0, 2),
             ),
           ],
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Text(
-              'shoutbox_composer_title'.tr(),
-              style: theme.textTheme.titleMedium,
-            ),
-            SizedBox(height: DesignTokens.spacingXs),
-            Text(
-              'shoutbox_composer_subtitle'.tr(),
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: colors.textSecondary,
-              ),
-            ),
-            SizedBox(height: DesignTokens.spacingM),
-            TextField(
-              controller: _messageController,
-              maxLines: 3,
-              minLines: 2,
-              textInputAction: TextInputAction.newline,
-              decoration: InputDecoration(
-                labelText: 'shoutbox_message_label'.tr(),
-                prefixIcon: const Icon(LucideIcons.message_circle),
-                helperText: 'shoutbox_character_count'.tr(
-                  namedArgs: {
-                    'current': _characterCount.toString(),
-                    'max': widget.maxLength.toString(),
+            // Text field - centered vertically
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: DesignTokens.spacingL,
+                ),
+                child: TextField(
+                  key: widget.textFieldKey ??
+                      const ValueKey('shoutbox_textfield'),
+                  controller: _messageController,
+                  focusNode: _focusNode,
+                  autofocus: widget.textFieldKey != null,
+                  maxLines: 1,
+                  textInputAction: TextInputAction.send,
+                  textAlignVertical: TextAlignVertical.center,
+                  onSubmitted: (_) {
+                    if (_canSend) {
+                      _handleSend();
+                    }
                   },
-                ),
-                helperStyle: TextStyle(
-                  color: isOverLimit 
-                    ? theme.colorScheme.error 
-                    : colors.textSecondary,
-                ),
-                errorText: isOverLimit 
-                  ? 'shoutbox_message_too_long'.tr() 
-                  : null,
-              ),
-            ),
-            SizedBox(height: DesignTokens.spacingM),
-            Align(
-              alignment: Alignment.centerRight,
-              child: BlocBuilder<ShoutboxBloc, ShoutboxState>(
-                builder: (context, state) {
-                  final isSending = state.maybeWhen(
-                    sending: (messages, _) => true,
-                    orElse: () => false,
-                  );
-
-                  return ElevatedButton.icon(
-                    onPressed: _canSend && !isSending ? _handleSend : null,
-                    icon: isSending
-                        ? SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation(
-                                colors.textPrimary,
-                              ),
+                  style: theme.textTheme.bodyLarge,
+                  decoration: InputDecoration(
+                    hintText: 'shoutbox_message_label'.tr(),
+                    hintStyle: theme.textTheme.bodyLarge?.copyWith(
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                    ),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                    isDense: false,
+                    // Character counter - only show when near limit, centered vertically
+                    suffix: _shouldShowCounter
+                        ? Text(
+                            '$_remainingCharacters',
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: _getCharacterCountColor(tokens),
                             ),
                           )
-                        : const Icon(LucideIcons.send),
-                    label: Text(
-                      isSending 
-                        ? 'shoutbox_sending'.tr() 
-                        : 'shoutbox_send'.tr(),
-                    ),
-                  );
-                },
+                        : null,
+                  ),
+                ),
               ),
+            ),
+            // Send button
+            BlocBuilder<ShoutboxBloc, ShoutboxState>(
+              builder: (context, state) {
+                final isSending = state.maybeWhen(
+                  sending: (messages, _) => true,
+                  orElse: () => false,
+                );
+
+                return Padding(
+                  padding: const EdgeInsets.only(right: DesignTokens.spacingS),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: _canSend && !isSending ? _handleSend : null,
+                      borderRadius: BorderRadius.circular(20),
+                      child: AnimatedContainer(
+                        duration: DesignTokens.animationDurationShort,
+                        curve: DesignTokens.animationCurveSpring,
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: _canSend && !isSending
+                              ? tokens.sendButtonActive
+                              : tokens.sendButtonDisabled,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Center(
+                          child: isSending
+                              ? SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation(
+                                      tokens.sendButtonIconActive,
+                                    ),
+                                  ),
+                                )
+                              : Icon(
+                                  LucideIcons.send,
+                                  size: 18,
+                                  color: _canSend
+                                      ? tokens.sendButtonIconActive
+                                      : tokens.sendButtonIconDisabled,
+                                ),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
           ],
         ),
@@ -164,7 +236,8 @@ class _ShoutboxComposerState extends State<ShoutboxComposer> {
     if (trimmedMessage.isEmpty || trimmedMessage.length > widget.maxLength) {
       return;
     }
+    // Haptic feedback on send
+    HapticFeedback.lightImpact();
     widget.onSend(trimmedMessage);
-    FocusScope.of(context).unfocus();
   }
 }

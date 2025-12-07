@@ -419,3 +419,73 @@ class DialogOverlayTokens {
   final Color outline;
 }
 
+class ShoutboxTokens {
+  ShoutboxTokens._({
+    required this.composerBackground,
+    required this.composerBorder,
+    required this.sendButtonActive,
+    required this.sendButtonDisabled,
+    required this.sendButtonIconActive,
+    required this.sendButtonIconDisabled,
+    required this.fabBackground,
+    required this.fabIcon,
+    required this.badgeBackground,
+    required this.badgeText,
+    required this.characterCountNormal,
+    required this.characterCountWarning,
+    required this.characterCountError,
+  });
+
+  factory ShoutboxTokens.of(BuildContext context) {
+    final colors = context.appColors;
+    final scheme = colors.colorScheme;
+    final isLight = colors.brightness == Brightness.light;
+
+    return ShoutboxTokens._(
+      // Composer
+      composerBackground: isLight
+          ? colors.surfaces.surfaceContainerHigh
+          : colors.surfaces.surfaceContainerHighest,
+      composerBorder: colors.borderSubtle.withValues(alpha: 0.5),
+      sendButtonActive: scheme.primary,
+      sendButtonDisabled: colors.surfaces.surfaceContainerHighest,
+      sendButtonIconActive: scheme.onPrimary,
+      sendButtonIconDisabled: scheme.onSurface.withValues(alpha: 0.38),
+      
+      // FAB
+      fabBackground: scheme.secondaryContainer,
+      fabIcon: scheme.onSecondaryContainer,
+      
+      // Badge for new messages
+      badgeBackground: scheme.error,
+      badgeText: scheme.onError,
+      
+      // Character counter
+      characterCountNormal: colors.textSecondary,
+      characterCountWarning: scheme.tertiary,
+      characterCountError: scheme.error,
+    );
+  }
+
+  // Composer tokens
+  final Color composerBackground;
+  final Color composerBorder;
+  final Color sendButtonActive;
+  final Color sendButtonDisabled;
+  final Color sendButtonIconActive;
+  final Color sendButtonIconDisabled;
+
+  // FAB tokens
+  final Color fabBackground;
+  final Color fabIcon;
+
+  // Badge tokens
+  final Color badgeBackground;
+  final Color badgeText;
+
+  // Character counter tokens
+  final Color characterCountNormal;
+  final Color characterCountWarning;
+  final Color characterCountError;
+}
+

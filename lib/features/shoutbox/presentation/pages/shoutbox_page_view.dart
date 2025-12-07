@@ -9,6 +9,7 @@ import '../../../../core/routes/app_routes.dart';
 import '../../../../core/themes/app_color_system.dart';
 import '../../../../core/themes/design_tokens.dart';
 import '../../../../core/widgets/floating_bottom_nav_bar.dart';
+import '../../../../core/widgets/floating_chat_fab.dart';
 import '../../../../core/widgets/floating_play_fab.dart';
 import '../../../../core/widgets/glass_app_bar_background.dart';
 import '../../../../core/widgets/shimmer_skeleton.dart';
@@ -27,15 +28,32 @@ class ShoutboxPageView extends StatefulWidget {
 
 class _ShoutboxPageViewState extends State<ShoutboxPageView> {
   final _scrollController = ScrollController();
+  final _composerTextFieldKey = GlobalKey();
   NavItem _selectedNavItem = NavItem.shoutbox;
   Timer? _refreshTimer;
+  bool _isAtBottom = true;
+  int _newMessagesCount = 0;
+  int _lastMessageCount = 0;
+  bool _isComposerVisible = false;
+  bool _pendingSend = false;
 
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      context.read<ShoutboxBloc>().add(const ShoutboxEvent.getMessages());
+      final bloc = context.read<ShoutboxBloc>();
+      final currentState = bloc.state;
+      final hasMessages = currentState.maybeWhen(
+        loaded: (messages, _) => messages.isNotEmpty,
+        refreshing: (messages, _) => messages.isNotEmpty,
+        sending: (messages, _) => messages.isNotEmpty,
+        orElse: () => false,
+      );
+      if (!hasMessages) {
+        bloc.add(const ShoutboxEvent.getMessages());
+      }
       _startAutoRefresh();
     });
   }
@@ -44,8 +62,6 @@ class _ShoutboxPageViewState extends State<ShoutboxPageView> {
     _refreshTimer?.cancel();
     _refreshTimer = Timer.periodic(const Duration(seconds: 10), (_) {
       if (!mounted) return;
-      // Use refreshMessages for silent incremental updates
-      // The bloc handles debouncing and skips if already fetching
       context.read<ShoutboxBloc>().add(const ShoutboxEvent.refreshMessages());
     });
   }
@@ -53,315 +69,433 @@ class _ShoutboxPageViewState extends State<ShoutboxPageView> {
   @override
   void dispose() {
     _refreshTimer?.cancel();
+    _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     super.dispose();
   }
 
-  Future<void> _scrollToTop() async {
+  void _onScroll() {
     if (!_scrollController.hasClients) return;
-    await _scrollController.animateTo(
-      0,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOut,
-    );
+    final position = _scrollController.position;
+    final maxScroll = position.maxScrollExtent;
+    final currentScroll = position.pixels;
+    const threshold = 100.0;
+
+    final wasAtBottom = _isAtBottom;
+    _isAtBottom = (maxScroll - currentScroll) <= threshold;
+
+    if (_isAtBottom && !wasAtBottom) {
+      setState(() {
+        _newMessagesCount = 0;
+      });
+    }
+  }
+
+  Future<void> _scrollToBottom({bool smooth = true}) async {
+    if (!_scrollController.hasClients) return;
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    if (smooth) {
+      await _scrollController.animateTo(
+        maxScroll,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    } else {
+      _scrollController.jumpTo(maxScroll);
+    }
+    setState(() {
+      _isAtBottom = true;
+      _newMessagesCount = 0;
+    });
+  }
+
+  void _showComposer() {
+    setState(() {
+      _isComposerVisible = true;
+    });
+  }
+
+  void _hideComposer() {
+    setState(() {
+      _isComposerVisible = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
+    final colorScheme = Theme.of(context).colorScheme;
     final mediaQuery = MediaQuery.of(context);
     final safeAreaBottom = mediaQuery.padding.bottom;
-    final viewInsets = mediaQuery.viewInsets.bottom;
     final navBarHeight = FloatingBottomNavBar.totalHeight;
-    final composerSpacing = DesignTokens.spacingM;
-    final composerEstimatedHeight = 200.0;
-    final keyboardHeight = viewInsets > 0 ? viewInsets.toDouble() : 0.0;
-    final totalBottomSpacing = navBarHeight +
-        composerEstimatedHeight +
-        composerSpacing +
-        safeAreaBottom +
-        keyboardHeight;
+    final totalBottomSpacing =
+        navBarHeight + safeAreaBottom + DesignTokens.spacingM;
 
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
+        // If composer is visible, hide it instead of navigating away
+        if (_isComposerVisible) {
+          FocusScope.of(context).unfocus();
+          _hideComposer();
+          return;
+        }
         unawaited(Navigator.pushReplacementNamed(context, AppRoutes.home));
       },
       child: Scaffold(
-        resizeToAvoidBottomInset: true,
+        resizeToAvoidBottomInset: false,
         backgroundColor: colors.primaryBackground,
-        body: Stack(
-          children: [
-            RefreshIndicator(
-              onRefresh: () async {
-                context.read<ShoutboxBloc>().add(
-                  const ShoutboxEvent.getMessages(),
+        body: BlocListener<ShoutboxBloc, ShoutboxState>(
+          listener: (context, state) {
+            state.maybeWhen(
+              loaded: (messages, _) {
+                // On successful send, just hide composer and scroll
+                if (_pendingSend) {
+                  _pendingSend = false;
+                  _hideComposer();
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    _scrollToBottom();
+                  });
+                }
+              },
+              error: (failure) {
+                // Show error snackbar
+                _pendingSend = false;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(failure.message),
+                    backgroundColor: colorScheme.error,
+                    duration: const Duration(seconds: 3),
+                    behavior: SnackBarBehavior.floating,
+                  ),
                 );
               },
-              child: CustomScrollView(
-                controller: _scrollController,
-                slivers: [
-                  SliverAppBar(
-                    pinned: true,
-                    elevation: 0,
-                    automaticallyImplyLeading: false,
-                    backgroundColor: Colors.transparent,
-                    surfaceTintColor: Theme.of(context).colorScheme.surfaceTint,
-                    leading: IconButton(
-                      icon: const Icon(LucideIcons.arrow_left),
-                      onPressed: () => Navigator.pushReplacementNamed(
-                        context,
-                        AppRoutes.home,
+              orElse: () {},
+            );
+          },
+          child: Stack(
+            children: [
+              RefreshIndicator(
+                onRefresh: () async {
+                  context.read<ShoutboxBloc>().add(
+                        const ShoutboxEvent.getMessages(),
+                      );
+                },
+                child: CustomScrollView(
+                  controller: _scrollController,
+                  slivers: [
+                    SliverAppBar(
+                      pinned: true,
+                      elevation: 0,
+                      automaticallyImplyLeading: false,
+                      backgroundColor: Colors.transparent,
+                      surfaceTintColor:
+                          Theme.of(context).colorScheme.surfaceTint,
+                      leading: IconButton(
+                        icon: const Icon(LucideIcons.arrow_left),
+                        onPressed: () => Navigator.pushReplacementNamed(
+                          context,
+                          AppRoutes.home,
+                        ),
+                      ),
+                      title: Text('shoutbox_title'.tr()),
+                      actions: [
+                        if (_newMessagesCount > 0 && !_isAtBottom)
+                          Padding(
+                            padding: const EdgeInsets.only(right: 8.0),
+                            child: ActionChip(
+                              label: Text('$_newMessagesCount new'),
+                              avatar: const Icon(LucideIcons.arrow_down,
+                                  size: 16),
+                              backgroundColor:
+                                  colorScheme.primaryContainer,
+                              onPressed: _scrollToBottom,
+                            ),
+                          ),
+                        IconButton(
+                          icon: const Icon(LucideIcons.arrow_down_to_line),
+                          tooltip: _isAtBottom
+                              ? 'Scroll to bottom'
+                              : 'Scroll to bottom ($_newMessagesCount new)',
+                          onPressed: _scrollToBottom,
+                        ),
+                        IconButton(
+                          icon: const Icon(LucideIcons.refresh_ccw),
+                          onPressed: () {
+                            context.read<ShoutboxBloc>().add(
+                                  const ShoutboxEvent.getMessages(),
+                                );
+                          },
+                        ),
+                      ],
+                      flexibleSpace: GlassAppBarBackground(child: Container()),
+                    ),
+                    SliverToBoxAdapter(
+                      child: GestureDetector(
+                        onTap: () {
+                          if (_isComposerVisible) {
+                            FocusScope.of(context).unfocus();
+                            _hideComposer();
+                          }
+                        },
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: DesignTokens.spacingL,
+                            vertical: DesignTokens.spacingM,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              BlocBuilder<ShoutboxBloc, ShoutboxState>(
+                                builder: (context, state) {
+                                  return state.when(
+                                    initial: () {
+                                      WidgetsBinding.instance
+                                          .addPostFrameCallback((_) {
+                                        _scrollToBottom(smooth: false);
+                                      });
+                                      return _ShoutboxLoadingSkeleton(
+                                        itemCount: 6,
+                                        spacing: DesignTokens.spacingS,
+                                      );
+                                    },
+                                    loading: () {
+                                      WidgetsBinding.instance
+                                          .addPostFrameCallback((_) {
+                                        _scrollToBottom(smooth: false);
+                                      });
+                                      return _ShoutboxLoadingSkeleton(
+                                        itemCount: 6,
+                                        spacing: DesignTokens.spacingS,
+                                      );
+                                    },
+                                    refreshing: (messages, _) {
+                                      if (messages.isEmpty) {
+                                        return _buildEmptyState(colors);
+                                      }
+                                      _handleNewMessages(messages.length);
+                                      return ShoutboxMessageList(
+                                        messages: messages,
+                                      );
+                                    },
+                                    sending: (messages, _) {
+                                      if (messages.isEmpty) {
+                                        return const SizedBox.shrink();
+                                      }
+                                      return ShoutboxMessageList(
+                                        messages: messages,
+                                      );
+                                    },
+                                    loaded: (messages, _) {
+                                      if (messages.isEmpty) {
+                                        WidgetsBinding.instance
+                                            .addPostFrameCallback((_) {
+                                          _scrollToBottom(smooth: false);
+                                          setState(() {
+                                            _lastMessageCount = 0;
+                                            _newMessagesCount = 0;
+                                          });
+                                        });
+                                        return _buildEmptyState(colors);
+                                      }
+                                      _handleNewMessages(messages.length);
+                                      return ShoutboxMessageList(
+                                        messages: messages,
+                                      );
+                                    },
+                                    error: (failure) => _buildErrorState(
+                                      colors,
+                                      failure.message,
+                                    ),
+                                  );
+                                },
+                              ),
+                              SizedBox(height: totalBottomSpacing),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
-                    title: Text('shoutbox_title'.tr()),
-                    actions: [
-                      IconButton(
-                        icon: const Icon(LucideIcons.arrow_up_from_line),
-                        onPressed: _scrollToTop,
-                      ),
-                      IconButton(
-                        icon: const Icon(LucideIcons.refresh_ccw),
-                        onPressed: () {
-                          context.read<ShoutboxBloc>().add(
-                            const ShoutboxEvent.getMessages(),
+                  ],
+                ),
+              ),
+              // Composer overlay - positioned at screen bottom, above keyboard
+              if (_isComposerVisible)
+                Positioned(
+                  left: DesignTokens.spacingL,
+                  right: DesignTokens.spacingL,
+                  bottom: mediaQuery.viewInsets.bottom + DesignTokens.spacingS,
+                  child: Material(
+                    color: Colors.transparent,
+                    child: AnimatedContainer(
+                      duration: DesignTokens.animationDurationMedium,
+                      curve: DesignTokens.animationCurveSpring,
+                      child: BlocBuilder<AuthBloc, AuthState>(
+                        builder: (context, authState) {
+                          return authState.maybeWhen(
+                            authenticated: (_) => ShoutboxComposer(
+                              key: const ValueKey('composer'),
+                              textFieldKey: _composerTextFieldKey,
+                              onSend: _onSend,
+                              onFocusChanged: (isFocused) {
+                                if (!isFocused) {
+                                  _hideComposer();
+                                }
+                              },
+                            ),
+                            orElse: () => const _ShoutboxLoginCard(),
                           );
                         },
                       ),
-                    ],
-                    flexibleSpace: GlassAppBarBackground(child: Container()),
+                    ),
                   ),
-                  SliverToBoxAdapter(
+                ),
+              // Bottom bar with NavBar and Play FAB
+              if (!_isComposerVisible) ...[
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: SafeArea(
+                    top: false,
                     child: Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: DesignTokens.spacingL,
-                        vertical: DesignTokens.spacingM,
+                      padding: EdgeInsets.only(
+                        left: DesignTokens.spacingL,
+                        right: DesignTokens.spacingL,
+                        bottom: DesignTokens.spacingS,
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          BlocBuilder<ShoutboxBloc, ShoutboxState>(
-                            builder: (context, state) {
-                              return state.when(
-                                initial: () => _ShoutboxLoadingSkeleton(
-                                  itemCount: 6,
-                                  spacing: DesignTokens.spacingS,
-                                ),
-                                loading: () => _ShoutboxLoadingSkeleton(
-                                  itemCount: 6,
-                                  spacing: DesignTokens.spacingS,
-                                ),
-                                refreshing: (messages, _) {
-                                  // Show existing messages while refreshing
-                                  if (messages.isEmpty) {
-                                    return Padding(
-                                      padding: EdgeInsets.symmetric(
-                                        vertical: DesignTokens.spacingL,
-                                      ),
-                                      child: Column(
-                                        children: [
-                                          Icon(
-                                            LucideIcons.message_circle,
-                                            size: 56,
-                                            color: colors.textSecondary,
-                                          ),
-                                          SizedBox(
-                                            height: DesignTokens.spacingM,
-                                          ),
-                                          Text(
-                                            'shoutbox_empty_title'.tr(),
-                                            style: Theme.of(
-                                              context,
-                                            ).textTheme.titleMedium,
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  }
-                                  return ShoutboxMessageList(
-                                    messages: messages,
-                                  );
-                                },
-                                sending: (messages, _) {
-                                  // Show existing messages while sending
-                                  if (messages.isEmpty) {
-                                    return const SizedBox.shrink();
-                                  }
-                                  return ShoutboxMessageList(
-                                    messages: messages,
-                                  );
-                                },
-                                loaded: (messages, _) {
-                                  if (messages.isEmpty) {
-                                    return Padding(
-                                      padding: EdgeInsets.symmetric(
-                                        vertical: DesignTokens.spacingL,
-                                      ),
-                                      child: Column(
-                                        children: [
-                                          Icon(
-                                            LucideIcons.message_circle,
-                                            size: 56,
-                                            color: colors.textSecondary,
-                                          ),
-                                          SizedBox(
-                                            height: DesignTokens.spacingM,
-                                          ),
-                                          Text(
-                                            'shoutbox_empty_title'.tr(),
-                                            style: Theme.of(
-                                              context,
-                                            ).textTheme.titleMedium,
-                                          ),
-                                          SizedBox(
-                                            height: DesignTokens.spacingS,
-                                          ),
-                                          Text(
-                                            'shoutbox_empty_message'.tr(),
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodyMedium
-                                                ?.copyWith(
-                                                  color: colors.textSecondary,
-                                                ),
-                                            textAlign: TextAlign.center,
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  }
-                                  return ShoutboxMessageList(
-                                    messages: messages,
-                                  );
-                                },
-                                error: (failure) => Padding(
-                                  padding: EdgeInsets.symmetric(
-                                    vertical: DesignTokens.spacingL,
-                                  ),
-                                  child: Column(
-                                    children: [
-                                      Icon(
-                                        Icons.error_outline,
-                                        size: 56,
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.error,
-                                      ),
-                                      SizedBox(height: DesignTokens.spacingM),
-                                      Text(
-                                        'shoutbox_error_title'.tr(),
-                                        style: Theme.of(
-                                          context,
-                                        ).textTheme.titleMedium,
-                                      ),
-                                      SizedBox(height: DesignTokens.spacingS),
-                                      Text(
-                                        failure.message,
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium
-                                            ?.copyWith(
-                                              color: colors.textSecondary,
-                                            ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                      SizedBox(height: DesignTokens.spacingM),
-                                      ElevatedButton.icon(
-                                        onPressed: () {
-                                          context.read<ShoutboxBloc>().add(
-                                            const ShoutboxEvent.getMessages(),
-                                          );
-                                        },
-                                        icon: const Icon(
-                                          LucideIcons.refresh_ccw,
-                                        ),
-                                        label: Text('retry'.tr()),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
+                          Expanded(
+                            child: FloatingBottomNavBar(
+                              selectedItem: _selectedNavItem,
+                              onItemSelected: (item) {
+                                setState(() {
+                                  _selectedNavItem = item;
+                                });
+                              },
+                            ),
                           ),
-                          SizedBox(height: totalBottomSpacing),
+                          SizedBox(width: DesignTokens.spacingM),
+                          const FloatingPlayFab(size: 60),
                         ],
                       ),
                     ),
                   ),
-                ],
-              ),
-            ),
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: navBarHeight + safeAreaBottom + DesignTokens.spacingS,
-              child: Builder(
-                builder: (context) {
-                  final currentViewInsets =
-                      MediaQuery.of(context).viewInsets.bottom;
-                  return AnimatedPadding(
-                    duration: const Duration(milliseconds: 200),
-                    curve: Curves.easeOut,
-                    padding: EdgeInsets.only(
-                      bottom: currentViewInsets,
-                    ),
-                    child: SafeArea(
-                      top: false,
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: DesignTokens.spacingL,
-                        ),
-                        child: BlocBuilder<AuthBloc, AuthState>(
-                          builder: (context, authState) {
-                            return authState.maybeWhen(
-                              authenticated: (_) => ShoutboxComposer(
-                                onSend: _onSend,
-                              ),
-                              orElse: () => const _ShoutboxLoginCard(),
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: SafeArea(
-                top: false,
-                child: Padding(
-                  padding: EdgeInsets.only(
-                    left: DesignTokens.spacingL,
-                    right: DesignTokens.spacingL,
-                    bottom: DesignTokens.spacingS,
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: FloatingBottomNavBar(
-                          selectedItem: _selectedNavItem,
-                          onItemSelected: (item) {
-                            setState(() {
-                              _selectedNavItem = item;
-                            });
-                          },
-                        ),
-                      ),
-                      SizedBox(width: DesignTokens.spacingM),
-                      const FloatingPlayFab(size: 60),
-                    ],
+                ),
+                // Chat FAB - positioned above Play FAB with proper spacing
+                Positioned(
+                  right: DesignTokens.spacingL,
+                  bottom: safeAreaBottom +
+                      DesignTokens.spacingS +
+                      60 + // PlayFab height
+                      DesignTokens.spacingXl, // 24px spacing between FABs
+                  child: FloatingChatFab(
+                    onTap: _showComposer,
+                    size: 52,
+                    badgeCount: _isAtBottom ? 0 : _newMessagesCount,
                   ),
                 ),
-              ),
-            ),
-          ],
+              ],
+            ],
+          ),
         ),
+      ),
+    );
+  }
+
+  void _handleNewMessages(int messageCount) {
+    final newCount = messageCount - _lastMessageCount;
+    if (_lastMessageCount == 0) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollToBottom();
+        setState(() {
+          _lastMessageCount = messageCount;
+          _newMessagesCount = 0;
+        });
+      });
+    } else if (newCount > 0) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_isAtBottom) {
+          _scrollToBottom();
+          setState(() {
+            _lastMessageCount = messageCount;
+            _newMessagesCount = 0;
+          });
+        } else {
+          setState(() {
+            _newMessagesCount += newCount;
+            _lastMessageCount = messageCount;
+          });
+        }
+      });
+    }
+  }
+
+  Widget _buildEmptyState(AppSemanticColors colors) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: DesignTokens.spacingL),
+      child: Column(
+        children: [
+          Icon(
+            LucideIcons.message_circle,
+            size: 56,
+            color: colors.textSecondary,
+          ),
+          SizedBox(height: DesignTokens.spacingM),
+          Text(
+            'shoutbox_empty_title'.tr(),
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          SizedBox(height: DesignTokens.spacingS),
+          Text(
+            'shoutbox_empty_message'.tr(),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: colors.textSecondary,
+                ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState(AppSemanticColors colors, String message) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: DesignTokens.spacingL),
+      child: Column(
+        children: [
+          Icon(
+            Icons.error_outline,
+            size: 56,
+            color: Theme.of(context).colorScheme.error,
+          ),
+          SizedBox(height: DesignTokens.spacingM),
+          Text(
+            'shoutbox_error_title'.tr(),
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          SizedBox(height: DesignTokens.spacingS),
+          Text(
+            message,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: colors.textSecondary,
+                ),
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: DesignTokens.spacingM),
+          ElevatedButton.icon(
+            onPressed: () {
+              context.read<ShoutboxBloc>().add(
+                    const ShoutboxEvent.getMessages(),
+                  );
+            },
+            icon: const Icon(LucideIcons.refresh_ccw),
+            label: Text('retry'.tr()),
+          ),
+        ],
       ),
     );
   }
@@ -377,21 +511,15 @@ class _ShoutboxPageViewState extends State<ShoutboxPageView> {
         final trimmedMessage = message.trim();
         if (trimmedMessage.isEmpty) return;
 
-        context.read<ShoutboxBloc>().add(
-          ShoutboxEvent.sendMessage(
-            username: displayName,
-            message: trimmedMessage,
-          ),
-        );
+        // Set pending flag to track send completion
+        _pendingSend = true;
 
-        // Show success feedback
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('shoutbox_send_success'.tr()),
-            duration: const Duration(seconds: 2),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        context.read<ShoutboxBloc>().add(
+              ShoutboxEvent.sendMessage(
+                username: displayName,
+                message: trimmedMessage,
+              ),
+            );
       },
       orElse: () {
         LoginDialog.show(context);

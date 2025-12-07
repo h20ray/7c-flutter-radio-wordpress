@@ -5,7 +5,7 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/widgets/glass_app_bar_background.dart';
 import '../../../../core/widgets/haptic_widgets.dart';
-import '../widgets/radio_volume_control_dialog.dart';
+import '../widgets/controls/radio_settings_dialog.dart';
 
 class RadioAppBar extends StatelessWidget {
   final VoidCallback onScrollToTop;
@@ -35,7 +35,7 @@ class RadioAppBar extends StatelessWidget {
         Builder(
           builder: (context) {
             return HapticIconButton(
-              onPressed: () => RadioVolumeControlDialog.show(context),
+              onPressed: () => RadioSettingsDialog.show(context),
               icon: const Icon(LucideIcons.volume_2, size: 20),
               tooltip: 'Volume',
             );

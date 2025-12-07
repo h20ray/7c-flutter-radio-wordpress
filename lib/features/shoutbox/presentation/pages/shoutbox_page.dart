@@ -14,7 +14,7 @@ class ShoutboxPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider<ShoutboxBloc>(create: (_) => getIt<ShoutboxBloc>()),
+        BlocProvider<ShoutboxBloc>.value(value: getIt<ShoutboxBloc>()),
         BlocProvider<AuthBloc>.value(value: getIt<AuthBloc>()),
         BlocProvider<RadioPlayerBloc>.value(value: getIt<RadioPlayerBloc>()),
       ],

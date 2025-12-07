@@ -10,6 +10,7 @@ import '../services/network_status_service.dart';
 import '../services/level_up_celebration_service.dart';
 import '../services/palette_service.dart';
 import '../services/image_capture_service.dart';
+import '../services/sleep_timer_service.dart';
 import '../utils/debug_logger.dart';
 
 // Radio feature imports
@@ -31,6 +32,7 @@ import '../../features/radio/domain/usecases/reset_radio_player.dart';
 import '../../features/radio/domain/usecases/get_album_art_url.dart';
 import '../../features/radio/presentation/bloc/radio_bloc.dart';
 import '../../features/radio/presentation/bloc/radio_player_bloc.dart';
+import '../../features/radio/presentation/bloc/radio_player_event.dart';
 import '../../features/radio/data/datasources/song_history_local_data_source.dart';
 import '../../features/radio/data/datasources/song_history_remote_data_source.dart';
 import '../../features/radio/data/datasources/song_history_azuracast_data_source.dart';
@@ -175,6 +177,9 @@ Future<void> initDependencies() async {
   getIt.registerLazySingleton<ImageCaptureService>(
     () => ImageCaptureService(),
   );
+  getIt.registerLazySingleton<SleepTimerService>(
+    () => SleepTimerService(),
+  );
 
   // Initialize features
   _initRadio();
@@ -192,6 +197,13 @@ Future<void> initDependencies() async {
 
   // Initialize greeting repository
   await getIt<GreetingRepository>().initialize();
+
+  // Initialize sleep timer service and wire up completion callback
+  final sleepTimer = getIt<SleepTimerService>();
+  await sleepTimer.initialize();
+  sleepTimer.setOnTimerComplete(() {
+    getIt<RadioPlayerBloc>().add(const RadioPlayerEvent.pause());
+  });
 
   // Setup auth token interceptor after all dependencies are registered
   final apiClient = getIt<ApiClient>();
@@ -357,7 +369,7 @@ void _initShoutbox() {
   getIt.registerLazySingleton(() => SendShoutboxMessage(getIt()));
   getIt.registerLazySingleton(() => DeleteShoutboxMessage(getIt()));
 
-  getIt.registerFactory(
+  getIt.registerLazySingleton(
     () => ShoutboxBloc(
       getMessages: getIt(),
       sendMessage: getIt(),
