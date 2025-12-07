@@ -30,6 +30,20 @@ class NewsFeedBloc extends Bloc<NewsFeedEvent, NewsFeedState> {
     on<CheckPostOfflineStatusEvent>(_onCheckPostOfflineStatus);
   }
 
+  Future<void> _refreshOfflineStatus(Emitter<NewsFeedState> emit) async {
+    final result = await repository.getOfflinePostIds();
+    result.fold(
+      (failure) {}, // Ignore failure
+      (ids) {
+        state.mapOrNull(
+          loaded: (s) {
+            emit(s.copyWith(offlinePostIds: Set.from(ids)));
+          },
+        );
+      },
+    );
+  }
+
   Future<void> _onLoadCachedData(
     LoadCachedDataEvent event,
     Emitter<NewsFeedState> emit,
@@ -101,7 +115,7 @@ class NewsFeedBloc extends Bloc<NewsFeedEvent, NewsFeedState> {
         final latestValues = NewsFeedStateHelper.extractStateValues(state);
         
         // Update posts and clear loading state
-        final updatedState = NewsFeedStateHelper.updateCategoryPosts(
+        var updatedState = NewsFeedStateHelper.updateCategoryPosts(
           latestValues,
           categoryId,
           data,
@@ -113,8 +127,10 @@ class NewsFeedBloc extends Bloc<NewsFeedEvent, NewsFeedState> {
           categoryId,
           false,
         );
-        
         emit(finalState);
+        
+        // Refresh offline status after loading (since we auto-save)
+        await _refreshOfflineStatus(emit);
       },
       onNetworkError: (failure) async {
         // Get latest state to ensure we're working with current data (race condition fix)
@@ -240,7 +256,11 @@ class NewsFeedBloc extends Bloc<NewsFeedEvent, NewsFeedState> {
           isLoadingByCategory: newIsLoadingByCategory,
           errorsByCategory: latestValues.errorsByCategory,
           currentPageByCategory: newCurrentPageByCategory,
+          offlinePostIds: latestValues.offlinePostIds,
         ));
+        
+        // Refresh offline status after loading (since we auto-save)
+        await _refreshOfflineStatus(emit);
       },
       onNetworkError: (failure) async {
         // Get latest state and clear loading state
@@ -262,12 +282,13 @@ class NewsFeedBloc extends Bloc<NewsFeedEvent, NewsFeedState> {
     Emitter<NewsFeedState> emit,
   ) async {
     final result = await repository.savePostOffline(event.post);
-    result.fold(
+    await result.fold(
       (failure) {
         // Error saving - could emit error state or show snackbar
       },
-      (_) {
+      (_) async {
         // Success - post saved offline
+        await _refreshOfflineStatus(emit);
       },
     );
   }
@@ -277,12 +298,13 @@ class NewsFeedBloc extends Bloc<NewsFeedEvent, NewsFeedState> {
     Emitter<NewsFeedState> emit,
   ) async {
     final result = await repository.removePostOffline(event.postId);
-    result.fold(
+    await result.fold(
       (failure) {
         // Error removing - could emit error state or show snackbar
       },
-      (_) {
+      (_) async {
         // Success - post removed from offline
+        await _refreshOfflineStatus(emit);
       },
     );
   }

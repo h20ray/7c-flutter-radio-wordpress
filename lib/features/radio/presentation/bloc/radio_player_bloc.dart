@@ -359,8 +359,8 @@ class RadioPlayerBloc extends Bloc<RadioPlayerEvent, RadioPlayerState> {
 
     DebugLogger.log('[RadioPlayerBloc] Calling initializeRadioPlayer use case', tag: 'RadioPlayerBloc');
     final result = await initializeRadioPlayer(config);
-    result.fold(
-      (failure) {
+    await result.fold(
+      (failure) async {
         DebugLogger.logError('Initialize failed', error: failure, tag: 'RadioPlayerBloc');
         emit(RadioPlayerState.error(failure: failure, message: failure.message));
       },
@@ -763,10 +763,10 @@ class RadioPlayerBloc extends Bloc<RadioPlayerEvent, RadioPlayerState> {
     _stopListeningFlushTimer();
     _metadataFlushDebounceTimer?.cancel();
     await _flushListeningSession();
-    _playerStateSubscription?.cancel();
-    _radioConfigSubscription?.cancel();
-    _audioFocusSubscription?.cancel();
-    _audioFocusEventSubscription?.cancel();
+    unawaited(_playerStateSubscription?.cancel());
+    unawaited(_radioConfigSubscription?.cancel());
+    unawaited(_audioFocusSubscription?.cancel());
+    unawaited(_audioFocusEventSubscription?.cancel());
     return super.close();
   }
 

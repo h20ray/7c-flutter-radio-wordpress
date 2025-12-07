@@ -3,24 +3,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/services/system_volume_service.dart';
-import 'm3_volume_bar.dart';
+import 'radio_volume_slider.dart';
 
-class VolumeDialog extends StatefulWidget {
-  const VolumeDialog({super.key});
+class RadioVolumeControlDialog extends StatefulWidget {
+  const RadioVolumeControlDialog({super.key});
 
   static Future<void> show(BuildContext context) {
     return showDialog(
       context: context,
       barrierDismissible: true,
-      builder: (dialogContext) => const VolumeDialog(),
+      builder: (dialogContext) => const RadioVolumeControlDialog(),
     );
   }
 
   @override
-  State<VolumeDialog> createState() => _VolumeDialogState();
+  State<RadioVolumeControlDialog> createState() => _RadioVolumeControlDialogState();
 }
 
-class _VolumeDialogState extends State<VolumeDialog> {
+class _RadioVolumeControlDialogState extends State<RadioVolumeControlDialog> {
   double _volume = 1.0;
   StreamSubscription<double>? _sysSub;
   Timer? _debounce;
@@ -131,7 +131,7 @@ class _VolumeDialogState extends State<VolumeDialog> {
                 ),
                 const SizedBox(width: 16),
                 Expanded(
-                  child: M3VolumeBar(
+                  child: RadioVolumeSlider(
                     value: _volume,
                     onChanged: (v) {
                       setState(() => _volume = v);

@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
@@ -52,9 +54,9 @@ class NewsSearchBoxState extends State<NewsSearchBox> with SingleTickerProviderS
 
   void _onFocusChange() {
     if (_focusNode.hasFocus) {
-      _animationController.forward();
+      unawaited(_animationController.forward());
     } else {
-      _animationController.reverse();
+      unawaited(_animationController.reverse());
     }
     widget.onFocusChanged?.call(_focusNode.hasFocus);
   }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/radio_bloc.dart';
-import 'radio_banner_widget.dart';
+import 'radio_banner.dart';
 
 /// Banner section displaying radio banners in 5:4 aspect ratio
 class RadioBannerSection extends StatelessWidget {
@@ -22,7 +22,7 @@ class RadioBannerSection extends StatelessWidget {
       builder: (context, state) {
         return state.maybeWhen(
           loaded: (radioEntity) {
-            return RadioBannerWidget(banners: radioEntity.banners);
+            return RadioBannerDisplay(banners: radioEntity.banners);
           },
           orElse: () => Container(
             decoration: BoxDecoration(

@@ -41,6 +41,7 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
             isLoadingByCategory,
             errorsByCategory,
             currentPageByCategory,
+            offlinePostIds,
           ) {
             _previousPosts = postsByCategory[null] ?? posts;
           },
@@ -190,13 +191,13 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
           buildWhen: (previous, current) {
             final previousPosts = previous.maybeWhen(
               loaded:
-                  (posts, postsByCategory, _, _, _, _, _) =>
+                  (posts, postsByCategory, _, _, _, _, _, _) =>
                       postsByCategory[null] ?? posts,
               orElse: () => const <PostEntity>[],
             );
             final currentPosts = current.maybeWhen(
               loaded:
-                  (posts, postsByCategory, _, _, _, _, _) =>
+                  (posts, postsByCategory, _, _, _, _, _, _) =>
                       postsByCategory[null] ?? posts,
               orElse: () => const <PostEntity>[],
             );
@@ -215,6 +216,7 @@ class _LatestNewsCarouselState extends State<LatestNewsCarousel> {
                     isLoadingByCategory,
                     errorsByCategory,
                     currentPageByCategory,
+                    offlinePostIds,
                   ) {
                     final allPosts = postsByCategory[null] ?? posts;
                     final cardSize = _computeCardSize(context);

@@ -25,5 +25,6 @@ abstract class WordPressRepository {
   Future<Either<Failure, Unit>> savePostOffline(PostEntity post);
   Future<Either<Failure, Unit>> removePostOffline(int postId);
   Future<Either<Failure, List<PostEntity>>> getOfflinePosts();
+  Future<Either<Failure, List<int>>> getOfflinePostIds();
   Future<Either<Failure, bool>> isPostOffline(int postId);
 }

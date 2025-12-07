@@ -123,28 +123,43 @@ class WordPressRepositoryImpl implements WordPressRepository {
 
       final enrichedPosts = await _enrichPosts(posts);
       
-      // 3. Save to cache (only for first page or search results)
-      if (page == 1 || search != null) {
-        try {
+      // 3. Save to offline storage (auto-save behavior)
+      // This unifies "Cache" and "Offline Saved" - everything viewed is available offline
+      try {
+        // We save one by one or batch if service supports it. Service saves one by one mostly.
+        // We can optimize this if needed, but for now we iterate.
+        // Also cache to localDataSource for legacy reasons (or if we want to keep that dual layer)
+        // But the primary "Offline News" feature relies on offlineNewsService.
+        
+        // Cache to localDataSource (fast, simple cache) - Keep existing logic for Page 1 but maybe expand?
+        // The user specifically asked for "Offline News" feature integration.
+        if (page == 1 || search != null) {
           await localDataSource.cachePosts(
             enrichedPosts,
             categoryId: categoryId,
             page: page,
             search: search,
           );
-          DebugLogger.log(
-            'Cached posts: categoryId=$categoryId, page=$page, count=${enrichedPosts.length}',
-            tag: 'WordPressRepository',
-          );
-        } catch (e, stackTrace) {
-          DebugLogger.logError(
-            'Failed to cache posts',
-            error: e,
-            stackTrace: stackTrace,
-            tag: 'WordPressRepository',
-          );
-          // Don't fail the request if caching fails
         }
+
+        // Save to OfflineNewsService (User visible "Offline News")
+        // We do this for ALL pages now.
+        for (final post in enrichedPosts) {
+          await savePostOffline(post);
+        }
+        
+        DebugLogger.log(
+          'Auto-saved posts to offline storage: count=${enrichedPosts.length}',
+          tag: 'WordPressRepository',
+        );
+      } catch (e, stackTrace) {
+        DebugLogger.logError(
+          'Failed to auto-save posts offline',
+          error: e,
+          stackTrace: stackTrace,
+          tag: 'WordPressRepository',
+        );
+        // Don't fail the request if caching fails
       }
       
       return Right(enrichedPosts.cast<PostEntity>());
@@ -502,6 +517,34 @@ class WordPressRepositoryImpl implements WordPressRepository {
       );
       return Left(
           CacheFailure('Failed to check if post is offline: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<int>>> getOfflinePostIds() async {
+    try {
+      // 1. Get explicitly saved offline posts
+      final offlineIds = await offlineNewsService.localDataSource.getOfflinePostIds(); // Accessing hidden property if not exposed?
+      // Wait, offlineNewsService doesn't expose getOfflinePostIds directly in public API in step 17?
+      // checking step 17... It does: `Future<int> getOfflinePostCount()`... 
+      // It DOES NOT expose getOfflinePostIds. It has `_evictUntilSizeFits` which uses it internally.
+      // I need to update OfflineNewsService first or access localDataSource.
+      // localDataSource IS public in the class `final OfflineNewsLocalDataSource localDataSource;` so I can access it.
+      
+      // 2. Get cached posts (implicitly offline)
+      // Since we are now saving everything to offline storage, (1) covers everything.
+      // But if we kept the "Cache" separate, we'd need to merge.
+      // Our implementation plan says we unify them. So `offlineNewsService` should have them all.
+      
+      return Right(offlineIds);
+    } catch (e, stackTrace) {
+      DebugLogger.logError(
+        'Failed to get offline post IDs',
+        error: e,
+        stackTrace: stackTrace,
+        tag: 'WordPressRepository',
+      );
+      return Left(CacheFailure('Failed to get offline post IDs: ${e.toString()}'));
     }
   }
 }

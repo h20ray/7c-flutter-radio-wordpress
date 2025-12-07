@@ -287,10 +287,11 @@ class OfflineNewsSettingsSection extends StatelessWidget {
 
   void _showClearAllConfirmation(BuildContext context) {
     final colors = context.appColors;
+    final settingsBloc = context.read<SettingsBloc>();
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: Text(
           'settings_offline_clear_all'.tr(),
           style: TextStyle(color: colors.textPrimary),
@@ -301,15 +302,15 @@ class OfflineNewsSettingsSection extends StatelessWidget {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(dialogContext).pop(),
             child: Text('cancel'.tr()),
           ),
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop();
-              context.read<SettingsBloc>().add(
-                    const SettingsEvent.clearAllOfflinePosts(),
-                  );
+              Navigator.of(dialogContext).pop();
+              settingsBloc.add(
+                const SettingsEvent.clearAllOfflinePosts(),
+              );
             },
             style: TextButton.styleFrom(
               foregroundColor: colors.colorScheme.error,

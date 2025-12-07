@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -15,7 +17,7 @@ import '../widgets/radio_metadata_section.dart';
 import '../widgets/radio_page_background.dart';
 import '../widgets/radio_big_album_art.dart';
 import '../widgets/radio_song_history_section.dart';
-import '../widgets/radio_menu_chips_section.dart';
+import '../widgets/radio_action_buttons.dart';
 
 class RadioPageView extends StatelessWidget {
   const RadioPageView({super.key});
@@ -26,7 +28,7 @@ class RadioPageView extends StatelessWidget {
       canPop: false,
       onPopInvokedWithResult: (bool didPop, dynamic result) async {
         if (didPop) return;
-        Navigator.pushReplacementNamed(context, AppRoutes.home);
+        unawaited(Navigator.pushReplacementNamed(context, AppRoutes.home));
       },
       child: Scaffold(
         body: Stack(
@@ -159,7 +161,7 @@ class _RadioPageViewContentState extends State<_RadioPageViewContent> {
                     // Menu Chips Section
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 16.0),
-                      child: RadioMenuChipsSection(),
+                      child: RadioActionButtons(),
                     ),
                     const SizedBox(height: 24),
                     const AspectRatio(

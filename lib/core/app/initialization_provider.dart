@@ -100,11 +100,13 @@ class AppInitializer {
         currentAppState: appState,
       );
 
-      _performLazyInitialization(arg).then((result) {
-        _state = _state.copyWith(isLazyInitComplete: true);
-      }).catchError((e, st) {
-        // We don't fail the app for lazy init errors
-      });
+      unawaited(
+        _performLazyInitialization(arg).then((result) {
+          _state = _state.copyWith(isLazyInitComplete: true);
+        }).catchError((e, st) {
+          // We don't fail the app for lazy init errors
+        }),
+      );
     } catch (e, st) {
       _state = _state.copyWith(
         error: e,
@@ -264,7 +266,7 @@ class AppInitializer {
     } catch (e) {
       DebugLogger.logError('Auth initialization failed', error: e, tag: 'AppInitializer');
     } finally {
-      subscription?.cancel();
+      unawaited(subscription?.cancel());
     }
   }
 
@@ -327,14 +329,14 @@ class AppInitializer {
           },
         );
       } catch (e) {
-        subscription.cancel();
+        unawaited(subscription.cancel());
         if (e is Failure) {
           rethrow;
         }
         throw TimeoutFailure('Radio config prefetch failed: ${e.toString()}');
       }
     } catch (e, st) {
-      subscription?.cancel();
+      unawaited(subscription?.cancel());
       DebugLogger.logError('Radio prefetch failed', error: e, stackTrace: st, tag: 'AppInitializer');
       _radioState = null;
       if (e is Failure) {

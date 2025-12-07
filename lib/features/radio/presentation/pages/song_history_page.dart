@@ -7,7 +7,7 @@ import '../../../../core/themes/design_tokens.dart';
 import '../../../../core/widgets/shimmer_skeleton.dart';
 import '../../../../core/di/injection_container.dart';
 import '../bloc/song_history_bloc.dart';
-import '../widgets/song_history_item.dart';
+import '../widgets/radio_song_history_item.dart';
 
 class SongHistoryPage extends StatelessWidget {
   const SongHistoryPage({super.key});
@@ -56,7 +56,7 @@ class SongHistoryPage extends StatelessWidget {
                   padding: EdgeInsets.all(DesignTokens.spacingL),
                   itemCount: songs.length,
                   itemBuilder: (context, index) {
-                    return SongHistoryItem(song: songs[index]);
+                    return RadioSongHistoryItem(song: songs[index]);
                   },
                 );
               },

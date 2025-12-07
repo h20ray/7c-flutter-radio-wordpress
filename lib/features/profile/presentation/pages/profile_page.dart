@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/di/injection_container.dart';
@@ -17,7 +19,7 @@ class ProfilePage extends StatelessWidget {
       canPop: false,
       onPopInvokedWithResult: (bool didPop, dynamic result) async {
         if (didPop) return;
-        Navigator.pushReplacementNamed(context, AppRoutes.home);
+        unawaited(Navigator.pushReplacementNamed(context, AppRoutes.home));
       },
       child: MultiBlocProvider(
         providers: [

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/themes/app_color_system.dart';
 import '../../../../core/themes/design_tokens.dart';
@@ -77,7 +76,7 @@ class _CategorySelectionDialogState extends State<CategorySelectionDialog> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'home_promos_title'.tr(),
+                    'Categories',
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w700,

@@ -13,7 +13,7 @@ import '../../../../core/widgets/floating_play_fab.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../bloc/news_feed_bloc.dart';
 import '../bloc/news_search_bloc.dart';
-import '../widgets/news_app_bar.dart';
+import '../widgets/news_app_bar_widget.dart';
 import '../widgets/news_list_content.dart';
 import '../widgets/news_search_overlay.dart';
 
@@ -183,6 +183,7 @@ class _NewsPageViewContentState extends State<_NewsPageViewContent> {
         isLoadingByCategory,
         errorsByCategory,
         currentPageByCategory,
+        offlinePostIds,
       ) {
         final hasMore = hasMoreByCategory[selectedCategoryId] ?? false;
         final isLoading = isLoadingByCategory[selectedCategoryId] ?? false;
@@ -237,6 +238,7 @@ class _NewsPageViewContentState extends State<_NewsPageViewContent> {
         isLoadingByCategory,
         errorsByCategory,
         currentPageByCategory,
+        offlinePostIds,
       ) {
         final hasMore = hasMoreByCategory[selectedCategoryId] ?? false;
         final isLoading = isLoadingByCategory[selectedCategoryId] ?? false;
@@ -278,7 +280,7 @@ class _NewsPageViewContentState extends State<_NewsPageViewContent> {
           return; // Don't navigate if something was focused, just unfocus
         }
         
-        Navigator.pushReplacementNamed(context, AppRoutes.home);
+        await Navigator.pushReplacementNamed(context, AppRoutes.home);
       },
       child: Scaffold(
         resizeToAvoidBottomInset: false,
@@ -313,6 +315,7 @@ class _NewsPageViewContentState extends State<_NewsPageViewContent> {
                       isLoadingByCategory,
                       errorsByCategory,
                       currentPageByCategory,
+                      offlinePostIds,
                     ) {
                       if (isLoadingByCategory[selectedCategoryId] == true) return false;
                       final currentPosts = selectedCategoryId != null
@@ -387,6 +390,7 @@ class _NewsPageViewContentState extends State<_NewsPageViewContent> {
                           isLoadingByCategory,
                           errorsByCategory,
                           currentPageByCategory,
+                          offlinePostIds,
                         ) {
                           // Refresh current category
                           feedBloc.add(NewsFeedEvent.getPosts(
@@ -418,6 +422,7 @@ class _NewsPageViewContentState extends State<_NewsPageViewContent> {
                               isLoadingByCategory,
                               errorsByCategory,
                               currentPageByCategory,
+                              offlinePostIds,
                             ) => !(isLoadingByCategory[selectedCategoryId] ?? false),
                             orElse: () => true,
                           ),

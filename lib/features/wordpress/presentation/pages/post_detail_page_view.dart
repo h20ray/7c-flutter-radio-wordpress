@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -139,6 +141,7 @@ class _PostDetailPageViewState extends State<PostDetailPageView> {
         isLoadingByCategory,
         _,
         _,
+        _,
       ) =>
           isLoadingByCategory[categoryId] ?? false,
       orElse: () => false,
@@ -170,6 +173,7 @@ class _PostDetailPageViewState extends State<PostDetailPageView> {
         isLoadingByCategory,
         errorsByCategory,
         currentPageByCategory,
+        offlinePostIds,
       ) {
         final updated = _findMatchingPost(postsByCategory[_trackedCategoryId]) ??
             _findMatchingPost(posts);
@@ -253,11 +257,11 @@ class _PostDetailPageViewState extends State<PostDetailPageView> {
       if (isInternal) {
         final post = await DeepLinkService.resolvePostFromUrl(uri.toString());
         if (post != null && mounted) {
-          Navigator.pushNamed(
+          unawaited(Navigator.pushNamed(
             context,
             AppRoutes.postDetail,
             arguments: post,
-          );
+          ));
           return;
         }
       }

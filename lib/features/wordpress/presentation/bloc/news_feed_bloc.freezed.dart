@@ -55,7 +55,7 @@ extension NewsFeedEventPatterns on NewsFeedEvent {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( GetPostsEvent value)?  getPosts,TResult Function( LoadMorePostsEvent value)?  loadMorePosts,TResult Function( LoadCachedDataEvent value)?  loadCachedData,TResult Function( SavePostOfflineEvent value)?  savePostOffline,TResult Function( RemovePostOfflineEvent value)?  removePostOffline,TResult Function( CheckPostOfflineStatusEvent value)?  checkPostOfflineStatus,TResult Function( ResetPaginationEvent value)?  resetPagination,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( GetPostsEvent value)?  getPosts,TResult Function( LoadMorePostsEvent value)?  loadMorePosts,TResult Function( LoadCachedDataEvent value)?  loadCachedData,TResult Function( SavePostOfflineEvent value)?  savePostOffline,TResult Function( RemovePostOfflineEvent value)?  removePostOffline,TResult Function( CheckPostOfflineStatusEvent value)?  checkPostOfflineStatus,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case GetPostsEvent() when getPosts != null:
@@ -64,8 +64,7 @@ return loadMorePosts(_that);case LoadCachedDataEvent() when loadCachedData != nu
 return loadCachedData(_that);case SavePostOfflineEvent() when savePostOffline != null:
 return savePostOffline(_that);case RemovePostOfflineEvent() when removePostOffline != null:
 return removePostOffline(_that);case CheckPostOfflineStatusEvent() when checkPostOfflineStatus != null:
-return checkPostOfflineStatus(_that);case ResetPaginationEvent() when resetPagination != null:
-return resetPagination(_that);case _:
+return checkPostOfflineStatus(_that);case _:
   return orElse();
 
 }
@@ -83,7 +82,7 @@ return resetPagination(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( GetPostsEvent value)  getPosts,required TResult Function( LoadMorePostsEvent value)  loadMorePosts,required TResult Function( LoadCachedDataEvent value)  loadCachedData,required TResult Function( SavePostOfflineEvent value)  savePostOffline,required TResult Function( RemovePostOfflineEvent value)  removePostOffline,required TResult Function( CheckPostOfflineStatusEvent value)  checkPostOfflineStatus,required TResult Function( ResetPaginationEvent value)  resetPagination,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( GetPostsEvent value)  getPosts,required TResult Function( LoadMorePostsEvent value)  loadMorePosts,required TResult Function( LoadCachedDataEvent value)  loadCachedData,required TResult Function( SavePostOfflineEvent value)  savePostOffline,required TResult Function( RemovePostOfflineEvent value)  removePostOffline,required TResult Function( CheckPostOfflineStatusEvent value)  checkPostOfflineStatus,}){
 final _that = this;
 switch (_that) {
 case GetPostsEvent():
@@ -92,8 +91,7 @@ return loadMorePosts(_that);case LoadCachedDataEvent():
 return loadCachedData(_that);case SavePostOfflineEvent():
 return savePostOffline(_that);case RemovePostOfflineEvent():
 return removePostOffline(_that);case CheckPostOfflineStatusEvent():
-return checkPostOfflineStatus(_that);case ResetPaginationEvent():
-return resetPagination(_that);case _:
+return checkPostOfflineStatus(_that);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -110,7 +108,7 @@ return resetPagination(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( GetPostsEvent value)?  getPosts,TResult? Function( LoadMorePostsEvent value)?  loadMorePosts,TResult? Function( LoadCachedDataEvent value)?  loadCachedData,TResult? Function( SavePostOfflineEvent value)?  savePostOffline,TResult? Function( RemovePostOfflineEvent value)?  removePostOffline,TResult? Function( CheckPostOfflineStatusEvent value)?  checkPostOfflineStatus,TResult? Function( ResetPaginationEvent value)?  resetPagination,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( GetPostsEvent value)?  getPosts,TResult? Function( LoadMorePostsEvent value)?  loadMorePosts,TResult? Function( LoadCachedDataEvent value)?  loadCachedData,TResult? Function( SavePostOfflineEvent value)?  savePostOffline,TResult? Function( RemovePostOfflineEvent value)?  removePostOffline,TResult? Function( CheckPostOfflineStatusEvent value)?  checkPostOfflineStatus,}){
 final _that = this;
 switch (_that) {
 case GetPostsEvent() when getPosts != null:
@@ -119,8 +117,7 @@ return loadMorePosts(_that);case LoadCachedDataEvent() when loadCachedData != nu
 return loadCachedData(_that);case SavePostOfflineEvent() when savePostOffline != null:
 return savePostOffline(_that);case RemovePostOfflineEvent() when removePostOffline != null:
 return removePostOffline(_that);case CheckPostOfflineStatusEvent() when checkPostOfflineStatus != null:
-return checkPostOfflineStatus(_that);case ResetPaginationEvent() when resetPagination != null:
-return resetPagination(_that);case _:
+return checkPostOfflineStatus(_that);case _:
   return null;
 
 }
@@ -137,7 +134,7 @@ return resetPagination(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( bool forceRefresh,  int? categoryId,  bool useNewsPageLimit)?  getPosts,TResult Function( int? categoryId)?  loadMorePosts,TResult Function()?  loadCachedData,TResult Function( PostEntity post)?  savePostOffline,TResult Function( int postId)?  removePostOffline,TResult Function( int postId)?  checkPostOfflineStatus,TResult Function( int? categoryId,  bool useNewsPageLimit)?  resetPagination,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( bool forceRefresh,  int? categoryId,  bool useNewsPageLimit)?  getPosts,TResult Function( int? categoryId)?  loadMorePosts,TResult Function()?  loadCachedData,TResult Function( PostEntity post)?  savePostOffline,TResult Function( int postId)?  removePostOffline,TResult Function( int postId)?  checkPostOfflineStatus,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case GetPostsEvent() when getPosts != null:
 return getPosts(_that.forceRefresh,_that.categoryId,_that.useNewsPageLimit);case LoadMorePostsEvent() when loadMorePosts != null:
@@ -145,8 +142,7 @@ return loadMorePosts(_that.categoryId);case LoadCachedDataEvent() when loadCache
 return loadCachedData();case SavePostOfflineEvent() when savePostOffline != null:
 return savePostOffline(_that.post);case RemovePostOfflineEvent() when removePostOffline != null:
 return removePostOffline(_that.postId);case CheckPostOfflineStatusEvent() when checkPostOfflineStatus != null:
-return checkPostOfflineStatus(_that.postId);case ResetPaginationEvent() when resetPagination != null:
-return resetPagination(_that.categoryId,_that.useNewsPageLimit);case _:
+return checkPostOfflineStatus(_that.postId);case _:
   return orElse();
 
 }
@@ -164,7 +160,7 @@ return resetPagination(_that.categoryId,_that.useNewsPageLimit);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( bool forceRefresh,  int? categoryId,  bool useNewsPageLimit)  getPosts,required TResult Function( int? categoryId)  loadMorePosts,required TResult Function()  loadCachedData,required TResult Function( PostEntity post)  savePostOffline,required TResult Function( int postId)  removePostOffline,required TResult Function( int postId)  checkPostOfflineStatus,required TResult Function( int? categoryId,  bool useNewsPageLimit)  resetPagination,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( bool forceRefresh,  int? categoryId,  bool useNewsPageLimit)  getPosts,required TResult Function( int? categoryId)  loadMorePosts,required TResult Function()  loadCachedData,required TResult Function( PostEntity post)  savePostOffline,required TResult Function( int postId)  removePostOffline,required TResult Function( int postId)  checkPostOfflineStatus,}) {final _that = this;
 switch (_that) {
 case GetPostsEvent():
 return getPosts(_that.forceRefresh,_that.categoryId,_that.useNewsPageLimit);case LoadMorePostsEvent():
@@ -172,8 +168,7 @@ return loadMorePosts(_that.categoryId);case LoadCachedDataEvent():
 return loadCachedData();case SavePostOfflineEvent():
 return savePostOffline(_that.post);case RemovePostOfflineEvent():
 return removePostOffline(_that.postId);case CheckPostOfflineStatusEvent():
-return checkPostOfflineStatus(_that.postId);case ResetPaginationEvent():
-return resetPagination(_that.categoryId,_that.useNewsPageLimit);case _:
+return checkPostOfflineStatus(_that.postId);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -190,7 +185,7 @@ return resetPagination(_that.categoryId,_that.useNewsPageLimit);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( bool forceRefresh,  int? categoryId,  bool useNewsPageLimit)?  getPosts,TResult? Function( int? categoryId)?  loadMorePosts,TResult? Function()?  loadCachedData,TResult? Function( PostEntity post)?  savePostOffline,TResult? Function( int postId)?  removePostOffline,TResult? Function( int postId)?  checkPostOfflineStatus,TResult? Function( int? categoryId,  bool useNewsPageLimit)?  resetPagination,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( bool forceRefresh,  int? categoryId,  bool useNewsPageLimit)?  getPosts,TResult? Function( int? categoryId)?  loadMorePosts,TResult? Function()?  loadCachedData,TResult? Function( PostEntity post)?  savePostOffline,TResult? Function( int postId)?  removePostOffline,TResult? Function( int postId)?  checkPostOfflineStatus,}) {final _that = this;
 switch (_that) {
 case GetPostsEvent() when getPosts != null:
 return getPosts(_that.forceRefresh,_that.categoryId,_that.useNewsPageLimit);case LoadMorePostsEvent() when loadMorePosts != null:
@@ -198,8 +193,7 @@ return loadMorePosts(_that.categoryId);case LoadCachedDataEvent() when loadCache
 return loadCachedData();case SavePostOfflineEvent() when savePostOffline != null:
 return savePostOffline(_that.post);case RemovePostOfflineEvent() when removePostOffline != null:
 return removePostOffline(_that.postId);case CheckPostOfflineStatusEvent() when checkPostOfflineStatus != null:
-return checkPostOfflineStatus(_that.postId);case ResetPaginationEvent() when resetPagination != null:
-return resetPagination(_that.categoryId,_that.useNewsPageLimit);case _:
+return checkPostOfflineStatus(_that.postId);case _:
   return null;
 
 }
@@ -574,74 +568,6 @@ as int,
 }
 
 /// @nodoc
-
-
-class ResetPaginationEvent implements NewsFeedEvent {
-  const ResetPaginationEvent({this.categoryId, this.useNewsPageLimit = true});
-  
-
- final  int? categoryId;
-@JsonKey() final  bool useNewsPageLimit;
-
-/// Create a copy of NewsFeedEvent
-/// with the given fields replaced by the non-null parameter values.
-@JsonKey(includeFromJson: false, includeToJson: false)
-@pragma('vm:prefer-inline')
-$ResetPaginationEventCopyWith<ResetPaginationEvent> get copyWith => _$ResetPaginationEventCopyWithImpl<ResetPaginationEvent>(this, _$identity);
-
-
-
-@override
-bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ResetPaginationEvent&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.useNewsPageLimit, useNewsPageLimit) || other.useNewsPageLimit == useNewsPageLimit));
-}
-
-
-@override
-int get hashCode => Object.hash(runtimeType,categoryId,useNewsPageLimit);
-
-@override
-String toString() {
-  return 'NewsFeedEvent.resetPagination(categoryId: $categoryId, useNewsPageLimit: $useNewsPageLimit)';
-}
-
-
-}
-
-/// @nodoc
-abstract mixin class $ResetPaginationEventCopyWith<$Res> implements $NewsFeedEventCopyWith<$Res> {
-  factory $ResetPaginationEventCopyWith(ResetPaginationEvent value, $Res Function(ResetPaginationEvent) _then) = _$ResetPaginationEventCopyWithImpl;
-@useResult
-$Res call({
- int? categoryId, bool useNewsPageLimit
-});
-
-
-
-
-}
-/// @nodoc
-class _$ResetPaginationEventCopyWithImpl<$Res>
-    implements $ResetPaginationEventCopyWith<$Res> {
-  _$ResetPaginationEventCopyWithImpl(this._self, this._then);
-
-  final ResetPaginationEvent _self;
-  final $Res Function(ResetPaginationEvent) _then;
-
-/// Create a copy of NewsFeedEvent
-/// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? categoryId = freezed,Object? useNewsPageLimit = null,}) {
-  return _then(ResetPaginationEvent(
-categoryId: freezed == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
-as int?,useNewsPageLimit: null == useNewsPageLimit ? _self.useNewsPageLimit : useNewsPageLimit // ignore: cast_nullable_to_non_nullable
-as bool,
-  ));
-}
-
-
-}
-
-/// @nodoc
 mixin _$NewsFeedState {
 
 
@@ -758,12 +684,12 @@ return error(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function( int? categoryId)?  loading,TResult Function( List<PostEntity> posts,  Map<int?, List<PostEntity>> postsByCategory,  int? selectedCategoryId,  Map<int?, bool> hasMoreByCategory,  Map<int?, bool> isLoadingByCategory,  Map<int?, Failure?> errorsByCategory,  Map<int?, int> currentPageByCategory)?  loaded,TResult Function( Failure failure,  int? categoryId)?  error,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function( int? categoryId)?  loading,TResult Function( List<PostEntity> posts,  Map<int?, List<PostEntity>> postsByCategory,  int? selectedCategoryId,  Map<int?, bool> hasMoreByCategory,  Map<int?, bool> isLoadingByCategory,  Map<int?, Failure?> errorsByCategory,  Map<int?, int> currentPageByCategory,  Set<int> offlinePostIds)?  loaded,TResult Function( Failure failure,  int? categoryId)?  error,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Initial() when initial != null:
 return initial();case _Loading() when loading != null:
 return loading(_that.categoryId);case _Loaded() when loaded != null:
-return loaded(_that.posts,_that.postsByCategory,_that.selectedCategoryId,_that.hasMoreByCategory,_that.isLoadingByCategory,_that.errorsByCategory,_that.currentPageByCategory);case _Error() when error != null:
+return loaded(_that.posts,_that.postsByCategory,_that.selectedCategoryId,_that.hasMoreByCategory,_that.isLoadingByCategory,_that.errorsByCategory,_that.currentPageByCategory,_that.offlinePostIds);case _Error() when error != null:
 return error(_that.failure,_that.categoryId);case _:
   return orElse();
 
@@ -782,12 +708,12 @@ return error(_that.failure,_that.categoryId);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function( int? categoryId)  loading,required TResult Function( List<PostEntity> posts,  Map<int?, List<PostEntity>> postsByCategory,  int? selectedCategoryId,  Map<int?, bool> hasMoreByCategory,  Map<int?, bool> isLoadingByCategory,  Map<int?, Failure?> errorsByCategory,  Map<int?, int> currentPageByCategory)  loaded,required TResult Function( Failure failure,  int? categoryId)  error,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function( int? categoryId)  loading,required TResult Function( List<PostEntity> posts,  Map<int?, List<PostEntity>> postsByCategory,  int? selectedCategoryId,  Map<int?, bool> hasMoreByCategory,  Map<int?, bool> isLoadingByCategory,  Map<int?, Failure?> errorsByCategory,  Map<int?, int> currentPageByCategory,  Set<int> offlinePostIds)  loaded,required TResult Function( Failure failure,  int? categoryId)  error,}) {final _that = this;
 switch (_that) {
 case _Initial():
 return initial();case _Loading():
 return loading(_that.categoryId);case _Loaded():
-return loaded(_that.posts,_that.postsByCategory,_that.selectedCategoryId,_that.hasMoreByCategory,_that.isLoadingByCategory,_that.errorsByCategory,_that.currentPageByCategory);case _Error():
+return loaded(_that.posts,_that.postsByCategory,_that.selectedCategoryId,_that.hasMoreByCategory,_that.isLoadingByCategory,_that.errorsByCategory,_that.currentPageByCategory,_that.offlinePostIds);case _Error():
 return error(_that.failure,_that.categoryId);case _:
   throw StateError('Unexpected subclass');
 
@@ -805,12 +731,12 @@ return error(_that.failure,_that.categoryId);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function( int? categoryId)?  loading,TResult? Function( List<PostEntity> posts,  Map<int?, List<PostEntity>> postsByCategory,  int? selectedCategoryId,  Map<int?, bool> hasMoreByCategory,  Map<int?, bool> isLoadingByCategory,  Map<int?, Failure?> errorsByCategory,  Map<int?, int> currentPageByCategory)?  loaded,TResult? Function( Failure failure,  int? categoryId)?  error,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function( int? categoryId)?  loading,TResult? Function( List<PostEntity> posts,  Map<int?, List<PostEntity>> postsByCategory,  int? selectedCategoryId,  Map<int?, bool> hasMoreByCategory,  Map<int?, bool> isLoadingByCategory,  Map<int?, Failure?> errorsByCategory,  Map<int?, int> currentPageByCategory,  Set<int> offlinePostIds)?  loaded,TResult? Function( Failure failure,  int? categoryId)?  error,}) {final _that = this;
 switch (_that) {
 case _Initial() when initial != null:
 return initial();case _Loading() when loading != null:
 return loading(_that.categoryId);case _Loaded() when loaded != null:
-return loaded(_that.posts,_that.postsByCategory,_that.selectedCategoryId,_that.hasMoreByCategory,_that.isLoadingByCategory,_that.errorsByCategory,_that.currentPageByCategory);case _Error() when error != null:
+return loaded(_that.posts,_that.postsByCategory,_that.selectedCategoryId,_that.hasMoreByCategory,_that.isLoadingByCategory,_that.errorsByCategory,_that.currentPageByCategory,_that.offlinePostIds);case _Error() when error != null:
 return error(_that.failure,_that.categoryId);case _:
   return null;
 
@@ -921,7 +847,7 @@ as int?,
 
 
 class _Loaded implements NewsFeedState {
-  const _Loaded({required final  List<PostEntity> posts, required final  Map<int?, List<PostEntity>> postsByCategory, this.selectedCategoryId, final  Map<int?, bool> hasMoreByCategory = const {}, final  Map<int?, bool> isLoadingByCategory = const {}, final  Map<int?, Failure?> errorsByCategory = const {}, final  Map<int?, int> currentPageByCategory = const {}}): _posts = posts,_postsByCategory = postsByCategory,_hasMoreByCategory = hasMoreByCategory,_isLoadingByCategory = isLoadingByCategory,_errorsByCategory = errorsByCategory,_currentPageByCategory = currentPageByCategory;
+  const _Loaded({required final  List<PostEntity> posts, required final  Map<int?, List<PostEntity>> postsByCategory, this.selectedCategoryId, final  Map<int?, bool> hasMoreByCategory = const {}, final  Map<int?, bool> isLoadingByCategory = const {}, final  Map<int?, Failure?> errorsByCategory = const {}, final  Map<int?, int> currentPageByCategory = const {}, final  Set<int> offlinePostIds = const {}}): _posts = posts,_postsByCategory = postsByCategory,_hasMoreByCategory = hasMoreByCategory,_isLoadingByCategory = isLoadingByCategory,_errorsByCategory = errorsByCategory,_currentPageByCategory = currentPageByCategory,_offlinePostIds = offlinePostIds;
   
 
  final  List<PostEntity> _posts;
@@ -967,6 +893,13 @@ class _Loaded implements NewsFeedState {
   return EqualUnmodifiableMapView(_currentPageByCategory);
 }
 
+ final  Set<int> _offlinePostIds;
+@JsonKey() Set<int> get offlinePostIds {
+  if (_offlinePostIds is EqualUnmodifiableSetView) return _offlinePostIds;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableSetView(_offlinePostIds);
+}
+
 
 /// Create a copy of NewsFeedState
 /// with the given fields replaced by the non-null parameter values.
@@ -978,16 +911,16 @@ _$LoadedCopyWith<_Loaded> get copyWith => __$LoadedCopyWithImpl<_Loaded>(this, _
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Loaded&&const DeepCollectionEquality().equals(other._posts, _posts)&&const DeepCollectionEquality().equals(other._postsByCategory, _postsByCategory)&&(identical(other.selectedCategoryId, selectedCategoryId) || other.selectedCategoryId == selectedCategoryId)&&const DeepCollectionEquality().equals(other._hasMoreByCategory, _hasMoreByCategory)&&const DeepCollectionEquality().equals(other._isLoadingByCategory, _isLoadingByCategory)&&const DeepCollectionEquality().equals(other._errorsByCategory, _errorsByCategory)&&const DeepCollectionEquality().equals(other._currentPageByCategory, _currentPageByCategory));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Loaded&&const DeepCollectionEquality().equals(other._posts, _posts)&&const DeepCollectionEquality().equals(other._postsByCategory, _postsByCategory)&&(identical(other.selectedCategoryId, selectedCategoryId) || other.selectedCategoryId == selectedCategoryId)&&const DeepCollectionEquality().equals(other._hasMoreByCategory, _hasMoreByCategory)&&const DeepCollectionEquality().equals(other._isLoadingByCategory, _isLoadingByCategory)&&const DeepCollectionEquality().equals(other._errorsByCategory, _errorsByCategory)&&const DeepCollectionEquality().equals(other._currentPageByCategory, _currentPageByCategory)&&const DeepCollectionEquality().equals(other._offlinePostIds, _offlinePostIds));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_posts),const DeepCollectionEquality().hash(_postsByCategory),selectedCategoryId,const DeepCollectionEquality().hash(_hasMoreByCategory),const DeepCollectionEquality().hash(_isLoadingByCategory),const DeepCollectionEquality().hash(_errorsByCategory),const DeepCollectionEquality().hash(_currentPageByCategory));
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_posts),const DeepCollectionEquality().hash(_postsByCategory),selectedCategoryId,const DeepCollectionEquality().hash(_hasMoreByCategory),const DeepCollectionEquality().hash(_isLoadingByCategory),const DeepCollectionEquality().hash(_errorsByCategory),const DeepCollectionEquality().hash(_currentPageByCategory),const DeepCollectionEquality().hash(_offlinePostIds));
 
 @override
 String toString() {
-  return 'NewsFeedState.loaded(posts: $posts, postsByCategory: $postsByCategory, selectedCategoryId: $selectedCategoryId, hasMoreByCategory: $hasMoreByCategory, isLoadingByCategory: $isLoadingByCategory, errorsByCategory: $errorsByCategory, currentPageByCategory: $currentPageByCategory)';
+  return 'NewsFeedState.loaded(posts: $posts, postsByCategory: $postsByCategory, selectedCategoryId: $selectedCategoryId, hasMoreByCategory: $hasMoreByCategory, isLoadingByCategory: $isLoadingByCategory, errorsByCategory: $errorsByCategory, currentPageByCategory: $currentPageByCategory, offlinePostIds: $offlinePostIds)';
 }
 
 
@@ -998,7 +931,7 @@ abstract mixin class _$LoadedCopyWith<$Res> implements $NewsFeedStateCopyWith<$R
   factory _$LoadedCopyWith(_Loaded value, $Res Function(_Loaded) _then) = __$LoadedCopyWithImpl;
 @useResult
 $Res call({
- List<PostEntity> posts, Map<int?, List<PostEntity>> postsByCategory, int? selectedCategoryId, Map<int?, bool> hasMoreByCategory, Map<int?, bool> isLoadingByCategory, Map<int?, Failure?> errorsByCategory, Map<int?, int> currentPageByCategory
+ List<PostEntity> posts, Map<int?, List<PostEntity>> postsByCategory, int? selectedCategoryId, Map<int?, bool> hasMoreByCategory, Map<int?, bool> isLoadingByCategory, Map<int?, Failure?> errorsByCategory, Map<int?, int> currentPageByCategory, Set<int> offlinePostIds
 });
 
 
@@ -1015,7 +948,7 @@ class __$LoadedCopyWithImpl<$Res>
 
 /// Create a copy of NewsFeedState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? posts = null,Object? postsByCategory = null,Object? selectedCategoryId = freezed,Object? hasMoreByCategory = null,Object? isLoadingByCategory = null,Object? errorsByCategory = null,Object? currentPageByCategory = null,}) {
+@pragma('vm:prefer-inline') $Res call({Object? posts = null,Object? postsByCategory = null,Object? selectedCategoryId = freezed,Object? hasMoreByCategory = null,Object? isLoadingByCategory = null,Object? errorsByCategory = null,Object? currentPageByCategory = null,Object? offlinePostIds = null,}) {
   return _then(_Loaded(
 posts: null == posts ? _self._posts : posts // ignore: cast_nullable_to_non_nullable
 as List<PostEntity>,postsByCategory: null == postsByCategory ? _self._postsByCategory : postsByCategory // ignore: cast_nullable_to_non_nullable
@@ -1024,7 +957,8 @@ as int?,hasMoreByCategory: null == hasMoreByCategory ? _self._hasMoreByCategory 
 as Map<int?, bool>,isLoadingByCategory: null == isLoadingByCategory ? _self._isLoadingByCategory : isLoadingByCategory // ignore: cast_nullable_to_non_nullable
 as Map<int?, bool>,errorsByCategory: null == errorsByCategory ? _self._errorsByCategory : errorsByCategory // ignore: cast_nullable_to_non_nullable
 as Map<int?, Failure?>,currentPageByCategory: null == currentPageByCategory ? _self._currentPageByCategory : currentPageByCategory // ignore: cast_nullable_to_non_nullable
-as Map<int?, int>,
+as Map<int?, int>,offlinePostIds: null == offlinePostIds ? _self._offlinePostIds : offlinePostIds // ignore: cast_nullable_to_non_nullable
+as Set<int>,
   ));
 }
 

@@ -267,12 +267,12 @@ class _HomeNewsListSectionState extends State<HomeNewsListSection> {
                 
                 // Get selected category from NewsFeedBloc state
                 final prevSelectedCategoryId = previous.maybeWhen(
-                  loaded: (_, _, selectedCategoryId, _, _, _, _) => selectedCategoryId,
+                  loaded: (_, _, selectedCategoryId, _, _, _, _, _) => selectedCategoryId,
                   orElse: () => null,
                 );
                 
                 final currSelectedCategoryId = current.maybeWhen(
-                  loaded: (_, _, selectedCategoryId, _, _, _, _) => selectedCategoryId,
+                  loaded: (_, _, selectedCategoryId, _, _, _, _, _) => selectedCategoryId,
                   orElse: () => null,
                 );
                 
@@ -281,40 +281,40 @@ class _HomeNewsListSectionState extends State<HomeNewsListSection> {
                 final categoryToCheck = currSelectedCategoryId ?? homeCategoryId;
                 
                 final prevLoading = previous.maybeWhen(
-                  loaded: (_, _, _, _, isLoadingByCategory, _, _) =>
+                  loaded: (_, _, _, _, isLoadingByCategory, _, _, _) =>
                       isLoadingByCategory[categoryToCheck] ?? false,
                   loading: (categoryId) => categoryId == categoryToCheck,
                   orElse: () => false,
                 );
                 
                 final currLoading = current.maybeWhen(
-                  loaded: (_, _, _, _, isLoadingByCategory, _, _) =>
+                  loaded: (_, _, _, _, isLoadingByCategory, _, _, _) =>
                       isLoadingByCategory[categoryToCheck] ?? false,
                   loading: (categoryId) => categoryId == categoryToCheck,
                   orElse: () => false,
                 );
                 
                 final prevPosts = previous.maybeWhen(
-                  loaded: (_, postsByCategory, _, _, _, _, _) =>
+                  loaded: (_, postsByCategory, _, _, _, _, _, _) =>
                       postsByCategory[categoryToCheck] ?? [],
                   orElse: () => <PostEntity>[],
                 );
                 
                 final currPosts = current.maybeWhen(
-                  loaded: (_, postsByCategory, _, _, _, _, _) =>
+                  loaded: (_, postsByCategory, _, _, _, _, _, _) =>
                       postsByCategory[categoryToCheck] ?? [],
                   orElse: () => <PostEntity>[],
                 );
                 
                 final prevError = previous.maybeWhen(
-                  loaded: (_, _, _, _, _, errorsByCategory, _) =>
+                  loaded: (_, _, _, _, _, errorsByCategory, _, _) =>
                       errorsByCategory[categoryToCheck],
                   error: (failure, categoryId) => categoryId == categoryToCheck ? failure : null,
                   orElse: () => null,
                 );
                 
                 final currError = current.maybeWhen(
-                  loaded: (_, _, _, _, _, errorsByCategory, _) =>
+                  loaded: (_, _, _, _, _, errorsByCategory, _, _) =>
                       errorsByCategory[categoryToCheck],
                   error: (failure, categoryId) => categoryId == categoryToCheck ? failure : null,
                   orElse: () => null,
@@ -348,6 +348,7 @@ class _HomeNewsListSectionState extends State<HomeNewsListSection> {
                     isLoadingByCategory,
                     errorsByCategory,
                     currentPageByCategory,
+                    offlinePostIds,
                   ) {
                     final categoryId = data.selectedCategoryId;
                     final categoryPosts = categoryId != null

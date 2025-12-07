@@ -86,7 +86,7 @@ class _ShoutboxPageViewState extends State<ShoutboxPageView> {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
-        Navigator.pushReplacementNamed(context, AppRoutes.home);
+        unawaited(Navigator.pushReplacementNamed(context, AppRoutes.home));
       },
       child: Scaffold(
         resizeToAvoidBottomInset: true,

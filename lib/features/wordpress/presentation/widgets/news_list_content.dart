@@ -5,7 +5,7 @@ import '../../../../core/themes/design_tokens.dart';
 import '../../../../core/widgets/news_list_skeleton.dart';
 import '../bloc/news_feed_bloc.dart';
 import '../bloc/news_search_bloc.dart';
-import '../widgets/news_card.dart';
+import '../widgets/news_card_widget.dart';
 import '../widgets/news_empty_states.dart';
 import '../widgets/news_search_results_header.dart';
 import '../../domain/entities/post_entity.dart';
@@ -67,6 +67,7 @@ class NewsListContent extends StatelessWidget {
             isLoadingByCategory,
             errorsByCategory,
             currentPageByCategory,
+            offlinePostIds,
           ) {
             // Always prefer the category-specific list (including the "all" category with null key)
             final regularPosts =
@@ -89,6 +90,7 @@ class NewsListContent extends StatelessWidget {
               posts: regularPosts,
               isLoadingMore: isLoadingMore,
               hasActiveSearch: false,
+              offlinePostIds: offlinePostIds,
             );
           },
           loading: (categoryId) => SliverToBoxAdapter(
@@ -186,11 +188,13 @@ class NewsListContent extends StatelessWidget {
     );
   }
 
+
   Widget _buildRegularContent({
     required BuildContext context,
     required List<PostEntity> posts,
     required bool isLoadingMore,
     required bool hasActiveSearch,
+    required Set<int> offlinePostIds,
   }) {
     if (posts.isEmpty && !isLoadingMore) {
       return const SliverToBoxAdapter(
@@ -217,6 +221,7 @@ class NewsListContent extends StatelessWidget {
                   key: ValueKey('regular-${post.id}'),
                   post: post,
                   compact: false,
+                  isOffline: offlinePostIds.contains(post.id),
                 ),
               );
             }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -55,7 +57,7 @@ class _LoadingAppPageState extends State<LoadingAppPage> {
 
     DebugLogger.log('Connectivity result: $_connectivityResult', tag: 'LoadingPage');
     if (_connectivityResult != ConnectivityResult.none) {
-      _initializeApp();
+      unawaited(_initializeApp());
     } else {
       DebugLogger.log('No internet connection detected', tag: 'LoadingPage');
     }

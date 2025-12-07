@@ -95,11 +95,6 @@ import '../../features/categories/data/datasources/config_remote_datasource.dart
 import '../../features/categories/data/repositories/category_repository_impl.dart';
 import '../../features/categories/domain/repositories/category_repository.dart';
 
-// Promos feature imports
-import '../../features/promos/data/datasources/promo_remote_datasource.dart';
-import '../../features/promos/data/repositories/promo_repository_impl.dart';
-import '../../features/promos/domain/repositories/promo_repository.dart';
-import '../../features/promos/domain/usecases/get_promos_by_category.dart';
 
 // TamTama feature imports
 import '../../features/tamtama/data/datasources/tamtama_local_data_source.dart';
@@ -178,7 +173,6 @@ Future<void> initDependencies() async {
   _initShoutbox();
   _initWordPress();
   _initCategories();
-  _initPromos();
   _initHome();
   _initTamtama();
   _initAuth();
@@ -428,17 +422,6 @@ void _initCategories() {
   );
 }
 
-void _initPromos() {
-  getIt.registerLazySingleton<PromoRemoteDataSource>(
-    () => PromoRemoteDataSourceImpl(apiClient: getIt()),
-  );
-
-  getIt.registerLazySingleton<PromoRepository>(
-    () => PromoRepositoryImpl(remoteDataSource: getIt()),
-  );
-
-  getIt.registerLazySingleton(() => GetPromosByCategory(getIt()));
-}
 
 void _initGamification() {
   getIt.registerLazySingleton<ListeningStatsLocalDataSource>(

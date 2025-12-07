@@ -8,7 +8,7 @@ import '../../../../core/di/injection_container.dart';
 import '../bloc/song_history_bloc.dart';
 import '../bloc/radio_player_bloc.dart';
 import '../bloc/radio_player_state.dart';
-import 'song_history_item.dart';
+import 'radio_song_history_item.dart';
 
 class RadioSongHistorySection extends StatefulWidget {
   const RadioSongHistorySection({super.key});
@@ -143,7 +143,7 @@ class _RadioSongHistorySectionState extends State<RadioSongHistorySection> {
 
                   return Column(
                     children: limitedSongs.map((song) {
-                      return SongHistoryItem(
+                      return RadioSongHistoryItem(
                         key: ValueKey(song.id),
                         song: song, 
                         showBorder: false,

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'dart:io';
 import 'dart:ui' as ui;
@@ -20,19 +21,17 @@ import '../../../../core/utils/palette_cache.dart';
 import '../../data/repositories/greeting_repository.dart';
 import '../bloc/radio_player_bloc.dart';
 import '../bloc/radio_player_state.dart';
-import 'quote_share_card.dart';
+import 'radio_quote_share_card.dart';
 import 'radio_share_card.dart';
 
-class RadioMenuChipsSection extends StatelessWidget {
-  const RadioMenuChipsSection({super.key});
+class RadioActionButtons extends StatelessWidget {
+  const RadioActionButtons({super.key});
 
   @override
   Widget build(BuildContext context) {
     final menuChips = <Widget>[];
 
-    menuChips.add(
-      const _ShareChip(),
-    );
+    menuChips.add(const _ShareChip());
 
     if (RadioConfig.showLyrics) {
       menuChips.add(
@@ -92,10 +91,9 @@ class RadioMenuChipsSection extends StatelessWidget {
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: menuChips
-                    .expand((chip) => [
-                          chip,
-                          SizedBox(width: DesignTokens.spacingS),
-                        ])
+                    .expand(
+                      (chip) => [chip, SizedBox(width: DesignTokens.spacingS)],
+                    )
                     .take(menuChips.length * 2 - 1)
                     .toList(),
               ),
@@ -142,11 +140,7 @@ class _MenuChip extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              icon,
-              size: 16,
-              color: tokens.unselectedText,
-            ),
+            Icon(icon, size: 16, color: tokens.unselectedText),
             SizedBox(width: DesignTokens.spacingXs),
             Text(
               label.tr(),
@@ -174,7 +168,7 @@ class _GreetingChipState extends State<_GreetingChip> {
   @override
   void initState() {
     super.initState();
-    // Initialize repository if not already done. 
+    // Initialize repository if not already done.
     // It's safe to call multiple times as we can check inside or it's idempotent-ish enough for this context.
     // Ideally this belongs in main.dart or a provider, but for this task scoping:
     GreetingRepository().initialize();
@@ -182,8 +176,9 @@ class _GreetingChipState extends State<_GreetingChip> {
 
   Future<void> _captureAndShareQuote(String quote, String? albumArtUrl) async {
     try {
-      final boundary = _shareCardKey.currentContext?.findRenderObject()
-          as RenderRepaintBoundary?;
+      final boundary =
+          _shareCardKey.currentContext?.findRenderObject()
+              as RenderRepaintBoundary?;
 
       if (boundary == null) {
         debugPrint('Could not find render boundary');
@@ -200,7 +195,8 @@ class _GreetingChipState extends State<_GreetingChip> {
       }
 
       final directory = await getTemporaryDirectory();
-      final fileName = 'quote_share_${DateTime.now().millisecondsSinceEpoch}.png';
+      final fileName =
+          'quote_share_${DateTime.now().millisecondsSinceEpoch}.png';
       final file = File('${directory.path}/$fileName');
       await file.writeAsBytes(pngBytes);
 
@@ -238,9 +234,15 @@ class _GreetingChipState extends State<_GreetingChip> {
     final g = color.g;
     final b = color.b;
 
-    final rLinear = r <= 0.03928 ? r / 12.92 : math.pow((r + 0.055) / 1.055, 2.4);
-    final gLinear = g <= 0.03928 ? g / 12.92 : math.pow((g + 0.055) / 1.055, 2.4);
-    final bLinear = b <= 0.03928 ? b / 12.92 : math.pow((b + 0.055) / 1.055, 2.4);
+    final rLinear = r <= 0.03928
+        ? r / 12.92
+        : math.pow((r + 0.055) / 1.055, 2.4);
+    final gLinear = g <= 0.03928
+        ? g / 12.92
+        : math.pow((g + 0.055) / 1.055, 2.4);
+    final bLinear = b <= 0.03928
+        ? b / 12.92
+        : math.pow((b + 0.055) / 1.055, 2.4);
 
     return 0.2126 * rLinear + 0.7152 * gLinear + 0.0722 * bLinear;
   }
@@ -251,21 +253,13 @@ class _GreetingChipState extends State<_GreetingChip> {
 
     switch (greetingKey) {
       case 'greeting_morning':
-        return isDark
-            ? const Color(0xFFFFD54F)
-            : const Color(0xFFFFF176);
+        return isDark ? const Color(0xFFFFD54F) : const Color(0xFFFFF176);
       case 'greeting_midday':
-        return isDark
-            ? const Color(0xFFFF9800)
-            : const Color(0xFFFFB74D);
+        return isDark ? const Color(0xFFFF9800) : const Color(0xFFFFB74D);
       case 'greeting_evening':
-        return isDark
-            ? const Color(0xFFFF6F00)
-            : const Color(0xFFFF8A65);
+        return isDark ? const Color(0xFFFF6F00) : const Color(0xFFFF8A65);
       case 'greeting_night':
-        return isDark
-            ? const Color(0xFF212121)
-            : const Color(0xFF616161);
+        return isDark ? const Color(0xFF212121) : const Color(0xFF616161);
       default:
         return theme.colorScheme.surfaceContainerHighest;
     }
@@ -286,10 +280,10 @@ class _GreetingChipState extends State<_GreetingChip> {
       return lightContrast >= 4.5
           ? lightText
           : darkContrast >= 4.5
-              ? darkText
-              : lightContrast > darkContrast
-                  ? lightText
-                  : darkText;
+          ? darkText
+          : lightContrast > darkContrast
+          ? lightText
+          : darkText;
     }
 
     switch (greetingKey) {
@@ -334,10 +328,10 @@ class _GreetingChipState extends State<_GreetingChip> {
       onTap: () async {
         // Fetch quote asynchronously
         final quote = await GreetingRepository().getDailyQuote(
-          greetingKey, 
+          greetingKey,
           context.locale.languageCode,
         );
-        
+
         if (!context.mounted) return;
 
         // Get current album art from RadioPlayerBloc
@@ -346,10 +340,18 @@ class _GreetingChipState extends State<_GreetingChip> {
           final radioPlayerBloc = context.read<RadioPlayerBloc>();
           final radioState = radioPlayerBloc.state;
           radioState.maybeWhen(
-            ready: (isPlaying, currentUrl, currentArtist, currentTitle,
-                currentAlbumArtUrl, isDucking, canAutoResume) {
-              albumArtUrl = currentAlbumArtUrl;
-            },
+            ready:
+                (
+                  isPlaying,
+                  currentUrl,
+                  currentArtist,
+                  currentTitle,
+                  currentAlbumArtUrl,
+                  isDucking,
+                  canAutoResume,
+                ) {
+                  albumArtUrl = currentAlbumArtUrl;
+                },
             orElse: () {},
           );
         } catch (e) {
@@ -358,97 +360,102 @@ class _GreetingChipState extends State<_GreetingChip> {
 
         final displayQuote = quote.isNotEmpty ? quote : 'Have a wonderful day!';
 
-        showDialog(
-          context: context,
-          builder: (dialogContext) => Stack(
-            children: [
-              Transform.translate(
-                offset: const Offset(-10000, -10000),
-                child: RepaintBoundary(
-                  key: _shareCardKey,
-                  child: QuoteShareCard(
-                    quote: displayQuote,
-                    albumArtUrl: albumArtUrl,
+        unawaited(
+          showDialog(
+            context: context,
+            builder: (dialogContext) => Stack(
+              children: [
+                Transform.translate(
+                  offset: const Offset(-10000, -10000),
+                  child: RepaintBoundary(
+                    key: _shareCardKey,
+                    child: RadioQuoteShareCard(
+                      quote: displayQuote,
+                      albumArtUrl: albumArtUrl,
+                    ),
                   ),
                 ),
-              ),
-              Dialog(
-                backgroundColor: theme.colorScheme.surfaceContainerHigh,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(28),
-                ),
-                child: Container(
-                  padding: EdgeInsets.all(DesignTokens.spacingL),
-                  constraints: const BoxConstraints(maxWidth: 320),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Icon(
-                          LucideIcons.quote,
-                          size: 32,
-                          color: theme.colorScheme.primary,
+                Dialog(
+                  backgroundColor: theme.colorScheme.surfaceContainerHigh,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(28),
+                  ),
+                  child: Container(
+                    padding: EdgeInsets.all(DesignTokens.spacingL),
+                    constraints: const BoxConstraints(maxWidth: 320),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Icon(
+                            LucideIcons.quote,
+                            size: 32,
+                            color: theme.colorScheme.primary,
+                          ),
                         ),
-                      ),
-                      SizedBox(height: DesignTokens.spacingM),
-                      Text(
-                        displayQuote,
-                        style: theme.textTheme.headlineSmall?.copyWith(
-                          height: 1.3,
-                          color: theme.colorScheme.onSurface,
+                        SizedBox(height: DesignTokens.spacingM),
+                        Text(
+                          displayQuote,
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            height: 1.3,
+                            color: theme.colorScheme.onSurface,
+                          ),
                         ),
-                      ),
-                      SizedBox(height: DesignTokens.spacingL),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          TextButton.icon(
-                            onPressed: () async {
-                              await _captureAndShareQuote(displayQuote, albumArtUrl);
-                            },
-                            style: TextButton.styleFrom(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: DesignTokens.spacingM,
-                                vertical: DesignTokens.spacingS,
+                        SizedBox(height: DesignTokens.spacingL),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            TextButton.icon(
+                              onPressed: () async {
+                                await _captureAndShareQuote(
+                                  displayQuote,
+                                  albumArtUrl,
+                                );
+                              },
+                              style: TextButton.styleFrom(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: DesignTokens.spacingM,
+                                  vertical: DesignTokens.spacingS,
+                                ),
                               ),
-                            ),
-                            icon: Icon(
-                              LucideIcons.share_2,
-                              size: 18,
-                              color: theme.colorScheme.primary,
-                            ),
-                            label: Text(
-                              'Share',
-                              style: theme.textTheme.labelLarge?.copyWith(
+                              icon: Icon(
+                                LucideIcons.share_2,
+                                size: 18,
                                 color: theme.colorScheme.primary,
                               ),
-                            ),
-                          ),
-                          SizedBox(width: DesignTokens.spacingS),
-                          TextButton(
-                            onPressed: () => Navigator.pop(dialogContext),
-                            style: TextButton.styleFrom(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: DesignTokens.spacingM,
-                                vertical: DesignTokens.spacingS,
+                              label: Text(
+                                'Share',
+                                style: theme.textTheme.labelLarge?.copyWith(
+                                  color: theme.colorScheme.primary,
+                                ),
                               ),
                             ),
-                            child: Text(
-                              'Close',
-                              style: theme.textTheme.labelLarge?.copyWith(
-                                color: theme.colorScheme.primary,
+                            SizedBox(width: DesignTokens.spacingS),
+                            TextButton(
+                              onPressed: () => Navigator.pop(dialogContext),
+                              style: TextButton.styleFrom(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: DesignTokens.spacingM,
+                                  vertical: DesignTokens.spacingS,
+                                ),
+                              ),
+                              child: Text(
+                                'Close',
+                                style: theme.textTheme.labelLarge?.copyWith(
+                                  color: theme.colorScheme.primary,
+                                ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },
@@ -460,10 +467,7 @@ class _GreetingChipState extends State<_GreetingChip> {
         decoration: BoxDecoration(
           color: chipColor,
           borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusPill),
-          border: Border.all(
-            color: borderColor,
-            width: 1,
-          ),
+          border: Border.all(color: borderColor, width: 1),
         ),
         child: Text(
           greetingKey.tr(),
@@ -499,8 +503,9 @@ class _ShareChipState extends State<_ShareChip> {
     try {
       await Future.delayed(const Duration(milliseconds: 200));
 
-      final boundary = _previewCardKey.currentContext?.findRenderObject()
-          as RenderRepaintBoundary?;
+      final boundary =
+          _previewCardKey.currentContext?.findRenderObject()
+              as RenderRepaintBoundary?;
 
       if (boundary == null) {
         debugPrint('Could not find render boundary');
@@ -525,7 +530,8 @@ class _ShareChipState extends State<_ShareChip> {
       }
 
       final directory = await getTemporaryDirectory();
-      final fileName = 'radio_share_${DateTime.now().millisecondsSinceEpoch}.png';
+      final fileName =
+          'radio_share_${DateTime.now().millisecondsSinceEpoch}.png';
       final file = File('${directory.path}/$fileName');
       await file.writeAsBytes(pngBytes);
 
@@ -587,13 +593,21 @@ class _ShareChipState extends State<_ShareChip> {
           final radioPlayerBloc = context.read<RadioPlayerBloc>();
           final radioState = radioPlayerBloc.state;
           radioState.maybeWhen(
-            ready: (playing, currentUrl, currentArtist, currentTitle,
-                currentAlbumArtUrl, isDucking, canAutoResume) {
-              artist = currentArtist;
-              title = currentTitle;
-              albumArtUrl = currentAlbumArtUrl;
-              isPlaying = playing;
-            },
+            ready:
+                (
+                  playing,
+                  currentUrl,
+                  currentArtist,
+                  currentTitle,
+                  currentAlbumArtUrl,
+                  isDucking,
+                  canAutoResume,
+                ) {
+                  artist = currentArtist;
+                  title = currentTitle;
+                  albumArtUrl = currentAlbumArtUrl;
+                  isPlaying = playing;
+                },
             orElse: () {},
           );
         } catch (e) {
@@ -604,93 +618,93 @@ class _ShareChipState extends State<_ShareChip> {
 
         if (!context.mounted) return;
 
-        showDialog(
-          context: context,
-          builder: (dialogContext) => Dialog(
-                backgroundColor: theme.colorScheme.surfaceContainerHigh,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(28),
+        unawaited(
+          showDialog(
+            context: context,
+            builder: (dialogContext) => Dialog(
+              backgroundColor: theme.colorScheme.surfaceContainerHigh,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(28),
+              ),
+              child: Container(
+                padding: EdgeInsets.all(DesignTokens.spacingL),
+                constraints: BoxConstraints(
+                  maxWidth: MediaQuery.of(context).size.width * 0.9,
+                  maxHeight: MediaQuery.of(context).size.height * 0.85,
                 ),
-                child: Container(
-                  padding: EdgeInsets.all(DesignTokens.spacingL),
-                  constraints: BoxConstraints(
-                    maxWidth: MediaQuery.of(context).size.width * 0.9,
-                    maxHeight: MediaQuery.of(context).size.height * 0.85,
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Flexible(
-                        child: Container(
-                          constraints: const BoxConstraints(
-                            maxHeight: 500,
-                          ),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(16),
-                            color: theme.colorScheme.surfaceContainerHigh,
-                          ),
-                          clipBehavior: Clip.antiAlias,
-                          child: AspectRatio(
-                            aspectRatio: 9 / 16,
-                            child: RepaintBoundary(
-                              key: _previewCardKey,
-                              child: RadioShareCard(
-                                artist: artist,
-                                title: title,
-                                albumArtUrl: albumArtUrl,
-                                palette: palette,
-                                isPlaying: isPlaying,
-                              ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Flexible(
+                      child: Container(
+                        constraints: const BoxConstraints(maxHeight: 500),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          color: theme.colorScheme.surfaceContainerHigh,
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: AspectRatio(
+                          aspectRatio: 9 / 16,
+                          child: RepaintBoundary(
+                            key: _previewCardKey,
+                            child: RadioShareCard(
+                              artist: artist,
+                              title: title,
+                              albumArtUrl: albumArtUrl,
+                              palette: palette,
+                              isPlaying: isPlaying,
                             ),
                           ),
                         ),
                       ),
-                      SizedBox(height: DesignTokens.spacingL),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(dialogContext),
-                            style: TextButton.styleFrom(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: DesignTokens.spacingM,
-                                vertical: DesignTokens.spacingS,
-                              ),
-                            ),
-                            child: Text(
-                              'Cancel',
-                              style: theme.textTheme.labelLarge?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
+                    ),
+                    SizedBox(height: DesignTokens.spacingL),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(dialogContext),
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: DesignTokens.spacingM,
+                              vertical: DesignTokens.spacingS,
                             ),
                           ),
-                          SizedBox(width: DesignTokens.spacingS),
-                          FilledButton(
-                            onPressed: () async {
-                              await _captureAndShare(
-                                artist: artist,
-                                title: title,
-                                albumArtUrl: albumArtUrl,
-                                palette: palette,
-                                isPlaying: isPlaying,
-                                dialogContext: dialogContext,
-                              );
-                            },
-                            style: FilledButton.styleFrom(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: DesignTokens.spacingM,
-                                vertical: DesignTokens.spacingS,
-                              ),
+                          child: Text(
+                            'Cancel',
+                            style: theme.textTheme.labelLarge?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
                             ),
-                            child: Text('Share'),
                           ),
-                        ],
-                      ),
-                    ],
-                  ),
+                        ),
+                        SizedBox(width: DesignTokens.spacingS),
+                        FilledButton(
+                          onPressed: () async {
+                            await _captureAndShare(
+                              artist: artist,
+                              title: title,
+                              albumArtUrl: albumArtUrl,
+                              palette: palette,
+                              isPlaying: isPlaying,
+                              dialogContext: dialogContext,
+                            );
+                          },
+                          style: FilledButton.styleFrom(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: DesignTokens.spacingM,
+                              vertical: DesignTokens.spacingS,
+                            ),
+                          ),
+                          child: Text('Share'),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
+            ),
+          ),
         );
       },
       child: Container(
@@ -709,11 +723,7 @@ class _ShareChipState extends State<_ShareChip> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              LucideIcons.share_2,
-              size: 16,
-              color: tokens.unselectedText,
-            ),
+            Icon(LucideIcons.share_2, size: 16, color: tokens.unselectedText),
             SizedBox(width: DesignTokens.spacingXs),
             Text(
               'Share',
@@ -727,5 +737,5 @@ class _ShareChipState extends State<_ShareChip> {
     );
   }
 }
-// Removed _QuoteTooltipContent as it is no longer used
 
+// Removed _QuoteTooltipContent as it is no longer used

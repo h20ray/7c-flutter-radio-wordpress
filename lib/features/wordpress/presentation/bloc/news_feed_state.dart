@@ -16,6 +16,7 @@ class NewsFeedState with _$NewsFeedState {
     @Default({}) Map<int?, bool> isLoadingByCategory,
     @Default({}) Map<int?, Failure?> errorsByCategory,
     @Default({}) Map<int?, int> currentPageByCategory,
+    @Default({}) Set<int> offlinePostIds,
   }) = _Loaded;
   
   const factory NewsFeedState.error({

@@ -16,7 +16,9 @@ class NewsFeedStateHelper {
         hasMoreByCategory,
         isLoadingByCategory,
         errorsByCategory,
+
         currentPageByCategory,
+        offlinePostIds,
       ) {
         return NewsFeedStateValues(
           posts: posts,
@@ -26,6 +28,7 @@ class NewsFeedStateHelper {
           isLoadingByCategory: Map.from(isLoadingByCategory),
           errorsByCategory: Map.from(errorsByCategory),
           currentPageByCategory: Map.from(currentPageByCategory),
+          offlinePostIds: Set.from(offlinePostIds),
         );
       },
       orElse: () => NewsFeedStateValues.empty(),
@@ -51,6 +54,7 @@ class NewsFeedStateHelper {
     final newCurrentPageByCategory = Map<int?, int>.from(current.currentPageByCategory);
     newCurrentPageByCategory[categoryId] = 1;
 
+
     return NewsFeedState.loaded(
       posts: categoryId == null ? newPosts : current.posts,
       postsByCategory: newPostsByCategory,
@@ -59,6 +63,7 @@ class NewsFeedStateHelper {
       isLoadingByCategory: current.isLoadingByCategory,
       errorsByCategory: current.errorsByCategory,
       currentPageByCategory: newCurrentPageByCategory,
+      offlinePostIds: current.offlinePostIds,
     );
   }
 
@@ -89,6 +94,7 @@ class NewsFeedStateHelper {
       isLoadingByCategory: current.isLoadingByCategory,
       errorsByCategory: current.errorsByCategory,
       currentPageByCategory: newCurrentPageByCategory,
+      offlinePostIds: current.offlinePostIds,
     );
   }
 
@@ -109,6 +115,7 @@ class NewsFeedStateHelper {
       isLoadingByCategory: newIsLoadingByCategory,
       errorsByCategory: current.errorsByCategory,
       currentPageByCategory: current.currentPageByCategory,
+      offlinePostIds: current.offlinePostIds,
     );
   }
 
@@ -129,6 +136,7 @@ class NewsFeedStateHelper {
       isLoadingByCategory: current.isLoadingByCategory,
       errorsByCategory: newErrorsByCategory,
       currentPageByCategory: current.currentPageByCategory,
+      offlinePostIds: current.offlinePostIds,
     );
   }
 
@@ -153,6 +161,7 @@ class NewsFeedStateHelper {
       isLoadingByCategory: newIsLoadingByCategory,
       errorsByCategory: newErrorsByCategory,
       currentPageByCategory: current.currentPageByCategory,
+      offlinePostIds: current.offlinePostIds,
     );
   }
 }
@@ -166,6 +175,7 @@ class NewsFeedStateValues {
   final Map<int?, bool> isLoadingByCategory;
   final Map<int?, Failure?> errorsByCategory;
   final Map<int?, int> currentPageByCategory;
+  final Set<int> offlinePostIds;
 
   NewsFeedStateValues({
     required this.posts,
@@ -175,6 +185,7 @@ class NewsFeedStateValues {
     required this.isLoadingByCategory,
     required this.errorsByCategory,
     required this.currentPageByCategory,
+    required this.offlinePostIds,
   });
 
   factory NewsFeedStateValues.empty() {
@@ -186,6 +197,7 @@ class NewsFeedStateValues {
       isLoadingByCategory: {},
       errorsByCategory: {},
       currentPageByCategory: {},
+      offlinePostIds: {},
     );
   }
 }

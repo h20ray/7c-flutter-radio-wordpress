@@ -3,11 +3,11 @@ import '../../../../config/share_config.dart';
 import '../../../../config/radio_config.dart';
 import '../../../../core/widgets/app_network_image.dart';
 
-class QuoteShareCard extends StatelessWidget {
+class RadioQuoteShareCard extends StatelessWidget {
   final String quote;
   final String? albumArtUrl;
 
-  const QuoteShareCard({
+  const RadioQuoteShareCard({
     super.key,
     required this.quote,
     this.albumArtUrl,

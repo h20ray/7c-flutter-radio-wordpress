@@ -6,10 +6,10 @@ import 'dart:math';
 import '../../../../core/themes/component_tokens.dart';
 import '../../domain/entities/radio_entity.dart';
 
-class RadioBannerWidget extends StatelessWidget {
+class RadioBannerDisplay extends StatelessWidget {
   final List<RadioBanner> banners;
 
-  const RadioBannerWidget({
+  const RadioBannerDisplay({
     super.key,
     required this.banners,
   });

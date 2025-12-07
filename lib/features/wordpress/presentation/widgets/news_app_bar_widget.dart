@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -70,8 +72,9 @@ class NewsAppBarState extends State<NewsAppBar> {
           surfaceTintColor: Theme.of(context).colorScheme.surfaceTint,
           leading: IconButton(
             icon: const Icon(LucideIcons.arrow_left),
-            onPressed: () =>
-                Navigator.pushReplacementNamed(context, AppRoutes.home),
+            onPressed: () { 
+              unawaited(Navigator.pushReplacementNamed(context, AppRoutes.home));
+            },
           ),
           title: NewsSearchBox(
             key: _searchBoxKey,

@@ -83,9 +83,11 @@ class ListeningStatsRepositoryImpl implements ListeningStatsRepository {
       await _emit(updatedModel);
 
       if (remoteDataSource != null && _currentUserId != _guestUserId) {
-        remoteDataSource!.syncStatsToServer(updatedModel).catchError((e) {
-          return updatedModel;
-        });
+        unawaited(
+          remoteDataSource!.syncStatsToServer(updatedModel).catchError((e) {
+            return updatedModel;
+          }),
+        );
       }
 
       return Right(updatedModel);
@@ -167,10 +169,12 @@ class ListeningStatsRepositoryImpl implements ListeningStatsRepository {
         await _emit(mergedStats);
 
         if (remoteDataSource != null) {
-          remoteDataSource!.syncStatsToServer(mergedStats).catchError((e) {
-            // Log error but don't fail the operation - fire and forget
-            return mergedStats;
-          });
+          unawaited(
+            remoteDataSource!.syncStatsToServer(mergedStats).catchError((e) {
+              // Log error but don't fail the operation - fire and forget
+              return mergedStats;
+            }),
+          );
         }
 
         return Right(mergedStats);
@@ -184,9 +188,11 @@ class ListeningStatsRepositoryImpl implements ListeningStatsRepository {
           await localDataSource.save(initialStats);
 
           if (remoteDataSource != null) {
-            remoteDataSource!.syncStatsToServer(initialStats).catchError((e) {
-              return initialStats;
-            });
+            unawaited(
+              remoteDataSource!.syncStatsToServer(initialStats).catchError((e) {
+                return initialStats;
+              }),
+            );
           }
 
           await _emit(initialStats);
@@ -196,11 +202,13 @@ class ListeningStatsRepositoryImpl implements ListeningStatsRepository {
         await _emit(userStats);
 
         if (remoteDataSource != null) {
-          remoteDataSource!
-              .syncStatsToServer(UserListeningStatsModel.fromEntity(userStats))
-              .catchError((e) {
-                return UserListeningStatsModel.fromEntity(userStats);
-              });
+          unawaited(
+            remoteDataSource!
+                .syncStatsToServer(UserListeningStatsModel.fromEntity(userStats))
+                .catchError((e) {
+                  return UserListeningStatsModel.fromEntity(userStats);
+                }),
+          );
         }
 
         return Right(userStats);
@@ -277,9 +285,11 @@ class ListeningStatsRepositoryImpl implements ListeningStatsRepository {
       if (remoteDataSource != null &&
           userId != _guestUserId &&
           shouldUploadToServer) {
-        remoteDataSource!.syncStatsToServer(syncedStats).catchError((e) {
-          return syncedStats;
-        });
+        unawaited(
+          remoteDataSource!.syncStatsToServer(syncedStats).catchError((e) {
+            return syncedStats;
+          }),
+        );
       }
 
       return Right(syncedStats);

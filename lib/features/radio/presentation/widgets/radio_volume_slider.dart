@@ -4,8 +4,8 @@ import 'package:flutter/services.dart';
 
 import 'package:tujuhcahaya_wprs/shared/widgets/m3_linear_progress_bar.dart';
 
-class M3VolumeBar extends StatefulWidget {
-  const M3VolumeBar({
+class RadioVolumeSlider extends StatefulWidget {
+  const RadioVolumeSlider({
     super.key,
     required this.value,            // 0.0 – 1.0
     required this.onChanged,
@@ -27,10 +27,10 @@ class M3VolumeBar extends StatefulWidget {
   final bool enableHaptics;
 
   @override
-  State<M3VolumeBar> createState() => _M3VolumeBarState();
+  State<RadioVolumeSlider> createState() => _RadioVolumeSliderState();
 }
 
-class _M3VolumeBarState extends State<M3VolumeBar> {
+class _RadioVolumeSliderState extends State<RadioVolumeSlider> {
   late double _visualValue; // tweened value for smoothness
   Timer? _animationTimer;
 
@@ -41,7 +41,7 @@ class _M3VolumeBarState extends State<M3VolumeBar> {
   }
 
   @override
-  void didUpdateWidget(covariant M3VolumeBar oldWidget) {
+  void didUpdateWidget(covariant RadioVolumeSlider oldWidget) {
     super.didUpdateWidget(oldWidget);
     
     _animateTo(widget.value.clamp(0.0, 1.0));

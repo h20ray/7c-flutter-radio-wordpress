@@ -6,11 +6,11 @@ import '../../../../core/themes/design_tokens.dart';
 import '../../../../core/widgets/app_network_image.dart';
 import '../../domain/entities/song_history_entity.dart';
 
-class SongHistoryItem extends StatelessWidget {
+class RadioSongHistoryItem extends StatelessWidget {
   final SongHistoryEntity song;
   final bool showBorder;
 
-  const SongHistoryItem({
+  const RadioSongHistoryItem({
     super.key,
     required this.song,
     this.showBorder = false,
