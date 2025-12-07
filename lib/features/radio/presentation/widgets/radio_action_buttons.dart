@@ -1,27 +1,29 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+
 import '../../../../config/radio_config.dart';
-import '../../../../config/share_config.dart';
 import '../../../../core/routes/app_routes.dart';
-import '../../../../core/themes/component_tokens.dart';
+import '../../../../core/themes/action_chip_tokens.dart';
 import '../../../../core/themes/design_tokens.dart';
 import '../../../../core/widgets/haptic_widgets.dart';
 import '../../../../core/utils/haptic_feedback_helper.dart';
 import '../../../../core/services/palette_service.dart';
-import '../../../../core/services/image_capture_service.dart';
 import '../../../../core/services/greeting_service.dart';
-import '../../../../core/constants/share_constants.dart';
 import '../../../../core/di/injection_container.dart';
-import '../../../../core/utils/palette_cache.dart';
+import '../../../../core/mixins/radio_state_accessor_mixin.dart';
 import '../../data/repositories/greeting_repository.dart';
-import '../bloc/radio_player_bloc.dart';
-import '../bloc/radio_player_state.dart';
-import 'radio_quote_share_card.dart';
-import 'radio_share_card.dart';
+import 'dialogs/radio_now_playing_share_dialog.dart';
+import 'dialogs/radio_quote_dialog.dart';
 
+/// Radio action buttons widget displaying a horizontally scrollable
+/// row of action chips for quick access to radio features.
+///
+/// Contains:
+/// - Greeting chip (time-based greeting with daily quote)
+/// - Share chip (now playing share with Instagram mode)
+/// - Optional menu chips (Lyrics, Request, About, Song History)
 class RadioActionButtons extends StatelessWidget {
   const RadioActionButtons({super.key});
 
@@ -90,7 +92,8 @@ class RadioActionButtons extends StatelessWidget {
               child: Row(
                 children: menuChips
                     .expand(
-                      (chip) => [chip, const SizedBox(width: DesignTokens.spacingS)],
+                      (chip) =>
+                          [chip, const SizedBox(width: DesignTokens.spacingS)],
                     )
                     .take(menuChips.length * 2 - 1)
                     .toList(),
@@ -103,6 +106,9 @@ class RadioActionButtons extends StatelessWidget {
   }
 }
 
+/// Generic action chip for menu items.
+///
+/// Uses [ActionChipTokens] for consistent styling.
 class _MenuChip extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -116,34 +122,31 @@ class _MenuChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tokens = ModeTabsTokens.of(context);
+    final tokens = ActionChipTokens.of(context);
     final theme = Theme.of(context);
 
     return HapticGestureDetector(
       hapticType: HapticFeedbackType.selectionClick,
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: DesignTokens.spacingS,
-          vertical: DesignTokens.spacingS,
-        ),
+        padding: tokens.padding,
         decoration: BoxDecoration(
-          color: tokens.unselectedBackground,
-          borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusPill),
+          color: tokens.background,
+          borderRadius: BorderRadius.circular(tokens.cornerRadius),
           border: Border.all(
-            color: tokens.unselectedText.withValues(alpha: 0.2),
-            width: 1,
+            color: tokens.border,
+            width: DimensionTokens.borderWidthThin,
           ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 16, color: tokens.unselectedText),
-            const SizedBox(width: DesignTokens.spacingXs),
+            Icon(icon, size: tokens.iconSize, color: tokens.icon),
+            SizedBox(width: tokens.spacing),
             Text(
               label.tr(),
               style: theme.textTheme.labelSmall?.copyWith(
-                color: tokens.unselectedText,
+                color: tokens.text,
               ),
             ),
           ],
@@ -153,6 +156,9 @@ class _MenuChip extends StatelessWidget {
   }
 }
 
+/// Greeting chip displaying time-based greeting.
+///
+/// When tapped, shows a dialog with a daily quote and share options.
 class _GreetingChip extends StatefulWidget {
   const _GreetingChip();
 
@@ -160,65 +166,37 @@ class _GreetingChip extends StatefulWidget {
   State<_GreetingChip> createState() => _GreetingChipState();
 }
 
-class _GreetingChipState extends State<_GreetingChip> {
-  final GlobalKey _shareCardKey = GlobalKey();
-  final ImageCaptureService _imageCaptureService = getIt<ImageCaptureService>();
+class _GreetingChipState extends State<_GreetingChip>
+    with RadioStateAccessorMixin {
   final GreetingRepository _greetingRepository = getIt<GreetingRepository>();
-  bool _isLoading = false;
+  bool _isTapped = false;
 
-  Future<void> _captureAndShareQuote(String quote, String? albumArtUrl) async {
-    if (_isLoading) return;
-    setState(() => _isLoading = true);
+  Future<void> _handleTap() async {
+    if (_isTapped) return;
+    _isTapped = true;
 
     try {
-      final pixelRatio = _imageCaptureService.getOptimalPixelRatio(context);
-      await _imageCaptureService.captureAndShare(
-        key: _shareCardKey,
-        text: quote,
-        subject: 'Daily Quote',
-        pixelRatio: pixelRatio,
+      final greetingKey = GreetingService.getGreetingKey();
+      final quote = await _greetingRepository.getDailyQuote(
+        greetingKey,
+        context.locale.languageCode,
       );
-    } catch (e) {
-      debugPrint('Error capturing quote share card: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('radio_unknown_error'.tr()),
-            duration: const Duration(seconds: ShareConstants.snackBarDurationSeconds),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
+
+      if (!mounted) return;
+
+      final albumArtUrl = currentAlbumArtUrl;
+      final displayQuote =
+          quote.isNotEmpty ? quote : 'quote_default_message'.tr();
+
+      if (!mounted) return;
+
+      await RadioQuoteDialog.show(
+        context: context,
+        quote: displayQuote,
+        albumArtUrl: albumArtUrl,
+      );
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
-  }
-
-  String? _getAlbumArtUrl() {
-    try {
-      final radioPlayerBloc = context.read<RadioPlayerBloc>();
-      final radioState = radioPlayerBloc.state;
-      String? albumArtUrl;
-      radioState.maybeWhen(
-        ready: (
-          isPlaying,
-          currentUrl,
-          currentArtist,
-          currentTitle,
-          currentAlbumArtUrl,
-          isDucking,
-          canAutoResume,
-        ) {
-          albumArtUrl = currentAlbumArtUrl;
-        },
-        orElse: () {},
-      );
-      return albumArtUrl;
-    } catch (e) {
-      debugPrint('Error accessing RadioPlayerBloc: $e');
-      return null;
+      _isTapped = false;
     }
   }
 
@@ -227,135 +205,13 @@ class _GreetingChipState extends State<_GreetingChip> {
     final theme = Theme.of(context);
     final greetingKey = GreetingService.getGreetingKey();
     final chipColor = GreetingService.getGreetingColor(context, greetingKey);
-    final textColor = GreetingService.getGreetingTextColor(context, greetingKey);
+    final textColor =
+        GreetingService.getGreetingTextColor(context, greetingKey);
     final borderColor = textColor.withValues(alpha: 0.15);
 
     return HapticGestureDetector(
       hapticType: HapticFeedbackType.selectionClick,
-      onTap: () async {
-        if (_isLoading) return;
-
-        setState(() => _isLoading = true);
-        final quote = await _greetingRepository.getDailyQuote(
-          greetingKey,
-          context.locale.languageCode,
-        );
-
-        if (!mounted) return;
-
-        setState(() => _isLoading = false);
-
-        if (!mounted) return;
-
-        final albumArtUrl = _getAlbumArtUrl();
-        final displayQuote = quote.isNotEmpty ? quote : 'Have a wonderful day!';
-
-        if (!mounted) return;
-
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-          final dialogContext = context;
-          final dialogTheme = Theme.of(context);
-          showDialog(
-            context: dialogContext,
-            builder: (builderContext) => Stack(
-              children: [
-                Transform.translate(
-                  offset: const Offset(-10000, -10000),
-                  child: RepaintBoundary(
-                    key: _shareCardKey,
-                    child: RadioQuoteShareCard(
-                      quote: displayQuote,
-                      albumArtUrl: albumArtUrl,
-                    ),
-                  ),
-                ),
-                Dialog(
-                  backgroundColor: dialogTheme.colorScheme.surfaceContainerHigh,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(28),
-                  ),
-                  child: Container(
-                    padding: const EdgeInsets.all(DesignTokens.spacingL),
-                    constraints: const BoxConstraints(maxWidth: 320),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Icon(
-                            LucideIcons.quote,
-                            size: 32,
-                            color: dialogTheme.colorScheme.primary,
-                          ),
-                        ),
-                        const SizedBox(height: DesignTokens.spacingM),
-                        Text(
-                          displayQuote,
-                          style: dialogTheme.textTheme.headlineSmall?.copyWith(
-                            height: 1.3,
-                            color: dialogTheme.colorScheme.onSurface,
-                          ),
-                        ),
-                        const SizedBox(height: DesignTokens.spacingL),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            TextButton.icon(
-                              onPressed: _isLoading
-                                  ? null
-                                  : () async {
-                                      await _captureAndShareQuote(
-                                        displayQuote,
-                                        albumArtUrl,
-                                      );
-                                    },
-                              style: TextButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: DesignTokens.spacingM,
-                                  vertical: DesignTokens.spacingS,
-                                ),
-                              ),
-                              icon: Icon(
-                                LucideIcons.share_2,
-                                size: 18,
-                                color: dialogTheme.colorScheme.primary,
-                              ),
-                              label: Text(
-                                'Share',
-                                style: dialogTheme.textTheme.labelLarge?.copyWith(
-                                  color: dialogTheme.colorScheme.primary,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: DesignTokens.spacingS),
-                            TextButton(
-                              onPressed: () => Navigator.pop(builderContext),
-                              style: TextButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: DesignTokens.spacingM,
-                                  vertical: DesignTokens.spacingS,
-                                ),
-                              ),
-                              child: Text(
-                                'Close',
-                                style: dialogTheme.textTheme.labelLarge?.copyWith(
-                                  color: dialogTheme.colorScheme.primary,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          );
-        });
-      },
+      onTap: _handleTap,
       child: Container(
         padding: const EdgeInsets.symmetric(
           horizontal: DesignTokens.spacingS,
@@ -364,7 +220,10 @@ class _GreetingChipState extends State<_GreetingChip> {
         decoration: BoxDecoration(
           color: chipColor,
           borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusPill),
-          border: Border.all(color: borderColor, width: 1),
+          border: Border.all(
+            color: borderColor,
+            width: DimensionTokens.borderWidthThin,
+          ),
         ),
         child: Text(
           greetingKey.tr(),
@@ -378,6 +237,9 @@ class _GreetingChipState extends State<_GreetingChip> {
   }
 }
 
+/// Share chip for sharing currently playing track.
+///
+/// When tapped, shows a dialog with preview and Instagram mode toggle.
 class _ShareChip extends StatefulWidget {
   const _ShareChip();
 
@@ -385,63 +247,47 @@ class _ShareChip extends StatefulWidget {
   State<_ShareChip> createState() => _ShareChipState();
 }
 
-class _ShareChipState extends State<_ShareChip> {
-  final GlobalKey _previewCardKey = GlobalKey();
-  final ImageCaptureService _imageCaptureService = getIt<ImageCaptureService>();
+class _ShareChipState extends State<_ShareChip> with RadioStateAccessorMixin {
   final PaletteService _paletteService = getIt<PaletteService>();
   bool _isLoading = false;
-  bool _isCapturing = false;
 
-  Future<void> _captureAndShare({
-    required String? artist,
-    required String? title,
-    required String? albumArtUrl,
-    required PaletteColors? palette,
-    required bool isPlaying,
-    required BuildContext dialogContext,
-  }) async {
-    if (_isCapturing) return;
-    setState(() => _isCapturing = true);
+  Future<void> _handleTap() async {
+    if (_isLoading) return;
+
+    setState(() => _isLoading = true);
 
     try {
-      final pixelRatio = _imageCaptureService.getOptimalPixelRatio(context);
-      final shareText = title != null && title.trim().isNotEmpty
-          ? '$title${artist != null && artist.trim().isNotEmpty ? ' - $artist' : ''}'
-          : 'Now Playing on ${ShareConfig.appNameFull}';
-
-      if (dialogContext.mounted) {
-        Navigator.pop(dialogContext);
+      final radioState = getRadioState();
+      if (radioState == null) {
+        setState(() => _isLoading = false);
+        return;
       }
 
-      await _imageCaptureService.captureAndShare(
-        key: _previewCardKey,
-        text: shareText,
-        subject: 'Now Playing',
-        pixelRatio: pixelRatio,
-        initialDelayMs: ShareConstants.initialCaptureDelayMs,
-        finalDelayMs: ShareConstants.finalCaptureDelayMs,
-        maxWaitAttempts: ShareConstants.maxPaintWaitAttempts,
-        waitDelayMs: ShareConstants.paintWaitDelayMs,
+      final palette = await _getPalette(radioState.albumArtUrl);
+
+      if (!mounted) return;
+
+      setState(() => _isLoading = false);
+
+      if (!mounted) return;
+
+      await RadioNowPlayingShareDialog.show(
+        context: context,
+        artist: radioState.artist,
+        title: radioState.title,
+        albumArtUrl: radioState.albumArtUrl,
+        palette: palette,
+        isPlaying: radioState.isPlaying,
       );
     } catch (e) {
-      debugPrint('Error capturing radio share card: $e');
+      debugPrint('Error opening share dialog: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('radio_unknown_error'.tr()),
-            duration: const Duration(seconds: ShareConstants.snackBarDurationSeconds),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isCapturing = false);
+        setState(() => _isLoading = false);
       }
     }
   }
 
-  Future<PaletteColors?> _getPalette(String? albumArtUrl) async {
+  Future<dynamic> _getPalette(String? albumArtUrl) async {
     if (albumArtUrl == null || albumArtUrl.isEmpty) {
       return null;
     }
@@ -453,204 +299,46 @@ class _ShareChipState extends State<_ShareChip> {
     }
   }
 
-  ({
-    String? artist,
-    String? title,
-    String? albumArtUrl,
-    bool isPlaying,
-  })? _getRadioState() {
-    try {
-      final radioPlayerBloc = context.read<RadioPlayerBloc>();
-      final radioState = radioPlayerBloc.state;
-      String? artist;
-      String? title;
-      String? albumArtUrl;
-      bool isPlaying = false;
-
-      radioState.maybeWhen(
-        ready: (
-          playing,
-          currentUrl,
-          currentArtist,
-          currentTitle,
-          currentAlbumArtUrl,
-          isDucking,
-          canAutoResume,
-        ) {
-          artist = currentArtist;
-          title = currentTitle;
-          albumArtUrl = currentAlbumArtUrl;
-          isPlaying = playing;
-        },
-        orElse: () {},
-      );
-
-      return (
-        artist: artist,
-        title: title,
-        albumArtUrl: albumArtUrl,
-        isPlaying: isPlaying,
-      );
-    } catch (e) {
-      debugPrint('Error accessing RadioPlayerBloc: $e');
-      return null;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final tokens = ModeTabsTokens.of(context);
+    final tokens = ActionChipTokens.of(context);
     final theme = Theme.of(context);
 
     return HapticGestureDetector(
       hapticType: HapticFeedbackType.selectionClick,
-      onTap: () async {
-        if (_isLoading || _isCapturing) return;
-
-        setState(() => _isLoading = true);
-
-        final radioState = _getRadioState();
-        if (radioState == null) {
-          setState(() => _isLoading = false);
-          return;
-        }
-
-        final palette = await _getPalette(radioState.albumArtUrl);
-
-        if (!mounted) return;
-
-        setState(() => _isLoading = false);
-
-        if (!mounted) return;
-
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-          final dialogContext = context;
-          final dialogTheme = Theme.of(context);
-          final mediaQuery = MediaQuery.of(context);
-          showDialog(
-            context: dialogContext,
-            builder: (builderContext) => Dialog(
-              backgroundColor: dialogTheme.colorScheme.surfaceContainerHigh,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(28),
-              ),
-              child: Container(
-                padding: const EdgeInsets.all(DesignTokens.spacingL),
-                constraints: BoxConstraints(
-                  maxWidth: mediaQuery.size.width * 0.9,
-                  maxHeight: mediaQuery.size.height * 0.85,
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Flexible(
-                      child: Container(
-                        constraints: const BoxConstraints(maxHeight: 500),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16),
-                          color: dialogTheme.colorScheme.surfaceContainerHigh,
-                        ),
-                        clipBehavior: Clip.antiAlias,
-                        child: AspectRatio(
-                          aspectRatio: 9 / 16,
-                          child: RepaintBoundary(
-                            key: _previewCardKey,
-                            child: RadioShareCard(
-                              artist: radioState.artist,
-                              title: radioState.title,
-                              albumArtUrl: radioState.albumArtUrl,
-                              palette: palette,
-                              isPlaying: radioState.isPlaying,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: DesignTokens.spacingL),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(builderContext),
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: DesignTokens.spacingM,
-                              vertical: DesignTokens.spacingS,
-                            ),
-                          ),
-                          child: Text(
-                            'Cancel',
-                            style: dialogTheme.textTheme.labelLarge?.copyWith(
-                              color: dialogTheme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: DesignTokens.spacingS),
-                        FilledButton(
-                          onPressed: _isCapturing
-                              ? null
-                              : () async {
-                                  await _captureAndShare(
-                                    artist: radioState.artist,
-                                    title: radioState.title,
-                                    albumArtUrl: radioState.albumArtUrl,
-                                    palette: palette,
-                                    isPlaying: radioState.isPlaying,
-                                    dialogContext: builderContext,
-                                  );
-                                },
-                          style: FilledButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: DesignTokens.spacingM,
-                              vertical: DesignTokens.spacingS,
-                            ),
-                          ),
-                          child: _isCapturing
-                              ? SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      dialogTheme.colorScheme.onPrimary,
-                                    ),
-                                  ),
-                                )
-                              : const Text('Share'),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        });
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: DesignTokens.spacingS,
-          vertical: DesignTokens.spacingS,
-        ),
+      onTap: _handleTap,
+      child: AnimatedContainer(
+        duration: DesignTokens.animationDurationShort,
+        padding: tokens.padding,
         decoration: BoxDecoration(
-          color: tokens.unselectedBackground,
-          borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusPill),
+          color: tokens.background,
+          borderRadius: BorderRadius.circular(tokens.cornerRadius),
           border: Border.all(
-            color: tokens.unselectedText.withValues(alpha: 0.2),
-            width: 1,
+            color: tokens.border,
+            width: DimensionTokens.borderWidthThin,
           ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(LucideIcons.share_2, size: 16, color: tokens.unselectedText),
-            const SizedBox(width: DesignTokens.spacingXs),
+            if (_isLoading)
+              SizedBox(
+                width: tokens.iconSize,
+                height: tokens.iconSize,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    tokens.loadingIndicator,
+                  ),
+                ),
+              )
+            else
+              Icon(LucideIcons.share_2, size: tokens.iconSize, color: tokens.icon),
+            SizedBox(width: tokens.spacing),
             Text(
-              'Share',
+              'share_action'.tr(),
               style: theme.textTheme.labelSmall?.copyWith(
-                color: tokens.unselectedText,
+                color: tokens.text,
               ),
             ),
           ],

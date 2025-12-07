@@ -279,5 +279,13 @@
   "time_today": "Hari ini",
   "time_yesterday": "Kemarin",
   "cancel": "Batal",
-  "delete": "Hapus"
+  "delete": "Hapus",
+  "share_action": "Bagikan",
+  "share_instagram_mode_title": "Mode Instagram",
+  "share_instagram_mode_description": "Gunakan latar belakang kosong untuk Instagram",
+  "share_now_playing_subject": "Sedang Diputar",
+  "share_quote_subject": "Kutipan Hari Ini",
+  "share_error_capture_failed": "Gagal mengambil gambar",
+  "quote_dialog_title": "Kutipan Hari Ini",
+  "quote_default_message": "Semoga harimu menyenangkan!"
 }

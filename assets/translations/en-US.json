@@ -278,5 +278,13 @@
   "time_today": "Today",
   "time_yesterday": "Yesterday",
   "cancel": "Cancel",
-  "delete": "Delete"
+  "delete": "Delete",
+  "share_action": "Share",
+  "share_instagram_mode_title": "Instagram Mode",
+  "share_instagram_mode_description": "Use blank background for Instagram",
+  "share_now_playing_subject": "Now Playing",
+  "share_quote_subject": "Daily Quote",
+  "share_error_capture_failed": "Failed to capture image",
+  "quote_dialog_title": "Quote of the Day",
+  "quote_default_message": "Have a wonderful day!"
 }

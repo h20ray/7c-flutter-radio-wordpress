@@ -12,6 +12,7 @@ class RadioShareCard extends StatelessWidget {
   final String? albumArtUrl;
   final PaletteColors? palette;
   final bool isPlaying;
+  final bool useBlankBackground;
 
   const RadioShareCard({
     super.key,
@@ -20,6 +21,7 @@ class RadioShareCard extends StatelessWidget {
     this.albumArtUrl,
     this.palette,
     this.isPlaying = false,
+    this.useBlankBackground = false,
   });
 
   Color _getBackgroundColor(BuildContext context) {
@@ -99,7 +101,7 @@ class RadioShareCard extends StatelessWidget {
     final baseFontSize = theme.textTheme.headlineSmall?.fontSize ?? 24;
     const minFontSize = 16.0;
     const lineHeight = 1.2; // Line height multiplier
-    const maxLines = 3;
+    const maxLines = 2;
     final maxHeight = baseFontSize * lineHeight * maxLines;
     
     final baseStyle = theme.textTheme.headlineSmall?.copyWith(
@@ -171,58 +173,60 @@ class RadioShareCard extends StatelessWidget {
     return Container(
       width: double.infinity,
       height: double.infinity,
-      color: isDark ? Colors.black : Colors.grey[900],
+      color: useBlankBackground ? Colors.transparent : (isDark ? Colors.black : Colors.grey[900]),
       child: Stack(
         fit: StackFit.expand,
         children: [
-          if (palette != null && isNetworkImage)
-            Positioned.fill(
-              child: ImageFiltered(
-                imageFilter: ImageFilter.blur(sigmaX: 40, sigmaY: 40),
-                child: AppNetworkImage(
-                  imageUrl: backgroundImageUrl,
-                  fit: BoxFit.cover,
-                  fadeInDuration: Duration.zero,
-                ),
-              ),
-            )
-          else if (palette == null)
-            Positioned.fill(
-              child: ImageFiltered(
-                imageFilter: ImageFilter.blur(sigmaX: 40, sigmaY: 40),
-                child: Image.asset(
-                  RadioConfig.fallbackArtworkPath,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Container(
-                    color: isDark ? Colors.black : Colors.grey[900],
+          if (!useBlankBackground) ...[
+            if (palette != null && isNetworkImage)
+              Positioned.fill(
+                child: ImageFiltered(
+                  imageFilter: ImageFilter.blur(sigmaX: 40, sigmaY: 40),
+                  child: AppNetworkImage(
+                    imageUrl: backgroundImageUrl,
+                    fit: BoxFit.cover,
+                    fadeInDuration: Duration.zero,
                   ),
                 ),
-              ),
-            ),
-
-          if (palette != null)
-            Positioned.fill(
-              child: ImageFiltered(
-                imageFilter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: RadialGradient(
-                      center: Alignment.topLeft,
-                      radius: 1.5,
-                      colors: [
-                        palette!.vibrant.withValues(alpha: 0.3),
-                        palette!.darkVibrant.withValues(alpha: 0.2),
-                        Colors.transparent,
-                      ],
+              )
+            else if (palette == null)
+              Positioned.fill(
+                child: ImageFiltered(
+                  imageFilter: ImageFilter.blur(sigmaX: 40, sigmaY: 40),
+                  child: Image.asset(
+                    RadioConfig.fallbackArtworkPath,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      color: isDark ? Colors.black : Colors.grey[900],
                     ),
                   ),
                 ),
               ),
-            ),
 
-          Container(
-            color: theme.scaffoldBackgroundColor.withValues(alpha: 0.7),
-          ),
+            if (palette != null)
+              Positioned.fill(
+                child: ImageFiltered(
+                  imageFilter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: RadialGradient(
+                        center: Alignment.topLeft,
+                        radius: 1.5,
+                        colors: [
+                          palette!.vibrant.withValues(alpha: 0.3),
+                          palette!.darkVibrant.withValues(alpha: 0.2),
+                          Colors.transparent,
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+            Container(
+              color: theme.scaffoldBackgroundColor.withValues(alpha: 0.7),
+            ),
+          ],
 
           Padding(
             padding: const EdgeInsets.all(24.0),
@@ -232,10 +236,7 @@ class RadioShareCard extends StatelessWidget {
                 Align(
                   alignment: Alignment.topRight,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 5,
-                    ),
+                    padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                       color: textColor.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(16),
@@ -276,7 +277,7 @@ class RadioShareCard extends StatelessWidget {
                                   size: 10,
                                 ),
                         ),
-                        const SizedBox(width: 5),
+                        const SizedBox(width: 4),
                         Text(
                           ShareConfig.appName,
                           style: TextStyle(

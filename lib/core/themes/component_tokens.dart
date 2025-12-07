@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'app_color_system.dart';
+import 'design_tokens.dart';
 
 class AppShadowTokens {
   AppShadowTokens._({
@@ -417,6 +418,82 @@ class DialogOverlayTokens {
   final Color barrier;
   final Color surface;
   final Color outline;
+}
+
+/// Tokens for share preview dialogs (Now Playing, Quote).
+///
+/// Provides consistent styling for share dialogs following Material 3
+/// dialog specifications with M3 corner radius (28dp).
+///
+/// Usage:
+/// ```dart
+/// final tokens = ShareDialogTokens.of(context);
+/// Dialog(
+///   backgroundColor: tokens.surface,
+///   shape: RoundedRectangleBorder(
+///     borderRadius: BorderRadius.circular(tokens.cornerRadius),
+///   ),
+///   // ...
+/// );
+/// ```
+class ShareDialogTokens {
+  ShareDialogTokens._({
+    required this.surface,
+    required this.onSurface,
+    required this.onSurfaceVariant,
+    required this.primary,
+    required this.onPrimary,
+    required this.cornerRadius,
+    required this.previewCornerRadius,
+    required this.optionBackground,
+    required this.optionBorder,
+  });
+
+  factory ShareDialogTokens.of(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return ShareDialogTokens._(
+      surface: colorScheme.surfaceContainerHigh,
+      onSurface: colorScheme.onSurface,
+      onSurfaceVariant: colorScheme.onSurfaceVariant,
+      primary: colorScheme.primary,
+      onPrimary: colorScheme.onPrimary,
+      // M3 dialog corner radius is 28dp
+      cornerRadius: 28.0,
+      // Preview container uses standard card radius
+      previewCornerRadius: DesignTokens.cornerRadiusCard,
+      optionBackground: colorScheme.surfaceContainerHighest,
+      optionBorder: colorScheme.outlineVariant,
+    );
+  }
+
+  /// Dialog surface color
+  final Color surface;
+
+  /// Text color on dialog surface
+  final Color onSurface;
+
+  /// Secondary text color on dialog surface
+  final Color onSurfaceVariant;
+
+  /// Primary accent color for buttons
+  final Color primary;
+
+  /// Text color on primary buttons
+  final Color onPrimary;
+
+  /// Dialog corner radius (M3 spec: 28dp)
+  final double cornerRadius;
+
+  /// Preview container corner radius
+  final double previewCornerRadius;
+
+  /// Background color for option containers (e.g., Instagram toggle)
+  final Color optionBackground;
+
+  /// Border color for option containers
+  final Color optionBorder;
 }
 
 class ShoutboxTokens {
