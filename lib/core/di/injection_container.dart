@@ -148,7 +148,7 @@ Future<void> initDependencies() async {
   // External dependencies
   getIt.registerLazySingleton<Dio>(() {
     final dio = Dio();
-    dio.options.baseUrl = 'https://${AppConfig.url}';
+    dio.options.baseUrl = AppConfig.baseUrl;
     dio.options.connectTimeout = const Duration(seconds: 30);
     dio.options.receiveTimeout = const Duration(seconds: 30);
     return dio;

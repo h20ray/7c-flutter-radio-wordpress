@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:adaptive_theme/adaptive_theme.dart';
+import 'package:app_links/app_links.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -14,6 +15,7 @@ import 'core/routes/app_routes.dart';
 import 'core/routes/route_generator.dart';
 import 'core/services/level_up_celebration_service.dart';
 import 'core/themes/app_theme.dart';
+import 'core/utils/debug_logger.dart';
 import 'core/widgets/global_level_up_overlay.dart';
 import 'features/gamification/presentation/bloc/gamification_bloc.dart';
 
@@ -57,6 +59,33 @@ class TujuhCahayaApp extends StatefulWidget {
 }
 
 class _TujuhCahayaAppState extends State<TujuhCahayaApp> {
+  final AppLinks _appLinks = AppLinks();
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+
+  @override
+  void initState() {
+    super.initState();
+    _initDeepLinks();
+  }
+
+  void _initDeepLinks() {
+    // Deep links are now handled by RouteGenerator.onGenerate
+    // AppLinks listener is kept for potential future use or external link handling
+    _appLinks.uriLinkStream.listen(
+      (uri) {
+        // RouteGenerator handles internal links via onGenerateRoute
+        // This listener can be used for external links or other purposes if needed
+      },
+      onError: (err) {
+        DebugLogger.logError('Deep link error', error: err, tag: 'DeepLink');
+      },
+    );
+
+    _appLinks.getInitialLink().then((uri) {
+      // RouteGenerator will handle this via onGenerateRoute
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return AdaptiveTheme(
@@ -65,6 +94,7 @@ class _TujuhCahayaAppState extends State<TujuhCahayaApp> {
       initial: widget.savedThemeMode ?? AdaptiveThemeMode.system,
       builder: (theme, darkTheme) {
         Widget app = MaterialApp(
+          navigatorKey: _navigatorKey,
           title: AppConfig.appName,
           localizationsDelegates: context.localizationDelegates,
           supportedLocales: context.supportedLocales,

@@ -13,6 +13,8 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../config/app_config.dart';
 import '../../../../core/di/injection_container.dart';
+import '../../../../core/routes/app_routes.dart';
+import '../../../../core/services/deep_link_service.dart';
 import '../../../../core/themes/app_color_system.dart';
 import '../../../../core/themes/design_tokens.dart';
 import '../../../../core/widgets/app_network_image.dart';
@@ -64,25 +66,34 @@ class _PostDetailPageViewState extends State<PostDetailPageView> {
       final repository = getIt<WordPressRepository>();
       final result = await repository.isPostOffline(_currentPost.id);
       result.fold(
-        (_) => setState(() {
-          _isCheckingOffline = false;
-        }),
-        (isOffline) => setState(() {
-          _isOffline = isOffline;
-          _isCheckingOffline = false;
-        }),
+        (_) {
+          if (mounted) {
+            setState(() {
+              _isCheckingOffline = false;
+            });
+          }
+        },
+        (isOffline) {
+          if (mounted) {
+            setState(() {
+              _isOffline = isOffline;
+              _isCheckingOffline = false;
+            });
+          }
+        },
       );
     } catch (e) {
-      setState(() {
-        _isCheckingOffline = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isCheckingOffline = false;
+        });
+      }
     }
   }
   
   // Auto-save removed - all cached posts are automatically available offline
   
   Future<void> _savePostOffline() async {
-    // Bookmark post for permanent saving (beyond cache expiration)
     final bloc = context.read<NewsFeedBloc>();
     bloc.add(NewsFeedEvent.savePostOffline(_currentPost));
     await _checkOfflineStatus();
@@ -90,21 +101,6 @@ class _PostDetailPageViewState extends State<PostDetailPageView> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('news_bookmark_saved'.tr()),
-          duration: const Duration(seconds: 2),
-        ),
-      );
-    }
-  }
-  
-  Future<void> _removePostOffline() async {
-    // Remove bookmark (post may still be available from cache)
-    final bloc = context.read<NewsFeedBloc>();
-    bloc.add(NewsFeedEvent.removePostOffline(_currentPost.id));
-    await _checkOfflineStatus();
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('news_bookmark_removed'.tr()),
           duration: const Duration(seconds: 2),
         ),
       );
@@ -220,17 +216,7 @@ class _PostDetailPageViewState extends State<PostDetailPageView> {
   }
 
   bool _isInternalLink(String url) {
-    try {
-      final uri = Uri.parse(url);
-      if (!uri.hasScheme || !uri.hasAuthority) {
-        return true;
-      }
-      final host = uri.host.toLowerCase();
-      final baseDomain = AppConfig.url.toLowerCase();
-      return host == baseDomain || host.endsWith('.$baseDomain');
-    } catch (e) {
-      return false;
-    }
+    return DeepLinkService.isInternalLink(url);
   }
 
   Future<void> _handleLinkTap(String? url, Map<String, String> attributes, dynamic element) async {
@@ -243,11 +229,11 @@ class _PostDetailPageViewState extends State<PostDetailPageView> {
       } else if (url.startsWith('//')) {
         uri = Uri.parse('https:$url');
       } else if (url.startsWith('/')) {
-        uri = Uri.parse('https://${AppConfig.url}$url');
+        uri = Uri.parse('https://${AppConfig.baseUrl}$url');
       } else if (url.startsWith('mailto:') || url.startsWith('tel:') || url.startsWith('sms:')) {
         uri = Uri.parse(url);
       } else {
-        uri = Uri.parse('https://${AppConfig.url}/$url');
+        uri = Uri.parse('https://${AppConfig.baseUrl}/$url');
       }
 
       if (!uri.hasScheme || (!uri.hasAuthority && !uri.scheme.startsWith('mailto') && !uri.scheme.startsWith('tel') && !uri.scheme.startsWith('sms'))) {
@@ -263,6 +249,19 @@ class _PostDetailPageViewState extends State<PostDetailPageView> {
       }
 
       final isInternal = _isInternalLink(uri.toString());
+      
+      if (isInternal) {
+        final post = await DeepLinkService.resolvePostFromUrl(uri.toString());
+        if (post != null && mounted) {
+          Navigator.pushNamed(
+            context,
+            AppRoutes.postDetail,
+            arguments: post,
+          );
+          return;
+        }
+      }
+
       final launched = await launchUrl(
         uri,
         mode: isInternal ? LaunchMode.inAppWebView : LaunchMode.externalApplication,
@@ -430,9 +429,9 @@ class _PostDetailPageViewState extends State<PostDetailPageView> {
                           ? Theme.of(context).colorScheme.primary
                           : null,
                     ),
-                    onPressed: _isOffline ? _removePostOffline : _savePostOffline,
+                    onPressed: _isOffline ? null : _savePostOffline,
                     tooltip: _isOffline 
-                        ? 'news_bookmark_remove_tooltip'.tr() 
+                        ? null 
                         : 'news_bookmark_add_tooltip'.tr(),
                   ),
                 IconButton(

@@ -10,6 +10,8 @@ abstract class WordPressRepository {
     String? search,
     bool useNewsPageLimit = false,
   });
+  Future<Either<Failure, PostEntity>> getPostById(int id);
+  Future<Either<Failure, PostEntity>> getPostBySlug(String slug);
   Future<List<PostEntity>?> getCachedPosts({
     int? categoryId,
     int page = 1,

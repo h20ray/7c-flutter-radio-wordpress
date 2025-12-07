@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lottie/lottie.dart';
 
 import '../pages/loading_app_page.dart';
 import '../../features/radio/presentation/pages/radio_page.dart';
@@ -22,7 +23,10 @@ import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
 import '../../features/shoutbox/presentation/pages/shoutbox_page.dart';
 import '../../features/tamtama/presentation/bloc/tamtama_bloc.dart';
+import '../../config/app_config.dart';
 import '../di/injection_container.dart';
+import '../services/deep_link_service.dart';
+import '../utils/debug_logger.dart';
 import 'app_routes.dart';
 
 class RouteGenerator {
@@ -118,6 +122,19 @@ class RouteGenerator {
         if (settings.name?.startsWith('/auth/') ?? false) {
           return _handleAuthDeepLink(settings);
         }
+
+        final routeName = settings.name ?? '';
+        if (routeName.startsWith('http://') ||
+            routeName.startsWith('https://')) {
+          return _handleDeepLinkUrl(settings);
+        }
+
+        if (routeName.startsWith('/') &&
+            routeName.length > 1 &&
+            !_isKnownRoute(routeName)) {
+          return _handleDeepLinkUrl(settings);
+        }
+
         return _buildPageRoute(
           settings,
           (context) => Scaffold(
@@ -125,6 +142,160 @@ class RouteGenerator {
           ),
         );
     }
+  }
+
+  static bool _isKnownRoute(String routeName) {
+    final knownRoutes = [
+      AppRoutes.initial,
+      AppRoutes.loadingApp,
+      AppRoutes.home,
+      AppRoutes.radio,
+      AppRoutes.news,
+      AppRoutes.profile,
+      AppRoutes.settings,
+      AppRoutes.shoutbox,
+      AppRoutes.levelDetails,
+      AppRoutes.postDetail,
+      AppRoutes.songHistory,
+      AppRoutes.lyrics,
+      AppRoutes.request,
+      AppRoutes.radioAbout,
+    ];
+    return knownRoutes.contains(routeName);
+  }
+
+  static Route<dynamic> _handleDeepLinkUrl(RouteSettings settings) {
+    String url = settings.name ?? '';
+
+    if (url.startsWith('/') &&
+        !url.startsWith('http://') &&
+        !url.startsWith('https://')) {
+      url = '${AppConfig.baseUrl}$url';
+    }
+
+    return _buildPageRoute(
+      settings,
+      (context) => FutureBuilder<PostEntity?>(
+        future: DeepLinkService.resolvePostFromUrl(url),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            DebugLogger.logError(
+              'Error resolving post from URL',
+              error: snapshot.error,
+              tag: 'RouteGenerator',
+            );
+          }
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Scaffold(
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      width: 100,
+                      height: 100,
+                      child: Lottie.asset(
+                        'assets/animations/loading.lottie',
+                        repeat: true,
+                        fit: BoxFit.contain,
+                        decoder: (bytes) => LottieComposition.decodeZip(
+                          bytes,
+                          filePicker: (files) => files.firstWhere(
+                            (f) =>
+                                f.name.startsWith('animations/') &&
+                                f.name.endsWith('.json'),
+                            orElse: () => files.first,
+                          ),
+                        ),
+                        errorBuilder: (context, error, stackTrace) {
+                          DebugLogger.logError(
+                            'Failed to load Lottie animation',
+                            error: error,
+                            stackTrace: stackTrace,
+                            tag: 'RouteGenerator',
+                          );
+                          return const CircularProgressIndicator();
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text('Loading post...'),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          if (snapshot.hasData && snapshot.data != null) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (context.mounted) {
+                Navigator.of(context).pushReplacementNamed(
+                  AppRoutes.postDetail,
+                  arguments: snapshot.data,
+                );
+              }
+            });
+            return Scaffold(
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      width: 100,
+                      height: 100,
+                      child: Lottie.asset(
+                        'assets/animations/loading.lottie',
+                        repeat: true,
+                        fit: BoxFit.contain,
+                        decoder: (bytes) => LottieComposition.decodeZip(
+                          bytes,
+                          filePicker: (files) => files.firstWhere(
+                            (f) =>
+                                f.name.startsWith('animations/') &&
+                                f.name.endsWith('.json'),
+                            orElse: () => files.first,
+                          ),
+                        ),
+                        errorBuilder: (context, error, stackTrace) {
+                          DebugLogger.logError(
+                            'Failed to load Lottie animation',
+                            error: error,
+                            stackTrace: stackTrace,
+                            tag: 'RouteGenerator',
+                          );
+                          return const CircularProgressIndicator();
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text('Opening post...'),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          return Scaffold(
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, size: 48, color: Colors.grey),
+                  const SizedBox(height: 16),
+                  Text('Post not found'),
+                  const SizedBox(height: 8),
+                  Text(
+                    url,
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
 
   static Route<dynamic> _handleAuthDeepLink(RouteSettings settings) {

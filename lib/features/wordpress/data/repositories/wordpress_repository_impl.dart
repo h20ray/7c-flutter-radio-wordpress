@@ -187,6 +187,52 @@ class WordPressRepositoryImpl implements WordPressRepository {
     }
   }
 
+  @override
+  Future<Either<Failure, PostEntity>> getPostById(int id) async {
+    try {
+      final post = await remoteDataSource.getPostById(id);
+      if (post == null) {
+        return Left(ServerFailure('Post not found'));
+      }
+      final enrichedPost = await _enrichPosts([post]);
+      if (enrichedPost.isEmpty) {
+        return Left(ServerFailure('Post not found'));
+      }
+      return Right(enrichedPost.first);
+    } on ServerException catch (e) {
+      return Left(ServerFailure('Failed to load post: ${e.message}'));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure('Network error: ${e.message}'));
+    } on TimeoutException catch (e) {
+      return Left(TimeoutFailure('Request timed out: ${e.message}'));
+    } catch (e) {
+      return Left(ServerFailure('An unexpected error occurred: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, PostEntity>> getPostBySlug(String slug) async {
+    try {
+      final post = await remoteDataSource.getPostBySlug(slug);
+      if (post == null) {
+        return Left(ServerFailure('Post not found'));
+      }
+      final enrichedPost = await _enrichPosts([post]);
+      if (enrichedPost.isEmpty) {
+        return Left(ServerFailure('Post not found'));
+      }
+      return Right(enrichedPost.first);
+    } on ServerException catch (e) {
+      return Left(ServerFailure('Failed to load post: ${e.message}'));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure('Network error: ${e.message}'));
+    } on TimeoutException catch (e) {
+      return Left(TimeoutFailure('Request timed out: ${e.message}'));
+    } catch (e) {
+      return Left(ServerFailure('An unexpected error occurred: ${e.toString()}'));
+    }
+  }
+
   /// Fetches data with exponential backoff retry mechanism
   Future<T> _fetchWithRetry<T>(
     Future<T> Function() fetch, {

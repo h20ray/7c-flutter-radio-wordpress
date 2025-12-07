@@ -10,6 +10,10 @@ abstract class WordPressRemoteDataSource {
     String? search,
   });
 
+  Future<PostModel?> getPostById(int id);
+
+  Future<PostModel?> getPostBySlug(String slug);
+
   Future<Map<int, String>> getMediaByIds(List<int> ids);
 
   Future<Map<int, String>> getCategoriesByIds(List<int> ids);
@@ -29,10 +33,7 @@ class WordPressRemoteDataSourceImpl implements WordPressRemoteDataSource {
     int perPage = 10,
     String? search,
   }) async {
-    final queryParams = <String, dynamic>{
-      'per_page': perPage,
-      'page': page,
-    };
+    final queryParams = <String, dynamic>{'per_page': perPage, 'page': page};
 
     if (!NewsConfig.useMinimalNewsPayload) {
       queryParams['_embed'] = true;
@@ -40,24 +41,56 @@ class WordPressRemoteDataSourceImpl implements WordPressRemoteDataSource {
       queryParams['_fields'] =
           'id,slug,title,excerpt,content,date,link,featured_media,categories,author';
     }
-    
+
     if (categoryId != null) {
       queryParams['categories'] = categoryId;
     }
-    
+
     if (search != null && search.isNotEmpty) {
       queryParams['search'] = search;
       // Order by relevance for search queries (default is date DESC)
       queryParams['orderby'] = 'relevance';
       queryParams['order'] = 'desc';
     }
-    
+
     final response = await apiClient.get(
       '/wp-json/wp/v2/posts',
       queryParameters: queryParams,
     );
     final List<dynamic> data = response.data as List<dynamic>;
-    return data.map((json) => PostModel.fromJson(json as Map<String, dynamic>)).toList();
+    return data
+        .map((json) => PostModel.fromJson(json as Map<String, dynamic>))
+        .toList();
+  }
+
+  @override
+  Future<PostModel?> getPostById(int id) async {
+    try {
+      final response = await apiClient.get('/wp-json/wp/v2/posts/$id');
+      if (response.data is Map<String, dynamic>) {
+        return PostModel.fromJson(response.data as Map<String, dynamic>);
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  @override
+  Future<PostModel?> getPostBySlug(String slug) async {
+    try {
+      final response = await apiClient.get(
+        '/wp-json/wp/v2/posts',
+        queryParameters: {'slug': slug, 'per_page': 1},
+      );
+      final List<dynamic> data = response.data as List<dynamic>;
+      if (data.isNotEmpty && data[0] is Map<String, dynamic>) {
+        return PostModel.fromJson(data[0] as Map<String, dynamic>);
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
   }
 
   @override
@@ -150,4 +183,3 @@ class WordPressRemoteDataSourceImpl implements WordPressRemoteDataSource {
     return result;
   }
 }
-

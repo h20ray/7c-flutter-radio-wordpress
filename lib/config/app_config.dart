@@ -5,6 +5,15 @@ class AppConfig {
 
   static const String url = 'www.tujuhcahaya.com';
 
+  static const String baseUrl = 'https://www.tujuhcahaya.com';
+
+  static const String domain = 'www.tujuhcahaya.com';
+
+  static const List<String> allowedDomains = [
+    'www.tujuhcahaya.com',
+    'tujuhcahaya.com',
+  ];
+
   static const String oneSignalId = '';
 
   static const Color primaryColor = Color(0xFFFFD600);
