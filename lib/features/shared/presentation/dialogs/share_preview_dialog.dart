@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../../core/themes/component_tokens.dart';
 import '../../../../core/themes/design_tokens.dart';
 import '../../../../core/widgets/haptic_widgets.dart';
@@ -194,7 +195,6 @@ class _SharePreviewDialogState extends State<SharePreviewDialog> {
   @override
   Widget build(BuildContext context) {
     final tokens = ShareDialogTokens.of(context);
-    final theme = Theme.of(context);
     final mediaQuery = MediaQuery.of(context);
 
     return Dialog(
@@ -242,22 +242,6 @@ class _SharePreviewDialogState extends State<SharePreviewDialog> {
                   spacing: DesignTokens.spacingS,
                   runSpacing: DesignTokens.spacingS,
                   children: [
-                    HapticTextButton(
-                      hapticType: HapticFeedbackType.selectionClick,
-                      onPressed: () => Navigator.pop(context),
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: DesignTokens.spacingM,
-                          vertical: DesignTokens.spacingS,
-                        ),
-                      ),
-                      child: Text(
-                        'cancel'.tr(),
-                        style: theme.textTheme.labelLarge?.copyWith(
-                          color: tokens.onSurfaceVariant,
-                        ),
-                      ),
-                    ),
                     if (widget.stickerWidgetBuilder != null)
                       HapticFilledButton(
                         hapticType: HapticFeedbackType.mediumImpact,
@@ -286,14 +270,14 @@ class _SharePreviewDialogState extends State<SharePreviewDialog> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Icon(
-                                    Icons.auto_stories,
+                                    LucideIcons.instagram,
                                     size: 16,
                                     color: tokens.onPrimary,
                                   ),
                                   const SizedBox(width: 4),
                                   Flexible(
                                     child: Text(
-                                      'share_to_story'.tr(),
+                                      'share_instagram'.tr(),
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),

@@ -8,8 +8,9 @@ class ShareConstants {
   static const int finalCaptureDelayMs = 200;
   static const int snackBarDurationSeconds = 2;
   
-  static const double stickerSize = 1080.0;
-  static const double stickerAspectRatio = 1.0;
+  static const double stickerWidth = 500.0;
+  static const double stickerHeight = 615.0;
+  static const double stickerAspectRatio = 500.0 / 615.0; // ~0.813
   static const double stickerPixelRatio = 3.0;
 }
 

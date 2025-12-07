@@ -30,11 +30,11 @@ class RadioShareCard extends StatelessWidget {
   Color _getBackgroundColor(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    
+
     if (palette != null) {
       return palette!.dominant;
     }
-    
+
     // Match radio screen background logic
     return isDark ? const Color(0xFF15232B) : const Color(0xFF2C3E50);
   }
@@ -42,11 +42,11 @@ class RadioShareCard extends StatelessWidget {
   Color _getTextColor(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    
+
     if (palette != null) {
       final bgColor = palette!.dominant;
       final luminance = _calculateLuminance(bgColor);
-      
+
       if (isDark) {
         // Dark mode: prefer white text unless background is very light
         return luminance > 0.7 ? Colors.black87 : Colors.white;
@@ -56,7 +56,7 @@ class RadioShareCard extends StatelessWidget {
         return luminance < 0.15 ? Colors.white : Colors.black87;
       }
     }
-    
+
     // No palette: use theme-based colors
     return isDark ? Colors.white : theme.colorScheme.onSurface;
   }
@@ -64,11 +64,11 @@ class RadioShareCard extends StatelessWidget {
   Color _getSecondaryTextColor(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    
+
     if (palette != null) {
       final bgColor = palette!.dominant;
       final luminance = _calculateLuminance(bgColor);
-      
+
       if (isDark) {
         // Dark mode: prefer white text unless background is very light
         return luminance > 0.7 ? Colors.black54 : Colors.white70;
@@ -78,7 +78,7 @@ class RadioShareCard extends StatelessWidget {
         return luminance < 0.15 ? Colors.white70 : Colors.black54;
       }
     }
-    
+
     return isDark ? Colors.white70 : theme.colorScheme.onSurfaceVariant;
   }
 
@@ -87,9 +87,15 @@ class RadioShareCard extends StatelessWidget {
     final g = color.g / 255.0;
     final b = color.b / 255.0;
 
-    final rLinear = r <= 0.03928 ? r / 12.92 : math.pow((r + 0.055) / 1.055, 2.4);
-    final gLinear = g <= 0.03928 ? g / 12.92 : math.pow((g + 0.055) / 1.055, 2.4);
-    final bLinear = b <= 0.03928 ? b / 12.92 : math.pow((b + 0.055) / 1.055, 2.4);
+    final rLinear = r <= 0.03928
+        ? r / 12.92
+        : math.pow((r + 0.055) / 1.055, 2.4);
+    final gLinear = g <= 0.03928
+        ? g / 12.92
+        : math.pow((g + 0.055) / 1.055, 2.4);
+    final bLinear = b <= 0.03928
+        ? b / 12.92
+        : math.pow((b + 0.055) / 1.055, 2.4);
 
     return 0.2126 * rLinear + 0.7152 * gLinear + 0.0722 * bLinear;
   }
@@ -106,24 +112,24 @@ class RadioShareCard extends StatelessWidget {
     const lineHeight = 1.2; // Line height multiplier
     const maxLines = 2;
     final maxHeight = baseFontSize * lineHeight * maxLines;
-    
+
     final baseStyle = theme.textTheme.headlineSmall?.copyWith(
       color: textColor,
       fontWeight: FontWeight.w600,
       letterSpacing: -0.3,
       height: lineHeight,
     );
-    
+
     double fontSize = baseFontSize;
     TextPainter textPainter;
-    
+
     // Binary search for optimal font size
     double lowerBound = minFontSize;
     double upperBound = baseFontSize;
-    
+
     while ((upperBound - lowerBound) > 0.5) {
       fontSize = (lowerBound + upperBound) / 2;
-      
+
       textPainter = TextPainter(
         text: TextSpan(
           text: displayTitle,
@@ -132,19 +138,19 @@ class RadioShareCard extends StatelessWidget {
         textDirection: TextDirection.ltr,
         maxLines: maxLines,
       );
-      
+
       textPainter.layout(maxWidth: maxWidth);
-      
+
       if (textPainter.didExceedMaxLines || textPainter.height > maxHeight) {
         upperBound = fontSize;
       } else {
         lowerBound = fontSize;
       }
     }
-    
+
     // Use the lower bound (largest size that fits)
     fontSize = lowerBound.clamp(minFontSize, baseFontSize);
-    
+
     return Text(
       displayTitle,
       style: baseStyle?.copyWith(fontSize: fontSize),
@@ -166,7 +172,8 @@ class RadioShareCard extends StatelessWidget {
         ? artist!.trim()
         : RadioConfig.fallbackArtist;
 
-    final String backgroundImageUrl = albumArtUrl ?? RadioConfig.fallbackArtworkPath;
+    final String backgroundImageUrl =
+        albumArtUrl ?? RadioConfig.fallbackArtworkPath;
     final bool isNetworkImage = albumArtUrl != null && albumArtUrl!.isNotEmpty;
 
     if (isStickerFormat) {
@@ -251,7 +258,9 @@ class RadioShareCard extends StatelessWidget {
                     padding: const EdgeInsets.all(DesignTokens.spacingS),
                     decoration: BoxDecoration(
                       color: textColor.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
+                      borderRadius: BorderRadius.circular(
+                        DesignTokens.cornerRadiusCard,
+                      ),
                       border: Border.all(
                         color: textColor.withValues(alpha: 0.2),
                         width: DimensionTokens.borderWidthThin,
@@ -261,7 +270,9 @@ class RadioShareCard extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(DesignTokens.spacingXs / 1.33),
+                          padding: const EdgeInsets.all(
+                            DesignTokens.spacingXs / 1.33,
+                          ),
                           decoration: BoxDecoration(
                             color: textColor,
                             shape: BoxShape.circle,
@@ -274,18 +285,24 @@ class RadioShareCard extends StatelessWidget {
                                   fit: BoxFit.contain,
                                   errorBuilder: (context, error, stackTrace) =>
                                       Icon(
-                                    Icons.radio,
-                                    color: textColor == Colors.black87 
-                                        ? Colors.white 
-                                        : (textColor == Colors.white ? Colors.black87 : backgroundColor),
-                                    size: DimensionTokens.iconSizeSmall * 0.625,
-                                  ),
+                                        Icons.radio,
+                                        color: textColor == Colors.black87
+                                            ? Colors.white
+                                            : (textColor == Colors.white
+                                                  ? Colors.black87
+                                                  : backgroundColor),
+                                        size:
+                                            DimensionTokens.iconSizeSmall *
+                                            0.625,
+                                      ),
                                 )
                               : Icon(
                                   Icons.radio,
-                                  color: textColor == Colors.black87 
-                                      ? Colors.white 
-                                      : (textColor == Colors.white ? Colors.black87 : backgroundColor),
+                                  color: textColor == Colors.black87
+                                      ? Colors.white
+                                      : (textColor == Colors.white
+                                            ? Colors.black87
+                                            : backgroundColor),
                                   size: DimensionTokens.iconSizeSmall * 0.625,
                                 ),
                         ),
@@ -296,7 +313,8 @@ class RadioShareCard extends StatelessWidget {
                             color: textColor,
                             fontSize: DesignTokens.fontSizeCaption,
                             fontWeight: DesignTokens.fontWeightCaption,
-                            letterSpacing: DesignTokens.letterSpacingLabelMedium,
+                            letterSpacing:
+                                DesignTokens.letterSpacingLabelMedium,
                           ),
                         ),
                       ],
@@ -309,8 +327,8 @@ class RadioShareCard extends StatelessWidget {
                 Expanded(
                   child: LayoutBuilder(
                     builder: (context, constraints) {
-                      final albumArtSize = constraints.maxWidth * 0.6;
-                      
+                      final albumArtSize = constraints.maxWidth * 0.75;
+
                       return SingleChildScrollView(
                         physics: const NeverScrollableScrollPhysics(),
                         child: ConstrainedBox(
@@ -330,12 +348,18 @@ class RadioShareCard extends StatelessWidget {
                                       maxHeight: albumArtSize,
                                     ),
                                     decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
-                                      boxShadow: AppShadowTokens.elevation8(context),
+                                      borderRadius: BorderRadius.circular(
+                                        DesignTokens.cornerRadiusAlbumArt,
+                                      ),
+                                      boxShadow: AppShadowTokens.elevation8(
+                                        context,
+                                      ),
                                     ),
                                     clipBehavior: Clip.antiAlias,
                                     child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
+                                      borderRadius: BorderRadius.circular(
+                                        DesignTokens.cornerRadiusAlbumArt,
+                                      ),
                                       child: isNetworkImage
                                           ? AppNetworkImage(
                                               imageUrl: backgroundImageUrl,
@@ -345,15 +369,22 @@ class RadioShareCard extends StatelessWidget {
                                           : Image.asset(
                                               backgroundImageUrl,
                                               fit: BoxFit.cover,
-                                              errorBuilder: (context, error, stackTrace) =>
-                                                  Container(
-                                                color: Colors.grey[800],
-                                                child: Icon(
-                                                  Icons.music_note,
-                                                  size: DimensionTokens.iconSizeLarge * 2.5,
-                                                  color: Colors.grey[400],
-                                                ),
-                                              ),
+                                              errorBuilder:
+                                                  (
+                                                    context,
+                                                    error,
+                                                    stackTrace,
+                                                  ) => Container(
+                                                    color: Colors.grey[800],
+                                                    child: Icon(
+                                                      Icons.music_note,
+                                                      size:
+                                                          DimensionTokens
+                                                              .iconSizeLarge *
+                                                          2.5,
+                                                      color: Colors.grey[400],
+                                                    ),
+                                                  ),
                                             ),
                                     ),
                                   ),
@@ -362,7 +393,9 @@ class RadioShareCard extends StatelessWidget {
                                 const SizedBox(height: DesignTokens.spacingXl),
 
                                 Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: DesignTokens.spacingS),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: DesignTokens.spacingS,
+                                  ),
                                   child: _buildAdaptiveTitle(
                                     context: context,
                                     theme: theme,
@@ -375,13 +408,16 @@ class RadioShareCard extends StatelessWidget {
                                 const SizedBox(height: DesignTokens.spacingS),
 
                                 Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: DesignTokens.spacingS),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: DesignTokens.spacingS,
+                                  ),
                                   child: Text(
                                     displayArtist,
-                                    style: theme.textTheme.titleMedium?.copyWith(
-                                      color: secondaryTextColor,
-                                      fontWeight: FontWeight.w400,
-                                    ),
+                                    style: theme.textTheme.titleMedium
+                                        ?.copyWith(
+                                          color: secondaryTextColor,
+                                          fontWeight: FontWeight.w400,
+                                        ),
                                     textAlign: TextAlign.center,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
@@ -405,7 +441,9 @@ class RadioShareCard extends StatelessWidget {
                     ),
                     decoration: BoxDecoration(
                       color: textColor.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusAlbumArt),
+                      borderRadius: BorderRadius.circular(
+                        DesignTokens.cornerRadiusAlbumArt,
+                      ),
                       border: Border.all(
                         color: textColor.withValues(alpha: 0.2),
                         width: DimensionTokens.borderWidthThin,
@@ -451,34 +489,45 @@ class RadioShareCard extends StatelessWidget {
   }) {
     final colors = context.appColors;
     final scheme = colors.colorScheme;
-    
+
     return Container(
       width: double.infinity,
       height: double.infinity,
       color: Colors.transparent,
       child: Center(
         child: Container(
-          margin: const EdgeInsets.all(DesignTokens.spacingS),
+          margin: const EdgeInsets.symmetric(
+            horizontal: DesignTokens.spacingS,
+            vertical: 0.0,
+          ),
           decoration: BoxDecoration(
             color: scheme.surface,
-            borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusPill),
+            borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
             boxShadow: AppShadowTokens.elevation8(context),
           ),
           child: Padding(
             padding: const EdgeInsets.all(DesignTokens.spacingM),
             child: LayoutBuilder(
               builder: (context, constraints) {
+                // Calculate album art size: use ~75% of available width
+                // Available width = constraints.maxWidth (after padding)
                 final availableWidth = constraints.maxWidth;
-                final albumArtSize = availableWidth * 0.65;
-                
+                final albumArtSize = (availableWidth * 0.75).clamp(
+                  280.0,
+                  380.0,
+                );
+
                 return Column(
                   mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     SizedBox(
                       width: albumArtSize,
                       height: albumArtSize,
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
+                        borderRadius: BorderRadius.circular(
+                          DesignTokens.cornerRadiusAlbumArt,
+                        ),
                         child: AspectRatio(
                           aspectRatio: 1,
                           child: isNetworkImage
@@ -492,78 +541,105 @@ class RadioShareCard extends StatelessWidget {
                                   fit: BoxFit.cover,
                                   errorBuilder: (context, error, stackTrace) =>
                                       Container(
-                                    color: colors.surfaces.surfaceContainerHighest,
-                                    child: Icon(
-                                      Icons.music_note,
-                                      size: DimensionTokens.iconSizeLarge * 2,
-                                      color: colors.textSecondary,
-                                    ),
-                                  ),
+                                        color: colors
+                                            .surfaces
+                                            .surfaceContainerHighest,
+                                        child: Icon(
+                                          Icons.music_note,
+                                          size:
+                                              DimensionTokens.iconSizeLarge *
+                                              2.5,
+                                          color: colors.textSecondary,
+                                        ),
+                                      ),
                                 ),
                         ),
                       ),
                     ),
-                    SizedBox(height: DesignTokens.spacingM),
-                    Text(
-                      displayTitle,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: colors.textPrimary,
-                        fontWeight: DesignTokens.fontWeightTitleMedium,
-                        fontSize: DesignTokens.fontSizeTitleSmall,
-                        letterSpacing: DesignTokens.letterSpacingTitleSmall,
+                    const SizedBox(height: DesignTokens.spacingS),
+                    SizedBox(
+                      width: albumArtSize,
+                      child: Text(
+                        displayTitle,
+                        style: TextStyle(
+                          color: colors.textPrimary,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 19,
+                          letterSpacing: -0.3,
+                          height: 1.2,
+                        ),
+                        textAlign: TextAlign.left,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                     ),
-                    SizedBox(height: DesignTokens.spacingXs),
-                    Text(
-                      displayArtist,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: colors.textSecondary,
-                        fontWeight: DesignTokens.fontWeightBody,
-                        fontSize: DesignTokens.fontSizeBodySmall,
-                        letterSpacing: DesignTokens.letterSpacingBodySmall,
+                    const SizedBox(height: DesignTokens.spacingXs),
+                    SizedBox(
+                      width: albumArtSize,
+                      child: Text(
+                        displayArtist,
+                        style: TextStyle(
+                          color: colors.textSecondary,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 19,
+                          letterSpacing: -0.3,
+                          height: 1.2,
+                        ),
+                        textAlign: TextAlign.left,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      textAlign: TextAlign.center,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
-                    SizedBox(height: DesignTokens.spacingM),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (ShareConfig.useLogoAsset)
-                          Image.asset(
-                            ShareConfig.logoAssetPath,
-                            width: DimensionTokens.iconSizeSmall,
-                            height: DimensionTokens.iconSizeSmall,
-                            fit: BoxFit.contain,
-                            errorBuilder: (context, error, stackTrace) =>
-                                Icon(
+                    const SizedBox(height: DesignTokens.spacingS),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: DesignTokens.spacingS,
+                        vertical: DesignTokens.spacingXs,
+                      ),
+                      decoration: BoxDecoration(
+                        color: colors.textPrimary.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(
+                          DesignTokens.cornerRadiusPill,
+                        ),
+                        border: Border.all(
+                          color: colors.textPrimary.withValues(alpha: 0.2),
+                          width: DimensionTokens.borderWidthThin,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (ShareConfig.useLogoAsset)
+                            Image.asset(
+                              ShareConfig.logoAssetPath,
+                              width: 12,
+                              height: 12,
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  Icon(
+                                    Icons.radio,
+                                    size: 12,
+                                    color: colors.textPrimary,
+                                  ),
+                            )
+                          else
+                            Icon(
                               Icons.radio,
-                              size: DimensionTokens.iconSizeSmall,
+                              size: 12,
                               color: colors.textPrimary,
                             ),
-                          )
-                        else
-                          Icon(
-                            Icons.radio,
-                            size: DimensionTokens.iconSizeSmall,
-                            color: colors.textPrimary,
+                          const SizedBox(width: DesignTokens.spacingXs),
+                          Text(
+                            ShareConfig.appName,
+                            style: TextStyle(
+                              color: colors.textPrimary,
+                              fontSize: DesignTokens.fontSizeLabelSmall,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.2,
+                            ),
                           ),
-                        const SizedBox(width: DesignTokens.spacingXs),
-                        Text(
-                          ShareConfig.appName,
-                          style: TextStyle(
-                            color: colors.textPrimary,
-                            fontSize: DesignTokens.fontSizeLabelSmall,
-                            fontWeight: DesignTokens.fontWeightLabelSmall,
-                            letterSpacing: DesignTokens.letterSpacingLabelSmall,
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ],
                 );
@@ -575,4 +651,3 @@ class RadioShareCard extends StatelessWidget {
     );
   }
 }
-

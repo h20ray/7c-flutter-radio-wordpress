@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 import '../../../../../config/share_config.dart';
+import '../../../../../core/constants/share_constants.dart';
 import '../../../../../core/utils/palette_cache.dart';
 import '../../../../../features/shared/presentation/dialogs/share_preview_dialog.dart';
 import '../radio_share_card.dart';
@@ -56,6 +57,20 @@ class _RadioNowPlayingShareDialogState
     return '#${color.toARGB32().toRadixString(16).substring(2).toUpperCase()}';
   }
 
+  /// Creates a smooth gradient from dominant color (lighter top, darker bottom)
+  /// Similar to Apple Music's blob blur effect
+  Color _lightenColor(Color color, double amount) {
+    assert(amount >= 0 && amount <= 1);
+    final hsl = HSLColor.fromColor(color);
+    return hsl.withLightness((hsl.lightness + amount).clamp(0.0, 1.0)).toColor();
+  }
+
+  Color _darkenColor(Color color, double amount) {
+    assert(amount >= 0 && amount <= 1);
+    final hsl = HSLColor.fromColor(color);
+    return hsl.withLightness((hsl.lightness - amount).clamp(0.0, 1.0)).toColor();
+  }
+
   @override
   Widget build(BuildContext context) {
     // Construct share text
@@ -63,13 +78,16 @@ class _RadioNowPlayingShareDialogState
         ? '${widget.title}${widget.artist != null && widget.artist!.trim().isNotEmpty ? ' - ${widget.artist}' : ''}'
         : 'Now Playing on ${ShareConfig.appNameFull}';
 
-    // Get gradient colors from palette (vibrant for top, darkVibrant for bottom)
-    final topColor = widget.palette != null 
-        ? _colorToHex(widget.palette!.vibrant) 
-        : null;
-    final bottomColor = widget.palette != null 
-        ? _colorToHex(widget.palette!.darkVibrant) 
-        : null;
+    // Get gradient colors from palette (dominant color with lighter/darker variants)
+    String? topColor;
+    String? bottomColor;
+    if (widget.palette != null) {
+      final dominant = widget.palette!.dominant;
+      final lighter = _lightenColor(dominant, 0.15);
+      final darker = _darkenColor(dominant, 0.2);
+      topColor = _colorToHex(lighter);
+      bottomColor = _colorToHex(darker);
+    }
 
     return SharePreviewDialog(
       previewWidget: RadioShareCard(
@@ -81,7 +99,7 @@ class _RadioNowPlayingShareDialogState
       ),
       shareText: shareText,
       shareSubject: 'share_now_playing_subject'.tr(),
-      aspectRatio: 9 / 16,
+      aspectRatio: ShareConstants.stickerAspectRatio,
       stickerWidgetBuilder: () => RadioShareCard(
         artist: widget.artist,
         title: widget.title,

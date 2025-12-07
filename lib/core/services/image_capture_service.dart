@@ -148,19 +148,51 @@ class ImageCaptureService {
       final imageWidth = image.width.toDouble();
       final imageHeight = image.height.toDouble();
       
-      final minDimension = imageWidth < imageHeight ? imageWidth : imageHeight;
-      final cropX = (imageWidth - minDimension) / 2;
-      final cropY = (imageHeight - minDimension) / 2;
+      // Target dimensions at the pixel ratio scale
+      final targetWidth = ShareConstants.stickerWidth * effectivePixelRatio;
+      final targetHeight = ShareConstants.stickerHeight * effectivePixelRatio;
+      
+      // Calculate crop to center the target aspect ratio
+      const targetAspectRatio = ShareConstants.stickerAspectRatio;
+      final imageAspectRatio = imageWidth / imageHeight;
+      
+      double cropWidth, cropHeight, cropX, cropY;
+      
+      if (imageAspectRatio > targetAspectRatio) {
+        // Image is wider than target - fit to height
+        cropHeight = imageHeight;
+        cropWidth = cropHeight * targetAspectRatio;
+        cropX = (imageWidth - cropWidth) / 2;
+        cropY = 0;
+      } else {
+        // Image is taller than target - fit to width
+        cropWidth = imageWidth;
+        cropHeight = cropWidth / targetAspectRatio;
+        cropX = 0;
+        cropY = (imageHeight - cropHeight) / 2;
+      }
+      
+      // Ensure we don't exceed image bounds
+      cropWidth = cropWidth.clamp(0, imageWidth);
+      cropHeight = cropHeight.clamp(0, imageHeight);
+      cropX = cropX.clamp(0, imageWidth - cropWidth);
+      cropY = cropY.clamp(0, imageHeight - cropHeight);
       
       final croppedImage = await _cropImage(
         image,
         cropX.toInt(),
         cropY.toInt(),
-        minDimension.toInt(),
-        minDimension.toInt(),
+        cropWidth.toInt(),
+        cropHeight.toInt(),
       );
       
-      final byteData = await croppedImage.toByteData(format: ui.ImageByteFormat.png);
+      // Resize to exact target dimensions if needed
+      final finalImage = croppedImage.width != targetWidth.toInt() || 
+                         croppedImage.height != targetHeight.toInt()
+          ? await _resizeImage(croppedImage, targetWidth.toInt(), targetHeight.toInt())
+          : croppedImage;
+      
+      final byteData = await finalImage.toByteData(format: ui.ImageByteFormat.png);
       final pngBytes = byteData?.buffer.asUint8List();
 
       if (pngBytes == null) {
@@ -201,6 +233,25 @@ class ImageCaptureService {
     
     final picture = pictureRecorder.endRecording();
     return await picture.toImage(width, height);
+  }
+
+  Future<ui.Image> _resizeImage(
+    ui.Image image,
+    int targetWidth,
+    int targetHeight,
+  ) async {
+    final pictureRecorder = ui.PictureRecorder();
+    final canvas = Canvas(pictureRecorder);
+    
+    canvas.drawImageRect(
+      image,
+      Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
+      Rect.fromLTWH(0, 0, targetWidth.toDouble(), targetHeight.toDouble()),
+      Paint()..filterQuality = FilterQuality.high,
+    );
+    
+    final picture = pictureRecorder.endRecording();
+    return await picture.toImage(targetWidth, targetHeight);
   }
 
   double getOptimalPixelRatio(BuildContext context) {
