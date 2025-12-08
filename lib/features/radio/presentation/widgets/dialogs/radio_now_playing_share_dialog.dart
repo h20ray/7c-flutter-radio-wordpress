@@ -6,6 +6,8 @@ import '../../../../../core/constants/share_constants.dart';
 import '../../../../../core/utils/palette_cache.dart';
 import '../../../../../features/shared/presentation/dialogs/share_preview_dialog.dart';
 import '../radio_share_card.dart';
+import '../radio_share_regular_card.dart';
+import '../radio_share_regular_canvas.dart';
 
 /// Dialog for sharing the currently playing track with Instagram mode toggle.
 class RadioNowPlayingShareDialog extends StatefulWidget {
@@ -73,12 +75,10 @@ class _RadioNowPlayingShareDialogState
 
   @override
   Widget build(BuildContext context) {
-    // Construct share text
     final shareText = widget.title != null && widget.title!.trim().isNotEmpty
         ? '${widget.title}${widget.artist != null && widget.artist!.trim().isNotEmpty ? ' - ${widget.artist}' : ''}'
         : 'Now Playing on ${ShareConfig.appNameFull}';
 
-    // Get gradient colors from palette (dominant color with lighter/darker variants)
     String? topColor;
     String? bottomColor;
     if (widget.palette != null) {
@@ -89,8 +89,16 @@ class _RadioNowPlayingShareDialogState
       bottomColor = _colorToHex(darker);
     }
 
+    final shareCard = RadioShareCard(
+      artist: widget.artist,
+      title: widget.title,
+      albumArtUrl: widget.albumArtUrl,
+      palette: widget.palette,
+      isPlaying: widget.isPlaying,
+    );
+
     return SharePreviewDialog(
-      previewWidget: RadioShareCard(
+      previewWidget: RadioShareRegularCard(
         artist: widget.artist,
         title: widget.title,
         albumArtUrl: widget.albumArtUrl,
@@ -100,13 +108,13 @@ class _RadioNowPlayingShareDialogState
       shareText: shareText,
       shareSubject: 'share_now_playing_subject'.tr(),
       aspectRatio: ShareConstants.stickerAspectRatio,
-      stickerWidgetBuilder: () => RadioShareCard(
+      stickerWidgetBuilder: () => shareCard,
+      regularShareWidgetBuilder: () => RadioShareRegularCanvas(
         artist: widget.artist,
         title: widget.title,
         albumArtUrl: widget.albumArtUrl,
         palette: widget.palette,
         isPlaying: widget.isPlaying,
-        isStickerFormat: true,
       ),
       stickerTopColor: topColor,
       stickerBottomColor: bottomColor,

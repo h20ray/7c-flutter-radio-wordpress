@@ -1,22 +1,23 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../../../core/themes/component_tokens.dart';
 import '../../../../core/themes/design_tokens.dart';
 import '../../../../core/widgets/haptic_widgets.dart';
 import '../../../../core/utils/haptic_feedback_helper.dart';
-import '../../../../core/services/image_capture_service.dart';
-import '../../../../core/services/instagram_sticker_service.dart';
 import '../../../../core/constants/share_constants.dart';
 import '../../../../core/di/injection_container.dart';
+import '../../../../core/services/image_capture_service.dart';
+import '../../../../core/services/instagram_sticker_service.dart';
+import '../../../radio/presentation/widgets/radio_share_card.dart';
 
 /// A generic dialog for previewing and sharing a widget as an image.
 ///
 /// This dialog displays the provided [previewWidget] in a responsive container,
 /// handles the image capture using [ImageCaptureService], and shares it via the system share sheet.
 class SharePreviewDialog extends StatefulWidget {
-  /// The widget to be captured and shared.
-  /// This widget will be wrapped in a [RepaintBoundary] internally.
+  /// The widget shown in the preview.
   final Widget previewWidget;
 
   /// The text to share along with the image.
@@ -32,6 +33,10 @@ class SharePreviewDialog extends StatefulWidget {
   /// If not provided, [previewWidget] will be used in a square container.
   final Widget Function()? stickerWidgetBuilder;
 
+  /// Optional widget builder for regular share capture (with background).
+  /// If not provided, [previewWidget] will be used.
+  final Widget Function()? regularShareWidgetBuilder;
+
   /// Optional top gradient color for Instagram Stories background (hex format like '#FF5733').
   final String? stickerTopColor;
 
@@ -45,6 +50,7 @@ class SharePreviewDialog extends StatefulWidget {
     required this.shareSubject,
     this.aspectRatio = 9 / 16,
     this.stickerWidgetBuilder,
+    this.regularShareWidgetBuilder,
     this.stickerTopColor,
     this.stickerBottomColor,
   });
@@ -57,6 +63,7 @@ class SharePreviewDialog extends StatefulWidget {
     required String shareSubject,
     double aspectRatio = 9 / 16,
     Widget Function()? stickerWidgetBuilder,
+    Widget Function()? regularShareWidgetBuilder,
     String? stickerTopColor,
     String? stickerBottomColor,
   }) {
@@ -68,6 +75,7 @@ class SharePreviewDialog extends StatefulWidget {
         shareSubject: shareSubject,
         aspectRatio: aspectRatio,
         stickerWidgetBuilder: stickerWidgetBuilder,
+        regularShareWidgetBuilder: regularShareWidgetBuilder,
         stickerTopColor: stickerTopColor,
         stickerBottomColor: stickerBottomColor,
       ),
@@ -80,28 +88,76 @@ class SharePreviewDialog extends StatefulWidget {
 
 class _SharePreviewDialogState extends State<SharePreviewDialog> {
   final GlobalKey _previewKey = GlobalKey();
-  final GlobalKey _stickerPreviewKey = GlobalKey();
+  final GlobalKey _regularCaptureKey = GlobalKey();
+  final GlobalKey _instagramPreviewKey = GlobalKey();
   final ImageCaptureService _imageCaptureService = getIt<ImageCaptureService>();
   final InstagramStickerService _instagramStickerService = getIt<InstagramStickerService>();
   bool _isCapturing = false;
   bool _isSharingToInstagram = false;
+
+  Widget _getPreviewWidget() {
+    return widget.previewWidget;
+  }
+
+  Widget _getRegularShareWidget() {
+    if (widget.regularShareWidgetBuilder != null) {
+      return widget.regularShareWidgetBuilder!();
+    }
+    if (widget.stickerWidgetBuilder != null) {
+      final baseWidget = widget.stickerWidgetBuilder!();
+      if (baseWidget is RadioShareCard) {
+        return RadioShareCard(
+          artist: baseWidget.artist,
+          title: baseWidget.title,
+          albumArtUrl: baseWidget.albumArtUrl,
+          palette: baseWidget.palette,
+          isPlaying: baseWidget.isPlaying,
+          hasBackground: true,
+        );
+      }
+      return baseWidget;
+    }
+    if (widget.previewWidget is RadioShareCard) {
+      final baseWidget = widget.previewWidget as RadioShareCard;
+      return RadioShareCard(
+        artist: baseWidget.artist,
+        title: baseWidget.title,
+        albumArtUrl: baseWidget.albumArtUrl,
+        palette: baseWidget.palette,
+        isPlaying: baseWidget.isPlaying,
+        hasBackground: true,
+      );
+    }
+    return widget.previewWidget;
+  }
 
   Future<void> _captureAndShare() async {
     if (_isCapturing) return;
     setState(() => _isCapturing = true);
 
     try {
-      final pixelRatio = _imageCaptureService.getOptimalPixelRatio(context);
+      const pixelRatio = ShareConstants.stickerPixelRatio;
 
-      await _imageCaptureService.captureAndShare(
-        key: _previewKey,
-        text: widget.shareText,
-        subject: widget.shareSubject,
+      final shareFile = await _imageCaptureService.captureWidgetToRegularShareFile(
+        _regularCaptureKey,
         pixelRatio: pixelRatio,
         initialDelayMs: ShareConstants.initialCaptureDelayMs,
         finalDelayMs: ShareConstants.finalCaptureDelayMs,
         maxWaitAttempts: ShareConstants.maxPaintWaitAttempts,
         waitDelayMs: ShareConstants.paintWaitDelayMs,
+        fileNamePrefix: 'share',
+      );
+
+      if (shareFile == null) {
+        throw Exception('Failed to capture image');
+      }
+
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(shareFile.path)],
+          text: widget.shareText,
+          subject: widget.shareSubject,
+        ),
       );
 
       if (mounted) {
@@ -134,7 +190,7 @@ class _SharePreviewDialogState extends State<SharePreviewDialog> {
       const pixelRatio = ShareConstants.stickerPixelRatio;
 
       final stickerFile = await _imageCaptureService.captureWidgetToStickerFile(
-        _stickerPreviewKey,
+        _instagramPreviewKey,
         pixelRatio: pixelRatio,
         initialDelayMs: ShareConstants.initialCaptureDelayMs,
         finalDelayMs: ShareConstants.finalCaptureDelayMs,
@@ -196,6 +252,18 @@ class _SharePreviewDialogState extends State<SharePreviewDialog> {
   Widget build(BuildContext context) {
     final tokens = ShareDialogTokens.of(context);
     final mediaQuery = MediaQuery.of(context);
+    final regularPreviewWidget = _getPreviewWidget();
+    final regularCaptureWidget = _getRegularShareWidget();
+    final instagramPreviewWidget = widget.stickerWidgetBuilder != null
+        ? widget.stickerWidgetBuilder!()
+        : widget.previewWidget;
+    final aspectRatio = widget.stickerWidgetBuilder != null
+        ? ShareConstants.stickerAspectRatio
+        : widget.aspectRatio;
+
+    const dialogPadding = DesignTokens.spacingL;
+    const buttonHeight = 40.0;
+    const buttonSpacing = DesignTokens.spacingL;
 
     return Dialog(
       backgroundColor: tokens.surface,
@@ -204,49 +272,59 @@ class _SharePreviewDialogState extends State<SharePreviewDialog> {
       ),
       child: Stack(
         children: [
-          Container(
-            padding: const EdgeInsets.all(DesignTokens.spacingL),
-            constraints: BoxConstraints(
-              maxWidth: mediaQuery.size.width * 0.9,
-              maxHeight: mediaQuery.size.height * 0.85,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Preview container
-                Flexible(
-                  child: Container(
-                    constraints: const BoxConstraints(maxHeight: 500),
-                    decoration: BoxDecoration(
-                      borderRadius:
-                          BorderRadius.circular(tokens.previewCornerRadius),
-                      color: tokens.surface,
-                    ),
-                    clipBehavior: Clip.antiAlias,
-                    child: AspectRatio(
-                      aspectRatio: widget.aspectRatio,
-                      child: RepaintBoundary(
-                        key: _previewKey,
-                        child: widget.previewWidget,
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final maxDialogWidth = mediaQuery.size.width * 0.9;
+              final maxDialogHeight = mediaQuery.size.height * 0.85;
+              
+              final availableWidth = (maxDialogWidth - (dialogPadding * 2)).clamp(0.0, double.infinity);
+              final availableHeight = (maxDialogHeight - (dialogPadding * 2) - buttonHeight - buttonSpacing).clamp(0.0, double.infinity);
+              
+              double previewWidth = availableWidth;
+              double previewHeight = previewWidth / aspectRatio;
+              
+              if (previewHeight > availableHeight) {
+                previewHeight = availableHeight;
+                previewWidth = previewHeight * aspectRatio;
+              }
+              
+              previewWidth = previewWidth.clamp(0.0, availableWidth);
+              previewHeight = previewHeight.clamp(0.0, availableHeight);
+
+              return Container(
+                padding: const EdgeInsets.all(dialogPadding),
+                constraints: BoxConstraints(
+                  maxWidth: maxDialogWidth,
+                  maxHeight: maxDialogHeight,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: previewWidth,
+                        height: previewHeight,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(tokens.previewCornerRadius),
+                          color: tokens.surface,
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: RepaintBoundary(
+                          key: _previewKey,
+                          child: regularPreviewWidget,
+                        ),
                       ),
                     ),
-                  ),
-                ),
-
-                const SizedBox(height: DesignTokens.spacingL),
-                
-                // Action buttons
-                Wrap(
-                  alignment: WrapAlignment.end,
-                  spacing: DesignTokens.spacingS,
-                  runSpacing: DesignTokens.spacingS,
+                const SizedBox(height: buttonSpacing),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     if (widget.stickerWidgetBuilder != null)
                       HapticFilledButton(
                         hapticType: HapticFeedbackType.mediumImpact,
-                        onPressed: (_isSharingToInstagram || _isCapturing) 
-                            ? null 
+                        onPressed: (_isSharingToInstagram || _isCapturing)
+                            ? null
                             : _captureAndShareToInstagram,
                         style: FilledButton.styleFrom(
                           padding: const EdgeInsets.symmetric(
@@ -275,19 +353,16 @@ class _SharePreviewDialogState extends State<SharePreviewDialog> {
                                     color: tokens.onPrimary,
                                   ),
                                   const SizedBox(width: 4),
-                                  Flexible(
-                                    child: Text(
-                                      'share_instagram'.tr(),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
+                                  Text('share_instagram'.tr()),
                                 ],
                               ),
                       ),
+                    if (widget.stickerWidgetBuilder != null)
+                      const SizedBox(width: DesignTokens.spacingS),
                     HapticFilledButton(
                       hapticType: HapticFeedbackType.mediumImpact,
-                      onPressed: (_isCapturing || _isSharingToInstagram) 
-                          ? null 
+                      onPressed: (_isCapturing || _isSharingToInstagram)
+                          ? null
                           : _captureAndShare,
                       style: FilledButton.styleFrom(
                         padding: const EdgeInsets.symmetric(
@@ -310,25 +385,35 @@ class _SharePreviewDialogState extends State<SharePreviewDialog> {
                     ),
                   ],
                 ),
-              ],
-            ),
+                  ],
+                ),
+              );
+            },
           ),
-          
-          // Sticker preview for Instagram (off-screen, used for capture)
           Positioned(
             left: -10000,
             top: -10000,
             child: SizedBox(
-              width: 400,
-              height: 400,
+              width: 500,
+              height: 615,
               child: RepaintBoundary(
-                key: _stickerPreviewKey,
-                child: widget.stickerWidgetBuilder != null
-                    ? widget.stickerWidgetBuilder!()
-                    : widget.previewWidget,
+                key: _instagramPreviewKey,
+                child: instagramPreviewWidget,
               ),
             ),
           ),
+      Positioned(
+        left: -20000,
+        top: -20000,
+        child: SizedBox(
+          width: ShareConstants.regularShareWidth,
+          height: ShareConstants.regularShareHeight,
+          child: RepaintBoundary(
+            key: _regularCaptureKey,
+            child: regularCaptureWidget,
+          ),
+        ),
+      ),
         ],
       ),
     );

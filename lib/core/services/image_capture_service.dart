@@ -254,6 +254,116 @@ class ImageCaptureService {
     return await picture.toImage(targetWidth, targetHeight);
   }
 
+  Future<File?> captureWidgetToRegularShareFile(
+    GlobalKey key, {
+    double? pixelRatio,
+    int? maxWaitAttempts,
+    int? waitDelayMs,
+    int? initialDelayMs,
+    int? finalDelayMs,
+    String? fileNamePrefix,
+  }) async {
+    try {
+      await SchedulerBinding.instance.endOfFrame;
+      
+      if (initialDelayMs != null && initialDelayMs > 0) {
+        await Future.delayed(Duration(milliseconds: initialDelayMs));
+      }
+
+      final boundary = key.currentContext?.findRenderObject()
+          as RenderRepaintBoundary?;
+
+      if (boundary == null) {
+        debugPrint('ImageCaptureService: Could not find render boundary');
+        return null;
+      }
+
+      final maxAttempts = maxWaitAttempts ?? ShareConstants.maxPaintWaitAttempts;
+      final delayMs = waitDelayMs ?? ShareConstants.paintWaitDelayMs;
+      int attempts = 0;
+      
+      while (boundary.debugNeedsPaint && attempts < maxAttempts) {
+        await SchedulerBinding.instance.endOfFrame;
+        await Future.delayed(Duration(milliseconds: delayMs));
+        attempts++;
+      }
+
+      if (boundary.debugNeedsPaint) {
+        debugPrint('ImageCaptureService: Widget still needs paint after max attempts');
+        await SchedulerBinding.instance.endOfFrame;
+        await Future.delayed(const Duration(milliseconds: 100));
+      }
+
+      if (finalDelayMs != null && finalDelayMs > 0) {
+        await Future.delayed(Duration(milliseconds: finalDelayMs));
+      }
+
+      final effectivePixelRatio = pixelRatio ?? ShareConstants.regularSharePixelRatio;
+      final image = await boundary.toImage(pixelRatio: effectivePixelRatio);
+      
+      final imageWidth = image.width.toDouble();
+      final imageHeight = image.height.toDouble();
+      
+      final targetWidth = ShareConstants.regularShareWidth * effectivePixelRatio;
+      final targetHeight = ShareConstants.regularShareHeight * effectivePixelRatio;
+      
+      const targetAspectRatio = ShareConstants.regularShareAspectRatio;
+      final imageAspectRatio = imageWidth / imageHeight;
+      
+      double cropWidth, cropHeight, cropX, cropY;
+      
+      if (imageAspectRatio > targetAspectRatio) {
+        cropHeight = imageHeight;
+        cropWidth = cropHeight * targetAspectRatio;
+        cropX = (imageWidth - cropWidth) / 2;
+        cropY = 0;
+      } else {
+        cropWidth = imageWidth;
+        cropHeight = cropWidth / targetAspectRatio;
+        cropX = 0;
+        cropY = (imageHeight - cropHeight) / 2;
+      }
+      
+      cropWidth = cropWidth.clamp(0, imageWidth);
+      cropHeight = cropHeight.clamp(0, imageHeight);
+      cropX = cropX.clamp(0, imageWidth - cropWidth);
+      cropY = cropY.clamp(0, imageHeight - cropHeight);
+      
+      final croppedImage = await _cropImage(
+        image,
+        cropX.toInt(),
+        cropY.toInt(),
+        cropWidth.toInt(),
+        cropHeight.toInt(),
+      );
+      
+      final finalImage = croppedImage.width != targetWidth.toInt() || 
+                         croppedImage.height != targetHeight.toInt()
+          ? await _resizeImage(croppedImage, targetWidth.toInt(), targetHeight.toInt())
+          : croppedImage;
+      
+      final byteData = await finalImage.toByteData(format: ui.ImageByteFormat.png);
+      final pngBytes = byteData?.buffer.asUint8List();
+
+      if (pngBytes == null) {
+        debugPrint('ImageCaptureService: Could not generate PNG bytes');
+        return null;
+      }
+
+      final directory = await getTemporaryDirectory();
+      final prefix = fileNamePrefix ?? 'share';
+      final fileName = '${prefix}_${DateTime.now().millisecondsSinceEpoch}.png';
+      final file = File('${directory.path}/$fileName');
+      await file.writeAsBytes(pngBytes);
+
+      return file;
+    } catch (e, stackTrace) {
+      debugPrint('ImageCaptureService: Error capturing regular share: $e');
+      debugPrintStack(stackTrace: stackTrace);
+      return null;
+    }
+  }
+
   double getOptimalPixelRatio(BuildContext context) {
     final devicePixelRatio = MediaQuery.of(context).devicePixelRatio;
     return devicePixelRatio
