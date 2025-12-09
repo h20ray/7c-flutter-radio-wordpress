@@ -123,138 +123,158 @@ class LyricShareCard extends StatelessWidget {
     final cardColor = const Color(0xFF1C1C1E).withValues(alpha: 0.90);
     const textColor = Colors.white;
     final secondaryTextColor = Colors.white.withValues(alpha: 0.65);
-
     final totalText = lines.join('\n');
-    final lyricFontSize = _calculateLyricFontSize(totalText.length, forSticker);
+    final baseLyricFontSize = _calculateLyricFontSize(totalText.length, forSticker);
 
-    const maxCardWidth = 480.0;
-    final cardPadding = forSticker ? 27.0 : 20.0;
-    final albumArtSize = forSticker ? 66.0 : 48.0;
-    const brandTextColor = Colors.white;
-    const brandIconBg = Colors.white;
-    const brandIconColor = Colors.black;
-    final brandCircleSize = forSticker ? 30.0 : 26.0;
-    final brandIconSize = forSticker ? 16.0 : 14.0;
-    final brandSpacing = forSticker ? 8.0 : 6.0;
-    final brandTextSize = forSticker ? 16.0 : 14.0;
-    final brandLetterSpacing = forSticker ? 0.8 : 0.6;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const maxCardWidth = 480.0;
+        final maxHeight = constraints.maxHeight;
+        final heightScale = maxHeight.isFinite
+            ? (maxHeight / 520).clamp(0.75, 1.0)
+            : 1.0;
 
-    return Container(
-      constraints: const BoxConstraints(maxWidth: maxCardWidth),
-      padding: EdgeInsets.all(cardPadding),
-      decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(forSticker ? 21.0 : 18.0),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            totalText,
-            style: TextStyle(
-              color: textColor,
-              fontWeight: FontWeight.w700,
-              fontSize: lyricFontSize,
-              height: 1.22,
-              letterSpacing: -0.3,
+        final cardPadding = (forSticker ? 27.0 : 20.0) * heightScale;
+        final albumArtSize = (forSticker ? 66.0 : 48.0) * heightScale;
+        final spacingAfterLyrics = (forSticker ? 21.0 : 18.0) * heightScale;
+        final betweenMediaSpacing = (forSticker ? 15.0 : 12.0) * heightScale;
+        final titleFontSize = (forSticker ? 20.0 : 15.0) * heightScale;
+        final artistFontSize = (forSticker ? 17.0 : 13.0) * heightScale;
+        const brandTextColor = Colors.white;
+        const brandIconBg = Colors.white;
+        const brandIconColor = Colors.black;
+        final brandCircleSize = (forSticker ? 30.0 : 26.0) * heightScale;
+        final brandIconSize = (forSticker ? 16.0 : 14.0) * heightScale;
+        final brandSpacing = (forSticker ? 8.0 : 6.0) * heightScale;
+        final brandTextSize = (forSticker ? 16.0 : 14.0) * heightScale;
+        final brandLetterSpacing = (forSticker ? 0.8 : 0.6) * heightScale;
+        final lyricFontSize = baseLyricFontSize * heightScale.clamp(0.8, 1.0);
+
+        final content = Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              totalText,
+              style: TextStyle(
+                color: textColor,
+                fontWeight: FontWeight.w700,
+                fontSize: lyricFontSize,
+                height: 1.22,
+                letterSpacing: -0.3,
+              ),
             ),
-          ),
-
-          SizedBox(height: forSticker ? 21.0 : 18.0),
-
-          Row(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(forSticker ? 8.0 : 6.0),
-                child: SizedBox(
-                  width: albumArtSize,
-                  height: albumArtSize,
-                  child: _buildAlbumArtThumbnail(forSticker),
+            SizedBox(height: spacingAfterLyrics),
+            Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(forSticker ? 8.0 : 6.0),
+                  child: SizedBox(
+                    width: albumArtSize,
+                    height: albumArtSize,
+                    child: _buildAlbumArtThumbnail(forSticker),
+                  ),
                 ),
-              ),
-
-              SizedBox(width: forSticker ? 15.0 : 12.0),
-
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      title,
-                      style: TextStyle(
-                        color: textColor,
-                        fontWeight: FontWeight.w600,
-                        fontSize: forSticker ? 20.0 : 15.0,
-                        letterSpacing: -0.2,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      artist,
-                      style: TextStyle(
-                        color: secondaryTextColor,
-                        fontWeight: FontWeight.w500,
-                        fontSize: forSticker ? 17.0 : 13.0,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 2),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: brandCircleSize,
-                          height: brandCircleSize,
-                          decoration: const BoxDecoration(
-                            color: brandIconBg,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Center(
-                            child: ShareConfig.useLogoAsset
-                                ? Image.asset(
-                                    ShareConfig.logoAssetPath,
-                                    width: brandIconSize,
-                                    height: brandIconSize,
-                                    fit: BoxFit.contain,
-                                    color: brandIconColor,
-                                    errorBuilder:
-                                        (context, error, stackTrace) => Icon(
-                                          Icons.music_note_rounded,
-                                          size: brandIconSize,
-                                          color: brandIconColor,
-                                        ),
-                                  )
-                                : Icon(
-                                    Icons.music_note_rounded,
-                                    size: brandIconSize,
-                                    color: brandIconColor,
-                                  ),
-                          ),
+                SizedBox(width: betweenMediaSpacing),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(
+                          color: textColor,
+                          fontWeight: FontWeight.w600,
+                          fontSize: titleFontSize,
+                          letterSpacing: -0.2,
                         ),
-                        SizedBox(width: brandSpacing),
-                        Text(
-                          ShareConfig.appName,
-                          style: TextStyle(
-                            color: brandTextColor,
-                            fontSize: brandTextSize,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: brandLetterSpacing,
-                          ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        artist,
+                        style: TextStyle(
+                          color: secondaryTextColor,
+                          fontWeight: FontWeight.w500,
+                          fontSize: artistFontSize,
                         ),
-                      ],
-                    ),
-                  ],
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: brandCircleSize,
+                            height: brandCircleSize,
+                            decoration: const BoxDecoration(
+                              color: brandIconBg,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Center(
+                              child: ShareConfig.useLogoAsset
+                                  ? Image.asset(
+                                      ShareConfig.logoAssetPath,
+                                      width: brandIconSize,
+                                      height: brandIconSize,
+                                      fit: BoxFit.contain,
+                                      color: brandIconColor,
+                                      errorBuilder:
+                                          (context, error, stackTrace) => Icon(
+                                            Icons.music_note_rounded,
+                                            size: brandIconSize,
+                                            color: brandIconColor,
+                                          ),
+                                    )
+                                  : Icon(
+                                      Icons.music_note_rounded,
+                                      size: brandIconSize,
+                                      color: brandIconColor,
+                                    ),
+                            ),
+                          ),
+                          SizedBox(width: brandSpacing),
+                          Text(
+                            ShareConfig.appName,
+                            style: TextStyle(
+                              color: brandTextColor,
+                              fontSize: brandTextSize,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: brandLetterSpacing,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
+          ],
+        );
+
+        final scaledCard = Container(
+          constraints: const BoxConstraints(maxWidth: maxCardWidth),
+          padding: EdgeInsets.all(cardPadding),
+          decoration: BoxDecoration(
+            color: cardColor,
+            borderRadius: BorderRadius.circular(forSticker ? 21.0 : 18.0),
           ),
-        ],
-      ),
+          child: content,
+        );
+
+        if (maxHeight.isFinite) {
+          return SingleChildScrollView(
+            physics: const ClampingScrollPhysics(),
+            child: scaledCard,
+          );
+        }
+
+        return scaledCard;
+      },
     );
   }
 
