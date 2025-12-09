@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../config/radio_config.dart';
@@ -23,26 +24,32 @@ class LyricsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final radioPlayerBloc = context.read<RadioPlayerBloc>();
     final radioState = radioPlayerBloc.state;
-    
+
     String? artist;
     String? title;
 
     String? albumArtUrl;
     radioState.maybeWhen(
-      ready: (playing, currentUrl, currentArtist, currentTitle,
-          currentAlbumArtUrl, isDucking, canAutoResume) {
-        artist = currentArtist;
-        title = currentTitle;
-        albumArtUrl = currentAlbumArtUrl;
-      },
+      ready:
+          (
+            playing,
+            currentUrl,
+            currentArtist,
+            currentTitle,
+            currentAlbumArtUrl,
+            isDucking,
+            canAutoResume,
+          ) {
+            artist = currentArtist;
+            title = currentTitle;
+            albumArtUrl = currentAlbumArtUrl;
+          },
       orElse: () {},
     );
 
     if (artist == null || title == null || artist!.isEmpty || title!.isEmpty) {
       return Scaffold(
-        appBar: AppBar(
-          title: Text('lyrics_title'.tr()),
-        ),
+        appBar: AppBar(title: Text('lyrics_title'.tr())),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -50,14 +57,18 @@ class LyricsPage extends StatelessWidget {
               Icon(
                 Icons.music_off,
                 size: 64,
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.3),
               ),
               const SizedBox(height: DesignTokens.spacingL),
               Text(
                 'lyrics_no_current_song'.tr(),
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-                    ),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.6),
+                ),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -74,9 +85,7 @@ class LyricsPage extends StatelessWidget {
     return BlocProvider.value(
       value: bloc,
       child: Scaffold(
-        appBar: AppBar(
-          title: Text('lyrics_title'.tr()),
-        ),
+        appBar: AppBar(title: Text('lyrics_title'.tr())),
         body: BlocBuilder<LyricsBloc, LyricsState>(
           builder: (context, state) {
             return state.when(
@@ -121,11 +130,52 @@ class _LyricsContent extends StatefulWidget {
 }
 
 class _LyricsContentState extends State<_LyricsContent> {
+  static const int _maxCharacters = 150;
+
   final PaletteService _paletteService = PaletteService();
   final Set<int> _selectedIndices = {};
   PaletteColors? _palette;
   bool _isLoadingPalette = false;
+  bool _isSelectionMode = false;
   late final List<String> _lines;
+
+  void _clearSelection() {
+    setState(() {
+      _selectedIndices.clear();
+      _isSelectionMode = false;
+    });
+  }
+
+  // Current character count of selected lyrics
+  int get _currentCharCount {
+    if (_selectedIndices.isEmpty) return 0;
+    final sorted = _selectedIndices.toList()..sort();
+    return sorted.map((i) => _lines[i]).join('\n').length;
+  }
+
+  // Prevent selection from exceeding the character cap (Apple Music style)
+  bool _wouldExceedLimit(int index) {
+    final lineText = _lines[index];
+    final additionalChars = _selectedIndices.isEmpty
+        ? lineText.length
+        : lineText.length + 1;
+    return (_currentCharCount + additionalChars) > _maxCharacters;
+  }
+
+  // Only allow building contiguous selections
+  bool _isAdjacentToSelection(int index) {
+    if (_selectedIndices.isEmpty) return true;
+    final sorted = _selectedIndices.toList()..sort();
+    return index == sorted.first - 1 || index == sorted.last + 1;
+  }
+
+  // Deselect is allowed only at the edges to keep selection contiguous
+  bool _canDeselect(int index) {
+    if (!_selectedIndices.contains(index)) return false;
+    if (_selectedIndices.length == 1) return true;
+    final sorted = _selectedIndices.toList()..sort();
+    return index == sorted.first || index == sorted.last;
+  }
 
   @override
   void initState() {
@@ -206,7 +256,9 @@ class _LyricsContentState extends State<_LyricsContent> {
     final selectedLines = sorted.map((i) => _lines[i]).toList();
     final shareText = selectedLines.join('\n');
     final stickerTop = _palette != null ? _toHex(_palette!.vibrant) : null;
-    final stickerBottom = _palette != null ? _toHex(_palette!.darkVibrant) : null;
+    final stickerBottom = _palette != null
+        ? _toHex(_palette!.darkVibrant)
+        : null;
 
     await SharePreviewDialog.show(
       context: context,
@@ -216,6 +268,7 @@ class _LyricsContentState extends State<_LyricsContent> {
         title: widget.title,
         albumArtUrl: widget.albumArtUrl,
         palette: _palette,
+        isSticker: true,
       ),
       regularShareWidgetBuilder: () => LyricShareCard(
         lines: selectedLines,
@@ -223,6 +276,7 @@ class _LyricsContentState extends State<_LyricsContent> {
         title: widget.title,
         albumArtUrl: widget.albumArtUrl,
         palette: _palette,
+        hasBackground: true,
       ),
       shareText: shareText,
       shareSubject: '${widget.title} - ${widget.artist}',
@@ -239,12 +293,56 @@ class _LyricsContentState extends State<_LyricsContent> {
     );
   }
 
-  void _toggleSelection(int index) {
+  // Long press enters selection mode and seeds first line
+  void _handleLongPressSelection(int index) {
+    HapticFeedback.mediumImpact();
+    setState(() {
+      _isSelectionMode = true;
+      if (!_selectedIndices.contains(index)) {
+        if (!_wouldExceedLimit(index)) {
+          _selectedIndices.add(index);
+        }
+      }
+    });
+  }
+
+  // Tap toggles selection while enforcing contiguity and character cap
+  void _handleTapSelection(int index) {
+    if (!_isSelectionMode) return;
+
+    HapticFeedback.selectionClick();
+
     setState(() {
       if (_selectedIndices.contains(index)) {
-        _selectedIndices.remove(index);
+        if (_canDeselect(index)) {
+          _selectedIndices.remove(index);
+          if (_selectedIndices.isEmpty) {
+            _isSelectionMode = false;
+          }
+        } else {
+          HapticFeedback.heavyImpact();
+        }
       } else {
-        _selectedIndices.add(index);
+        if (_isAdjacentToSelection(index)) {
+          if (!_wouldExceedLimit(index)) {
+            _selectedIndices.add(index);
+          } else {
+            // Character limit reached - show feedback
+            HapticFeedback.heavyImpact();
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('lyrics_character_limit_reached'.tr()),
+                  duration: const Duration(seconds: 2),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            }
+          }
+        } else {
+          // Not adjacent - show feedback
+          HapticFeedback.lightImpact();
+        }
       }
     });
   }
@@ -256,142 +354,332 @@ class _LyricsContentState extends State<_LyricsContent> {
     final textTheme = theme.textTheme;
     final hasSelection = _selectedIndices.isNotEmpty;
 
-    return Stack(
-      children: [
-        CustomScrollView(
-          physics: const AlwaysScrollableScrollPhysics(
-            parent: BouncingScrollPhysics(),
-          ),
-          slivers: [
-            SliverPadding(
-              padding: const EdgeInsets.all(DesignTokens.spacingL),
-              sliver: SliverToBoxAdapter(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
-                          child: widget.albumArtUrl != null && widget.albumArtUrl!.isNotEmpty
-                              ? AppNetworkImage(
-                                  imageUrl: widget.albumArtUrl!,
-                                  width: 80,
-                                  height: 80,
-                                  fit: BoxFit.cover,
-                                  errorWidget: (context, url, error) => _buildAlbumArtFallback(colors),
-                                  placeholder: (context, url) => _buildAlbumArtFallback(colors),
-                                )
-                              : _buildAlbumArtFallback(colors),
-                        ),
-                        const SizedBox(width: DesignTokens.spacingL),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                widget.lyrics.title,
-                                style: textTheme.headlineSmall?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  color: colors.textPrimary,
-                                  letterSpacing: -0.5,
+    return PopScope(
+      canPop: !_isSelectionMode,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (_isSelectionMode) {
+          await HapticFeedback.selectionClick();
+          _clearSelection();
+          return;
+        }
+      },
+      child: Stack(
+        children: [
+          CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(
+              parent: BouncingScrollPhysics(),
+            ),
+            slivers: [
+              SliverPadding(
+                padding: const EdgeInsets.all(DesignTokens.spacingL),
+                sliver: SliverToBoxAdapter(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(
+                              DesignTokens.cornerRadiusCard,
+                            ),
+                            child:
+                                widget.albumArtUrl != null &&
+                                    widget.albumArtUrl!.isNotEmpty
+                                ? AppNetworkImage(
+                                    imageUrl: widget.albumArtUrl!,
+                                    width: 80,
+                                    height: 80,
+                                    fit: BoxFit.cover,
+                                    errorWidget: (context, url, error) =>
+                                        _buildAlbumArtFallback(colors),
+                                    placeholder: (context, url) =>
+                                        _buildAlbumArtFallback(colors),
+                                  )
+                                : _buildAlbumArtFallback(colors),
+                          ),
+                          const SizedBox(width: DesignTokens.spacingL),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  widget.lyrics.title,
+                                  style: textTheme.headlineSmall?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: colors.textPrimary,
+                                    letterSpacing: -0.5,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: DesignTokens.spacingXs),
-                              Text(
-                                widget.lyrics.artist,
-                                style: textTheme.titleMedium?.copyWith(
-                                  color: colors.textSecondary,
-                                  fontWeight: FontWeight.w500,
+                                const SizedBox(height: DesignTokens.spacingXs),
+                                Text(
+                                  widget.lyrics.artist,
+                                  style: textTheme.titleMedium?.copyWith(
+                                    color: colors.textSecondary,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: DesignTokens.spacingXl),
+                    ],
+                  ),
+                ),
+              ),
+              // Hint for hold-to-select
+              if (!hasSelection)
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: DesignTokens.spacingL,
+                  ),
+                  sliver: SliverToBoxAdapter(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: DesignTokens.spacingM,
+                        vertical: DesignTokens.spacingS,
+                      ),
+                      margin: const EdgeInsets.only(
+                        bottom: DesignTokens.spacingM,
+                      ),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primaryContainer.withValues(
+                          alpha: 0.3,
+                        ),
+                        borderRadius: BorderRadius.circular(
+                          DesignTokens.cornerRadiusPill,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.touch_app,
+                            size: 16,
+                            color: theme.colorScheme.onPrimaryContainer,
+                          ),
+                          const SizedBox(width: DesignTokens.spacingXs),
+                          Text(
+                            'lyrics_hold_to_select'.tr(),
+                            style: textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onPrimaryContainer,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: DesignTokens.spacingL,
+                ),
+                sliver: SliverList.separated(
+                  itemBuilder: (context, index) {
+                    final line = _lines[index];
+                    final isSelected = _selectedIndices.contains(index);
+                    final isAdjacent = _isAdjacentToSelection(index);
+                    final wouldExceed = !isSelected && _wouldExceedLimit(index);
+
+                    return GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => _handleTapSelection(index),
+                      onLongPress: () => _handleLongPressSelection(index),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 150),
+                        padding: const EdgeInsets.all(DesignTokens.spacingM),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? colors.surfaces.surfaceContainerHighest
+                                    .withValues(alpha: 0.5)
+                              : (isAdjacent && !wouldExceed && hasSelection)
+                              ? colors.surfaces.surfaceContainerHighest
+                                    .withValues(alpha: 0.25)
+                              : colors.surfaces.surfaceContainerHighest
+                                    .withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(
+                            DesignTokens.cornerRadiusCard,
+                          ),
+                          border: Border.all(
+                            color: isSelected
+                                ? theme.colorScheme.primary.withValues(
+                                    alpha: 0.5,
+                                  )
+                                : (isAdjacent && !wouldExceed && hasSelection)
+                                ? theme.colorScheme.primary.withValues(
+                                    alpha: 0.2,
+                                  )
+                                : Colors.transparent,
+                            width: isSelected
+                                ? 2.0
+                                : DimensionTokens.borderWidthThin,
+                          ),
+                        ),
+                        child: Text(
+                          line,
+                          style: textTheme.bodyLarge?.copyWith(
+                            height: 1.6,
+                            color: wouldExceed && hasSelection
+                                ? colors.textPrimary.withValues(alpha: 0.4)
+                                : colors.textPrimary,
+                            fontWeight: isSelected
+                                ? FontWeight.w700
+                                : FontWeight.w500,
+                            fontSize: DesignTokens.fontSizeBody + 1,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                  separatorBuilder: (_, index) =>
+                      const SizedBox(height: DesignTokens.spacingS),
+                  itemCount: _lines.length,
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(DesignTokens.spacingL),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: DesignTokens.spacingM,
+                      vertical: DesignTokens.spacingS,
+                    ),
+                    decoration: BoxDecoration(
+                      color: colors.surfaces.surfaceContainerHighest.withValues(
+                        alpha: 0.2,
+                      ),
+                      borderRadius: BorderRadius.circular(
+                        DesignTokens.cornerRadiusProgress,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          size: 16,
+                          color: colors.textSecondary,
+                        ),
+                        const SizedBox(width: DesignTokens.spacingXs),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: colors.textSecondary.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(
+                              DesignTokens.cornerRadiusPill,
+                            ),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: DesignTokens.spacingS,
+                            vertical: DesignTokens.spacingXs,
+                          ),
+                          child: Text(
+                            'Source: ${widget.lyrics.source}',
+                            style: textTheme.bodySmall?.copyWith(
+                              color: colors.textSecondary,
+                              fontSize: DesignTokens.fontSizeCaption,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SliverToBoxAdapter(
+                child: SizedBox(height: DesignTokens.spacingXl * 3),
+              ),
+            ],
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Theme.of(
+                      context,
+                    ).scaffoldBackgroundColor.withValues(alpha: 0.0),
+                    Theme.of(context).scaffoldBackgroundColor,
+                  ],
+                ),
+              ),
+              child: SafeArea(
+                top: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    DesignTokens.spacingL,
+                    DesignTokens.spacingL,
+                    DesignTokens.spacingL,
+                    DesignTokens.spacingL,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Character counter
+                      if (hasSelection)
+                        Padding(
+                          padding: const EdgeInsets.only(
+                            bottom: DesignTokens.spacingS,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: DesignTokens.spacingM,
+                                  vertical: DesignTokens.spacingXs,
+                                ),
+                                decoration: BoxDecoration(
+                                  color:
+                                      _currentCharCount > _maxCharacters * 0.8
+                                      ? theme.colorScheme.errorContainer
+                                            .withValues(alpha: 0.3)
+                                      : colors.surfaces.surfaceContainerHighest
+                                            .withValues(alpha: 0.5),
+                                  borderRadius: BorderRadius.circular(
+                                    DesignTokens.cornerRadiusPill,
+                                  ),
+                                ),
+                                child: Text(
+                                  '$_currentCharCount / $_maxCharacters',
+                                  style: textTheme.bodySmall?.copyWith(
+                                    color:
+                                        _currentCharCount > _maxCharacters * 0.8
+                                        ? theme.colorScheme.error
+                                        : colors.textSecondary,
+                                    fontWeight: FontWeight.w600,
+                                    fontFeatures: const [
+                                      FontFeature.tabularFigures(),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ],
                           ),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: DesignTokens.spacingXl),
-                  ],
-                ),
-              ),
-            ),
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: DesignTokens.spacingL),
-              sliver: SliverList.separated(
-                itemBuilder: (context, index) {
-                  final line = _lines[index];
-                  final isSelected = _selectedIndices.contains(index);
-                  return GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () => _toggleSelection(index),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 150),
-                      padding: const EdgeInsets.all(DesignTokens.spacingM),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? colors.surfaces.surfaceContainerHighest.withValues(alpha: 0.4)
-                            : colors.surfaces.surfaceContainerHighest.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
-                        border: Border.all(
-                          color: isSelected
-                              ? colors.textPrimary.withValues(alpha: 0.3)
-                              : Colors.transparent,
-                          width: DimensionTokens.borderWidthThin,
-                        ),
-                      ),
-                      child: Text(
-                        line,
-                        style: textTheme.bodyLarge?.copyWith(
-                          height: 1.6,
-                          color: colors.textPrimary,
-                          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                          fontSize: DesignTokens.fontSizeBody + 1,
-                        ),
-                      ),
-                    ),
-                  );
-                },
-            separatorBuilder: (_, index) => const SizedBox(height: DesignTokens.spacingS),
-                itemCount: _lines.length,
-              ),
-            ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(DesignTokens.spacingL),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: DesignTokens.spacingM,
-                    vertical: DesignTokens.spacingS,
-                  ),
-                  decoration: BoxDecoration(
-                    color: colors.surfaces.surfaceContainerHighest.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusProgress),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.info_outline,
-                        size: 16,
-                        color: colors.textSecondary,
-                      ),
-                      const SizedBox(width: DesignTokens.spacingXs),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: colors.textSecondary.withValues(alpha: 0.08),
-                          borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusPill),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: DesignTokens.spacingS,
-                          vertical: DesignTokens.spacingXs,
-                        ),
-                        child: Text(
-                          'Source: ${widget.lyrics.source}',
-                          style: textTheme.bodySmall?.copyWith(
-                            color: colors.textSecondary,
-                            fontSize: DesignTokens.fontSizeCaption,
+                      SizedBox(
+                        width: double.infinity,
+                        child: FilledButton.icon(
+                          onPressed: hasSelection ? _shareSelection : null,
+                          icon: const Icon(Icons.share),
+                          label: Text(
+                            hasSelection
+                                ? 'lyrics_share'.tr()
+                                : 'lyrics_hold_to_select'.tr(),
+                          ),
+                          style: FilledButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: DesignTokens.spacingL,
+                              vertical: DesignTokens.spacingM,
+                            ),
                           ),
                         ),
                       ),
@@ -400,44 +688,9 @@ class _LyricsContentState extends State<_LyricsContent> {
                 ),
               ),
             ),
-            const SliverToBoxAdapter(
-              child: SizedBox(height: DesignTokens.spacingXl * 3),
-            ),
-          ],
-        ),
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 0,
-          child: SafeArea(
-            top: false,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(
-                DesignTokens.spacingL,
-                0,
-                DesignTokens.spacingL,
-                DesignTokens.spacingL,
-              ),
-              child: SizedBox(
-                width: double.infinity,
-                child: FilledButton.icon(
-                  onPressed: hasSelection ? _shareSelection : null,
-                  icon: const Icon(Icons.share),
-                  label: Text(
-                    hasSelection ? 'lyrics_share'.tr() : 'lyrics_select_prompt'.tr(),
-                  ),
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: DesignTokens.spacingL,
-                      vertical: DesignTokens.spacingM,
-                    ),
-                  ),
-                ),
-              ),
-            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -452,11 +705,8 @@ class _LyricsContentState extends State<_LyricsContent> {
       child: Image.asset(
         RadioConfig.fallbackArtworkPath,
         fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => Icon(
-          Icons.music_note,
-          size: 32,
-          color: colors.textSecondary,
-        ),
+        errorBuilder: (context, error, stackTrace) =>
+            Icon(Icons.music_note, size: 32, color: colors.textSecondary),
       ),
     );
   }
@@ -502,7 +752,9 @@ class _LyricsLoadingState extends StatelessWidget {
                             height: 28,
                             borderRadius: 8,
                             baseColor: skeletonColor.withValues(alpha: 0.3),
-                            highlightColor: skeletonColor.withValues(alpha: 0.5),
+                            highlightColor: skeletonColor.withValues(
+                              alpha: 0.5,
+                            ),
                           ),
                           const SizedBox(height: DesignTokens.spacingXs),
                           ShimmerContainer(
@@ -510,7 +762,9 @@ class _LyricsLoadingState extends StatelessWidget {
                             height: 20,
                             borderRadius: 6,
                             baseColor: skeletonColor.withValues(alpha: 0.3),
-                            highlightColor: skeletonColor.withValues(alpha: 0.5),
+                            highlightColor: skeletonColor.withValues(
+                              alpha: 0.5,
+                            ),
                           ),
                         ],
                       ),
@@ -521,17 +775,25 @@ class _LyricsLoadingState extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(DesignTokens.spacingL),
                   decoration: BoxDecoration(
-                    color: colors.surfaces.surfaceContainerHighest.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
+                    color: colors.surfaces.surfaceContainerHighest.withValues(
+                      alpha: 0.3,
+                    ),
+                    borderRadius: BorderRadius.circular(
+                      DesignTokens.cornerRadiusCard,
+                    ),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: List.generate(
                       12,
                       (index) => Padding(
-                        padding: const EdgeInsets.only(bottom: DesignTokens.spacingS),
+                        padding: const EdgeInsets.only(
+                          bottom: DesignTokens.spacingS,
+                        ),
                         child: ShimmerContainer(
-                          width: index % 3 == 0 ? double.infinity : (index % 3 == 1 ? 250 : 180),
+                          width: index % 3 == 0
+                              ? double.infinity
+                              : (index % 3 == 1 ? 250 : 180),
                           height: 16,
                           borderRadius: 4,
                           baseColor: skeletonColor.withValues(alpha: 0.3),
@@ -583,7 +845,9 @@ class _LyricsErrorState extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(DesignTokens.spacingL),
               decoration: BoxDecoration(
-                color: colors.surfaces.surfaceContainerHighest.withValues(alpha: 0.3),
+                color: colors.surfaces.surfaceContainerHighest.withValues(
+                  alpha: 0.3,
+                ),
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -613,8 +877,8 @@ class _LyricsErrorState extends StatelessWidget {
             FilledButton.icon(
               onPressed: () {
                 context.read<LyricsBloc>().add(
-                      LyricsEvent.load(artist: artist, title: title),
-                    );
+                  LyricsEvent.load(artist: artist, title: title),
+                );
               },
               icon: const Icon(Icons.refresh),
               label: Text('retry'.tr()),
@@ -631,4 +895,3 @@ class _LyricsErrorState extends StatelessWidget {
     );
   }
 }
-
