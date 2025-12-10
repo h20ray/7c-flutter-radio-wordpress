@@ -13,5 +13,6 @@ class AppRoutes {
   static const String lyrics = '/lyrics';
   static const String request = '/request';
   static const String radioAbout = '/radio_about';
+  static const String notificationCenter = '/notification_center';
 }
 

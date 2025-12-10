@@ -54,6 +54,15 @@ import '../../features/radio/domain/repositories/request_repository.dart';
 import '../../features/radio/presentation/bloc/request_bloc.dart';
 import '../../features/radio/data/repositories/greeting_repository.dart';
 
+// Notification center imports
+import '../../features/notification_center/data/datasources/notification_local_data_source.dart';
+import '../../features/notification_center/data/datasources/pending_request_local_data_source.dart';
+import '../../features/notification_center/data/repositories/notification_center_repository_impl.dart';
+import '../../features/notification_center/data/services/system_notification_service.dart';
+import '../../features/notification_center/domain/repositories/notification_center_repository.dart';
+import '../../features/notification_center/domain/repositories/pending_request_tracker.dart';
+import '../../features/notification_center/presentation/cubit/notification_center_cubit.dart';
+
 // Shoutbox feature imports
 import '../../features/shoutbox/data/datasources/shoutbox_remote_datasource.dart';
 import '../../features/shoutbox/data/repositories/shoutbox_repository_impl.dart';
@@ -186,6 +195,7 @@ Future<void> initDependencies() async {
   );
 
   // Initialize features
+  _initNotificationCenter();
   _initRadio();
   _initGamification();
   _initShoutbox();
@@ -233,6 +243,27 @@ Future<void> initDependencies() async {
   DebugLogger.log('[DI] Dependencies initialized successfully', tag: 'DI');
 }
 
+void _initNotificationCenter() {
+  getIt.registerLazySingleton<SystemNotificationService>(
+    () => SystemNotificationService(),
+  );
+  getIt.registerLazySingleton<NotificationLocalDataSource>(
+    () => NotificationLocalDataSource(),
+  );
+  getIt.registerLazySingleton<PendingRequestTracker>(
+    () => PendingRequestLocalDataSource(),
+  );
+  getIt.registerLazySingleton<NotificationCenterRepository>(
+    () => NotificationCenterRepositoryImpl(
+      localDataSource: getIt(),
+      systemNotificationService: getIt(),
+    ),
+  );
+  getIt.registerLazySingleton(
+    () => NotificationCenterCubit(repository: getIt()),
+  );
+}
+
 void _initRadio() {
   // Data sources
   getIt.registerLazySingleton<RadioRemoteDataSource>(
@@ -257,6 +288,8 @@ void _initRadio() {
       remoteDataSource: getIt(),
       albumArtService: getIt(),
       nowPlayingPollingService: getIt(),
+      notificationCenterRepository: getIt(),
+      pendingRequestTracker: getIt(),
     ),
   );
   getIt.registerLazySingleton<AlbumArtRepository>(
@@ -353,6 +386,7 @@ void _initRadio() {
       azuracastDataSource: RadioConfig.requestMode != 'webview'
           ? getIt<RequestAzuracastDataSource>()
           : null,
+      pendingRequestTracker: getIt(),
     ),
   );
   getIt.registerFactory(() => RequestBloc(repository: getIt()));

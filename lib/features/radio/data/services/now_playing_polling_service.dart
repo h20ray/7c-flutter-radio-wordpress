@@ -8,11 +8,15 @@ class NowPlayingPollResult {
   final String? artist;
   final String? title;
   final String? artworkUrl;
+  final bool isRequest;
+  final String? requestId;
 
   const NowPlayingPollResult({
     this.artist,
     this.title,
     this.artworkUrl,
+    this.isRequest = false,
+    this.requestId,
   });
 }
 
@@ -37,7 +41,10 @@ class NowPlayingPollingService {
     required NowPlayingCallback onMetadata,
   }) {
     if (baseUrl.isEmpty || stationId.isEmpty) {
-      DebugLogger.log('[NowPlayingPolling] Missing base URL or station ID', tag: 'NowPlayingPolling');
+      DebugLogger.log(
+        '[NowPlayingPolling] Missing base URL or station ID',
+        tag: 'NowPlayingPolling',
+      );
       return;
     }
 
@@ -80,6 +87,13 @@ class NowPlayingPollingService {
         final title =
             song?['title'] as String? ?? song?['text'] as String? ?? '';
         final art = song?['art'] as String?;
+        final isRequest =
+            nowPlaying?['is_request'] == true ||
+            song?['is_request'] == true ||
+            (song?['request_id'] != null);
+        final requestId =
+            nowPlaying?['request_id']?.toString() ??
+            song?['request_id']?.toString();
 
         if ((artist != null && artist.isNotEmpty) || title.isNotEmpty) {
           _callback?.call(
@@ -87,6 +101,8 @@ class NowPlayingPollingService {
               artist: artist,
               title: title,
               artworkUrl: art,
+              isRequest: isRequest,
+              requestId: requestId,
             ),
           );
         }
@@ -96,5 +112,3 @@ class NowPlayingPollingService {
     }
   }
 }
-
-

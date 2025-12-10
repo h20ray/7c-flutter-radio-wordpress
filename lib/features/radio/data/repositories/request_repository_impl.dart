@@ -8,21 +8,25 @@ import '../../presentation/bloc/radio_bloc.dart';
 import '../datasources/request_azuracast_data_source.dart';
 import '../datasources/request_remote_data_source.dart';
 import '../services/azuracast_detection_service.dart';
+import '../../../notification_center/domain/entities/pending_request.dart';
+import '../../../notification_center/domain/repositories/pending_request_tracker.dart';
 
 class RequestRepositoryImpl implements RequestRepository {
   final RequestRemoteDataSource remoteDataSource;
   final RequestAzuracastDataSource? azuracastDataSource;
+  final PendingRequestTracker pendingRequestTracker;
 
   RequestRepositoryImpl({
     required this.remoteDataSource,
     this.azuracastDataSource,
+    required this.pendingRequestTracker,
   });
 
   String? _getStreamUrl() {
     try {
       final radioBloc = GetIt.instance<RadioBloc>();
       final radioState = radioBloc.state;
-      
+
       String? streamUrl;
       radioState.maybeWhen(
         loaded: (radioEntity) {
@@ -30,7 +34,7 @@ class RequestRepositoryImpl implements RequestRepository {
         },
         orElse: () {},
       );
-      
+
       return streamUrl;
     } catch (e) {
       return null;
@@ -41,10 +45,10 @@ class RequestRepositoryImpl implements RequestRepository {
     const mode = RadioConfig.requestMode;
     if (mode == 'webview') return false;
     if (mode == 'azuracast') return true;
-    
+
     final streamUrl = _getStreamUrl();
     if (streamUrl == null || streamUrl.isEmpty) return false;
-    
+
     final detectionService = AzuraCastDetectionService.instance;
     return detectionService.isLikelyAzuraCastUrl(streamUrl);
   }
@@ -58,9 +62,11 @@ class RequestRepositoryImpl implements RequestRepository {
     bool random = false,
   }) async {
     if (!_shouldUseAzuracast() || azuracastDataSource == null) {
-      return const Left(UnsupportedFailure(
-        'Azuracast request mode is not available. Please use WebView mode.',
-      ));
+      return const Left(
+        UnsupportedFailure(
+          'Azuracast request mode is not available. Please use WebView mode.',
+        ),
+      );
     }
 
     try {
@@ -72,12 +78,16 @@ class RequestRepositoryImpl implements RequestRepository {
         random: random,
       );
 
-      final entities = tracks.map((track) => RequestableTrackEntity(
-        requestId: track.requestId,
-        title: track.title,
-        artist: track.artist,
-        albumArtUrl: track.albumArtUrl,
-      )).toList();
+      final entities = tracks
+          .map(
+            (track) => RequestableTrackEntity(
+              requestId: track.requestId,
+              title: track.title,
+              artist: track.artist,
+              albumArtUrl: track.albumArtUrl,
+            ),
+          )
+          .toList();
 
       return Right(entities);
     } on ServerException catch (e) {
@@ -95,9 +105,11 @@ class RequestRepositoryImpl implements RequestRepository {
     String? artist,
   }) async {
     if (!_shouldUseAzuracast() || azuracastDataSource == null) {
-      return const Left(UnsupportedFailure(
-        'Azuracast request mode is not available. Please use WebView mode.',
-      ));
+      return const Left(
+        UnsupportedFailure(
+          'Azuracast request mode is not available. Please use WebView mode.',
+        ),
+      );
     }
 
     try {
@@ -107,6 +119,14 @@ class RequestRepositoryImpl implements RequestRepository {
         title: title,
         artist: artist,
       );
+      pendingRequestTracker.record(
+        PendingRequest(
+          requestId: requestId,
+          artist: artist ?? '',
+          title: title ?? '',
+          submittedAt: DateTime.now(),
+        ),
+      );
       return const Right(unit);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
@@ -115,4 +135,3 @@ class RequestRepositoryImpl implements RequestRepository {
     }
   }
 }
-

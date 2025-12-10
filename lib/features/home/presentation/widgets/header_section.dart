@@ -1,18 +1,23 @@
-import 'package:flutter/material.dart';
+import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter_lucide/flutter_lucide.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import '../../../../core/di/injection_container.dart';
+import '../../../../core/routes/app_routes.dart';
 import '../../../../core/themes/component_tokens.dart';
 import '../../../../core/themes/design_tokens.dart';
-import '../../../auth/domain/entities/user_entity.dart';
-import 'package:adaptive_theme/adaptive_theme.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/themes/m3x_menu_style.dart';
-import '../../../../core/widgets/haptic_widgets.dart';
 import '../../../../core/utils/haptic_feedback_helper.dart';
-import '../../data/social_media_service.dart';
+import '../../../../core/widgets/haptic_widgets.dart';
+import '../../../auth/domain/entities/user_entity.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/pages/login_dialog.dart';
+import '../../../notification_center/data/services/system_notification_service.dart';
+import '../../data/social_media_service.dart';
 import 'radio_game_tabs.dart';
 
 class HeaderSection extends StatelessWidget {
@@ -439,7 +444,68 @@ class HeaderSection extends StatelessWidget {
                       padding: EdgeInsets.zero,
                       iconSize: 20,
                       icon: Icon(LucideIcons.bell, color: tokens.tileIcon),
-                      onPressed: () {},
+                      onPressed: () async {
+                        HapticFeedbackHelper.lightImpact();
+                        final notificationService =
+                            getIt<SystemNotificationService>();
+                        final currentStatus =
+                            await Permission.notification.status;
+                        if (!context.mounted) return;
+                        if (currentStatus.isGranted || currentStatus.isLimited) {
+                          if (!context.mounted) return;
+                          await Navigator.pushNamed(
+                            context,
+                            AppRoutes.notificationCenter,
+                          );
+                          return;
+                        }
+
+                        if (!context.mounted) return;
+                        final proceed = await showDialog<bool>(
+                              context: context,
+                              builder: (dialogContext) {
+                                return AlertDialog(
+                                  title: const Text('Enable notifications'),
+                                  content: const Text(
+                                    'We use notifications for updates. Continue to request permission?',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(dialogContext).pop(false);
+                                      },
+                                      child: const Text('Cancel'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(dialogContext).pop(true);
+                                      },
+                                      child: const Text('Continue'),
+                                    ),
+                                  ],
+                                );
+                              },
+                            ) ??
+                            false;
+
+                        if (proceed != true) return;
+                        if (!context.mounted) return;
+
+                        final status =
+                            await notificationService.requestPermission();
+                        if (!context.mounted) return;
+
+                        if (status.isGranted || status.isLimited) {
+                          await Navigator.pushNamed(
+                            context,
+                            AppRoutes.notificationCenter,
+                          );
+                          return;
+                        }
+
+                        if (!context.mounted) return;
+                        await openAppSettings();
+                      },
                     ),
                   ),
                 ],

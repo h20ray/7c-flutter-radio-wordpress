@@ -15,12 +15,19 @@ import '../services/azuracast_detection_service.dart';
 import '../services/now_playing_polling_service.dart';
 import 'package:radio_player/radio_player.dart';
 import '../../../../core/utils/debug_logger.dart';
+import '../../../notification_center/domain/entities/notification_item.dart';
+import '../../../notification_center/domain/repositories/notification_center_repository.dart';
+import '../../../notification_center/domain/repositories/pending_request_tracker.dart';
 
 /// Implementation of RadioPlayerRepository
-class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlayerRepository {
+class RadioPlayerRepositoryImpl
+    with WidgetsBindingObserver
+    implements RadioPlayerRepository {
   final RadioPlayerRemoteDataSource remoteDataSource;
   final AlbumArtService albumArtService;
   final NowPlayingPollingService nowPlayingPollingService;
+  final NotificationCenterRepository notificationCenterRepository;
+  final PendingRequestTracker pendingRequestTracker;
 
   final StreamController<RadioPlayerEntity> _playerStateController =
       StreamController<RadioPlayerEntity>.broadcast();
@@ -36,7 +43,8 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
   RadioEntity? _currentConfig;
 
   // Enhanced notification update tracking
-  NotificationUpdateState _notificationState = NotificationUpdateState.initial();
+  NotificationUpdateState _notificationState =
+      NotificationUpdateState.initial();
   Timer? _notificationUpdateTimer;
 
   // Idempotent play mechanism
@@ -65,6 +73,8 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
     required this.remoteDataSource,
     required this.albumArtService,
     required this.nowPlayingPollingService,
+    required this.notificationCenterRepository,
+    required this.pendingRequestTracker,
   }) {
     WidgetsBinding.instance.addObserver(this);
     _setupStreamListeners();
@@ -76,35 +86,45 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
     _playbackStateSubscription = remoteDataSource.playbackStateStream.listen(
       (playbackState) {
         final isPlaying = playbackState == PlaybackState.playing;
-        
+
         // Set flag when audio actually starts playing
         if (isPlaying && !_isAudioActuallyPlaying) {
           _isAudioActuallyPlaying = true;
           if (RadioConfig.logNotificationUpdates) {
-            DebugLogger.log('[RadioPlayerRepository] Audio playback started', tag: 'RadioPlayerRepository');
+            DebugLogger.log(
+              '[RadioPlayerRepository] Audio playback started',
+              tag: 'RadioPlayerRepository',
+            );
           }
           _stopMetadataPolling();
         } else if (!isPlaying && _isAudioActuallyPlaying) {
           _isAudioActuallyPlaying = false;
           if (RadioConfig.logNotificationUpdates) {
-            DebugLogger.log('[RadioPlayerRepository] Audio playback stopped', tag: 'RadioPlayerRepository');
+            DebugLogger.log(
+              '[RadioPlayerRepository] Audio playback stopped',
+              tag: 'RadioPlayerRepository',
+            );
           }
           _startMetadataPolling();
         }
         if (!isPlaying && !_isAudioActuallyPlaying) {
           _startMetadataPolling();
         }
-        
-        _updateState(_currentState.copyWith(
-          isPlaying: isPlaying,
-          isInitialized: true,
-          errorMessage: null,
-        ));
+
+        _updateState(
+          _currentState.copyWith(
+            isPlaying: isPlaying,
+            isInitialized: true,
+            errorMessage: null,
+          ),
+        );
       },
       onError: (error) {
-        _updateState(_currentState.copyWith(
-          errorMessage: 'Playback state error: ${error.toString()}',
-        ));
+        _updateState(
+          _currentState.copyWith(
+            errorMessage: 'Playback state error: ${error.toString()}',
+          ),
+        );
       },
     );
 
@@ -114,25 +134,36 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
         final newArtist = normalized.artist;
         final newTitle = normalized.title;
 
-        _updateState(_currentState.copyWith(
-          currentArtist: newArtist,
-          currentTitle: newTitle,
-          errorMessage: null,
-        ));
+        _updateState(
+          _currentState.copyWith(
+            currentArtist: newArtist,
+            currentTitle: newTitle,
+            errorMessage: null,
+          ),
+        );
+
+        _detectRequestPlayback(
+          requestId: null,
+          isExplicitRequest: false,
+          artist: newArtist,
+          title: newTitle,
+        );
 
         // Fetch album art for new metadata using centralized service
         // Only fetch album art if audio has actually started playing (not during pre-buffering)
         if ((_currentConfig?.showAlbumCover ?? false) &&
             (newArtist.isNotEmpty || newTitle.isNotEmpty) &&
             _currentConfig != null &&
-            (!RadioConfig.delayMetadataUntilAudioStarts || _isAudioActuallyPlaying)) {
+            (!RadioConfig.delayMetadataUntilAudioStarts ||
+                _isAudioActuallyPlaying)) {
           // Check if metadata actually changed compared to album art service state
           final albumArtState = albumArtService.currentState;
-          final metadataChanged = albumArtState.artist != newArtist || 
-                                  albumArtState.title != newTitle;
+          final metadataChanged =
+              albumArtState.artist != newArtist ||
+              albumArtState.title != newTitle;
           await albumArtService.fetchAndBroadcast(
-            newArtist, 
-            newTitle, 
+            newArtist,
+            newTitle,
             _currentConfig!,
             forceRefresh: metadataChanged,
           );
@@ -141,9 +172,11 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
         _stopMetadataPolling();
       },
       onError: (error) {
-        _updateState(_currentState.copyWith(
-          errorMessage: 'Metadata error: ${error.toString()}',
-        ));
+        _updateState(
+          _currentState.copyWith(
+            errorMessage: 'Metadata error: ${error.toString()}',
+          ),
+        );
       },
     );
 
@@ -159,9 +192,11 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
         }
       },
       onError: (error) {
-        _updateState(_currentState.copyWith(
-          errorMessage: 'Remote command error: ${error.toString()}',
-        ));
+        _updateState(
+          _currentState.copyWith(
+            errorMessage: 'Remote command error: ${error.toString()}',
+          ),
+        );
       },
     );
   }
@@ -174,9 +209,9 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
         String? albumArtUrl;
         if (albumArtState.hasUrl) {
           albumArtUrl = albumArtState.url;
-        } else if (albumArtState.isFallback && 
-                   albumArtState.artist != null && 
-                   albumArtState.title != null) {
+        } else if (albumArtState.isFallback &&
+            albumArtState.artist != null &&
+            albumArtState.title != null) {
           final cacheService = AlbumArtCacheService.instance;
           final cachedResult = await cacheService.getCachedAlbumArtWithSource(
             albumArtState.artist!,
@@ -184,23 +219,25 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
           );
           if (cachedResult != null && cachedResult['url'] != null) {
             albumArtUrl = cachedResult['url'];
-            DebugLogger.log('[RadioPlayerRepository] Found cached album art URL during fallback state', tag: 'RadioPlayerRepository');
+            DebugLogger.log(
+              '[RadioPlayerRepository] Found cached album art URL during fallback state',
+              tag: 'RadioPlayerRepository',
+            );
           }
         }
-        
-        _updateState(_currentState.copyWith(
-          currentAlbumArtUrl: albumArtUrl,
-        ));
+
+        _updateState(_currentState.copyWith(currentAlbumArtUrl: albumArtUrl));
 
         // Update notification with new album art using exponential backoff
         // Only update notifications if:
         // 1. We have a valid URL (not fallback state without cached URL)
         // 2. Audio has actually started playing (not during pre-buffering)
         // 3. We have required metadata
-        if (_currentConfig != null && 
-            albumArtState.artist != null && 
+        if (_currentConfig != null &&
+            albumArtState.artist != null &&
             albumArtState.title != null &&
-            (!RadioConfig.delayMetadataUntilAudioStarts || _isAudioActuallyPlaying)) {
+            (!RadioConfig.delayMetadataUntilAudioStarts ||
+                _isAudioActuallyPlaying)) {
           // Only update notification if we have a URL or if this is not a fallback state
           // Fallback states will be updated when the success state arrives
           if (albumArtUrl != null || !albumArtState.isFallback) {
@@ -214,7 +251,10 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
       },
       onError: (error) {
         // Album art errors are not critical, just log them
-        DebugLogger.log('[RadioPlayerRepository] Album art error: $error', tag: 'RadioPlayerRepository');
+        DebugLogger.log(
+          '[RadioPlayerRepository] Album art error: $error',
+          tag: 'RadioPlayerRepository',
+        );
       },
     );
   }
@@ -233,10 +273,13 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
     );
 
     // Check if this is the same content as current state
-    if (_notificationState.isSameContent(newNotificationState) && 
+    if (_notificationState.isSameContent(newNotificationState) &&
         !_notificationState.isStale) {
       if (RadioConfig.logNotificationUpdates) {
-        DebugLogger.log('[RadioPlayerRepository] Skipping notification update - same content and not stale', tag: 'RadioPlayerRepository');
+        DebugLogger.log(
+          '[RadioPlayerRepository] Skipping notification update - same content and not stale',
+          tag: 'RadioPlayerRepository',
+        );
       }
       return;
     }
@@ -263,10 +306,19 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
       await backoff.execute(
         () async {
           if (RadioConfig.logNotificationUpdates) {
-            DebugLogger.log('[RadioPlayerRepository] Updating notification (attempt ${_notificationState.attemptCount + 1}):', tag: 'RadioPlayerRepository');
-            DebugLogger.log('  - Artist: $artist', tag: 'RadioPlayerRepository');
+            DebugLogger.log(
+              '[RadioPlayerRepository] Updating notification (attempt ${_notificationState.attemptCount + 1}):',
+              tag: 'RadioPlayerRepository',
+            );
+            DebugLogger.log(
+              '  - Artist: $artist',
+              tag: 'RadioPlayerRepository',
+            );
             DebugLogger.log('  - Title: $title', tag: 'RadioPlayerRepository');
-            DebugLogger.log('  - Artwork URL: $artworkUrl', tag: 'RadioPlayerRepository');
+            DebugLogger.log(
+              '  - Artwork URL: $artworkUrl',
+              tag: 'RadioPlayerRepository',
+            );
           }
 
           await remoteDataSource.setCustomMetadata(
@@ -276,21 +328,30 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
           );
 
           if (RadioConfig.logNotificationUpdates) {
-            DebugLogger.log('[RadioPlayerRepository] Notification update successful', tag: 'RadioPlayerRepository');
+            DebugLogger.log(
+              '[RadioPlayerRepository] Notification update successful',
+              tag: 'RadioPlayerRepository',
+            );
           }
         },
         shouldRetry: (error) {
           // Retry on network errors, timeouts, but not on validation errors
           return error.toString().contains('timeout') ||
-                 error.toString().contains('network') ||
-                 error.toString().contains('connection');
+              error.toString().contains('network') ||
+              error.toString().contains('connection');
         },
         onRetry: (attempt, error) {
           if (RadioConfig.logNotificationUpdates) {
-            DebugLogger.log('[RadioPlayerRepository] Notification update failed (attempt $attempt): $error', tag: 'RadioPlayerRepository');
-            DebugLogger.log('[RadioPlayerRepository] Retrying in ${backoff.getDelayForAttempt(attempt - 1)}ms...', tag: 'RadioPlayerRepository');
+            DebugLogger.log(
+              '[RadioPlayerRepository] Notification update failed (attempt $attempt): $error',
+              tag: 'RadioPlayerRepository',
+            );
+            DebugLogger.log(
+              '[RadioPlayerRepository] Retrying in ${backoff.getDelayForAttempt(attempt - 1)}ms...',
+              tag: 'RadioPlayerRepository',
+            );
           }
-          
+
           _notificationState = _notificationState.copyWith(
             attemptCount: attempt,
             lastError: error.toString(),
@@ -311,9 +372,11 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
       );
 
       if (RadioConfig.logNotificationUpdates) {
-        DebugLogger.log('[RadioPlayerRepository] Notification update completed successfully', tag: 'RadioPlayerRepository');
+        DebugLogger.log(
+          '[RadioPlayerRepository] Notification update completed successfully',
+          tag: 'RadioPlayerRepository',
+        );
       }
-
     } catch (error) {
       // Final failure
       _notificationState = NotificationUpdateState.failed(
@@ -327,7 +390,10 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
       );
 
       if (RadioConfig.logNotificationUpdates) {
-        DebugLogger.log('[RadioPlayerRepository] Notification update failed after all retries: $error', tag: 'RadioPlayerRepository');
+        DebugLogger.log(
+          '[RadioPlayerRepository] Notification update failed after all retries: $error',
+          tag: 'RadioPlayerRepository',
+        );
       }
     }
   }
@@ -340,9 +406,11 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
     if (_shouldDebounceState(newState)) {
       _debounceTimer?.cancel();
       _debounceTimer = Timer(
-          const Duration(milliseconds: RadioConfig.debounceWindowMs), () {
-        _playerStateController.add(_currentState);
-      });
+        const Duration(milliseconds: RadioConfig.debounceWindowMs),
+        () {
+          _playerStateController.add(_currentState);
+        },
+      );
     } else {
       // Critical states emit immediately
       _playerStateController.add(_currentState);
@@ -366,7 +434,10 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
   @override
   Future<Either<Failure, Unit>> initialize(RadioEntity config) async {
     if (RadioConfig.enableVerboseLogging) {
-      DebugLogger.log('[RadioPlayerRepository] Initialize called - Stream URL: ${config.streamUrl}', tag: 'RadioPlayerRepository');
+      DebugLogger.log(
+        '[RadioPlayerRepository] Initialize called - Stream URL: ${config.streamUrl}',
+        tag: 'RadioPlayerRepository',
+      );
     }
 
     // Performance tracking
@@ -377,7 +448,10 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
         _currentConfig != null &&
         _currentConfig!.streamUrl == config.streamUrl) {
       if (RadioConfig.enableVerboseLogging) {
-        DebugLogger.log('[RadioPlayerRepository] Already initialized with same config', tag: 'RadioPlayerRepository');
+        DebugLogger.log(
+          '[RadioPlayerRepository] Already initialized with same config',
+          tag: 'RadioPlayerRepository',
+        );
       }
       return const Right(unit);
     }
@@ -385,7 +459,10 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
     // Prevent concurrent initialization
     if (_isInitializing) {
       if (RadioConfig.enableVerboseLogging) {
-        DebugLogger.log('[RadioPlayerRepository] Initialization already in progress', tag: 'RadioPlayerRepository');
+        DebugLogger.log(
+          '[RadioPlayerRepository] Initialization already in progress',
+          tag: 'RadioPlayerRepository',
+        );
       }
       return const Left(ServerFailure('Initialization already in progress'));
     }
@@ -396,35 +473,51 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
 
     try {
       if (RadioConfig.enableVerboseLogging) {
-        DebugLogger.log('[RadioPlayerRepository] Calling remoteDataSource.initialize', tag: 'RadioPlayerRepository');
+        DebugLogger.log(
+          '[RadioPlayerRepository] Calling remoteDataSource.initialize',
+          tag: 'RadioPlayerRepository',
+        );
       }
       await remoteDataSource.initialize(config);
 
       // Performance tracking
-      final initTime =
-          DateTime.now().difference(_initializationStartTime!).inMilliseconds;
-      
+      final initTime = DateTime.now()
+          .difference(_initializationStartTime!)
+          .inMilliseconds;
+
       if (RadioConfig.enablePerformanceMonitoring) {
-        DebugLogger.log('[RadioPlayerRepository] Initialization completed in ${initTime}ms', tag: 'RadioPlayerRepository');
+        DebugLogger.log(
+          '[RadioPlayerRepository] Initialization completed in ${initTime}ms',
+          tag: 'RadioPlayerRepository',
+        );
       }
 
-      _updateState(_currentState.copyWith(
-        isInitialized: true,
-        currentUrl: config.streamUrl,
-        errorMessage: null,
-        connectionTimeMs: initTime,
-      ));
+      _updateState(
+        _currentState.copyWith(
+          isInitialized: true,
+          currentUrl: config.streamUrl,
+          errorMessage: null,
+          connectionTimeMs: initTime,
+        ),
+      );
       return const Right(unit);
     } catch (e) {
       if (RadioConfig.enableVerboseLogging) {
-        DebugLogger.logError('Initialize failed', error: e, tag: 'RadioPlayerRepository');
+        DebugLogger.logError(
+          'Initialize failed',
+          error: e,
+          tag: 'RadioPlayerRepository',
+        );
       }
-      final failure =
-          ServerFailure('Failed to initialize radio player: ${e.toString()}');
-      _updateState(_currentState.copyWith(
-        errorMessage: failure.message,
-        lastErrorTimestamp: DateTime.now(),
-      ));
+      final failure = ServerFailure(
+        'Failed to initialize radio player: ${e.toString()}',
+      );
+      _updateState(
+        _currentState.copyWith(
+          errorMessage: failure.message,
+          lastErrorTimestamp: DateTime.now(),
+        ),
+      );
       return Left(failure);
     } finally {
       _isInitializing = false;
@@ -439,7 +532,10 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
     // Check if we have a pending play operation
     if (_pendingPlayOperation != null) {
       if (RadioConfig.enableVerboseLogging) {
-        DebugLogger.log('[RadioPlayerRepository] Play already in progress', tag: 'RadioPlayerRepository');
+        DebugLogger.log(
+          '[RadioPlayerRepository] Play already in progress',
+          tag: 'RadioPlayerRepository',
+        );
       }
       try {
         await _pendingPlayOperation!;
@@ -453,7 +549,10 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
     if (_lastPlayRequest != null &&
         now.difference(_lastPlayRequest!).inMilliseconds < 500) {
       if (RadioConfig.enableVerboseLogging) {
-        DebugLogger.log('[RadioPlayerRepository] Play request debounced', tag: 'RadioPlayerRepository');
+        DebugLogger.log(
+          '[RadioPlayerRepository] Play request debounced',
+          tag: 'RadioPlayerRepository',
+        );
       }
       return const Right(unit);
     }
@@ -462,11 +561,13 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
     _playStartTime = now;
 
     // Immediately emit connecting to provide instant UI feedback
-    _updateState(_currentState.copyWith(
-      isConnecting: true,
-      isBuffering: false,
-      errorMessage: null,
-    ));
+    _updateState(
+      _currentState.copyWith(
+        isConnecting: true,
+        isBuffering: false,
+        errorMessage: null,
+      ),
+    );
 
     // Create the play operation
     _pendingPlayOperation = _performPlay();
@@ -491,11 +592,17 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
     // Album art will be refreshed automatically when new metadata arrives
 
     // For live radio streams, always reset before playing
-    DebugLogger.log('[RadioPlayerRepository] Resetting before play', tag: 'RadioPlayerRepository');
+    DebugLogger.log(
+      '[RadioPlayerRepository] Resetting before play',
+      tag: 'RadioPlayerRepository',
+    );
     await remoteDataSource.reset();
 
     // Pre-buffer strategy
-    DebugLogger.log('[RadioPlayerRepository] Starting pre-buffering', tag: 'RadioPlayerRepository');
+    DebugLogger.log(
+      '[RadioPlayerRepository] Starting pre-buffering',
+      tag: 'RadioPlayerRepository',
+    );
     await _preBufferStream();
 
     // Check if radioCoreV2 is enabled
@@ -516,34 +623,42 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
       const bufferTimeMs = RadioConfig.preBufferTimeMs;
 
       // Update state to show buffering
-      _updateState(_currentState.copyWith(
-        isBuffering: true,
-        isConnecting: false,
-      ));
+      _updateState(
+        _currentState.copyWith(isBuffering: true, isConnecting: false),
+      );
 
       // Wait for the stream to buffer
-      DebugLogger.log('[RadioPlayerRepository] Pre-buffering stream for ${bufferTimeMs}ms', tag: 'RadioPlayerRepository');
+      DebugLogger.log(
+        '[RadioPlayerRepository] Pre-buffering stream for ${bufferTimeMs}ms',
+        tag: 'RadioPlayerRepository',
+      );
       await Future.delayed(const Duration(milliseconds: bufferTimeMs));
 
       // Clear buffering state
-      _updateState(_currentState.copyWith(
-        isBuffering: false,
-      ));
+      _updateState(_currentState.copyWith(isBuffering: false));
 
-      DebugLogger.log('[RadioPlayerRepository] Pre-buffering completed', tag: 'RadioPlayerRepository');
+      DebugLogger.log(
+        '[RadioPlayerRepository] Pre-buffering completed',
+        tag: 'RadioPlayerRepository',
+      );
     } catch (e) {
-      DebugLogger.logError('Pre-buffering failed', error: e, tag: 'RadioPlayerRepository');
+      DebugLogger.logError(
+        'Pre-buffering failed',
+        error: e,
+        tag: 'RadioPlayerRepository',
+      );
       // Clear buffering state on error
-      _updateState(_currentState.copyWith(
-        isBuffering: false,
-      ));
+      _updateState(_currentState.copyWith(isBuffering: false));
       // Continue anyway - not critical
     }
   }
 
   /// Enhanced play with retry and backup URLs
   Future<void> _performPlayV2() async {
-    DebugLogger.log('[RadioPlayerRepository] Using radioCoreV2 play logic', tag: 'RadioPlayerRepository');
+    DebugLogger.log(
+      '[RadioPlayerRepository] Using radioCoreV2 play logic',
+      tag: 'RadioPlayerRepository',
+    );
 
     // Prepare available URLs (primary + backups)
     _availableUrls = [_currentConfig!.streamUrl];
@@ -556,28 +671,26 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
 
   /// Legacy play implementation
   Future<void> _performPlayLegacy() async {
-    DebugLogger.log('[RadioPlayerRepository] Using legacy play logic', tag: 'RadioPlayerRepository');
-    
+    DebugLogger.log(
+      '[RadioPlayerRepository] Using legacy play logic',
+      tag: 'RadioPlayerRepository',
+    );
+
     // Update state to show connecting
-    _updateState(_currentState.copyWith(
-      isConnecting: true,
-      isBuffering: false,
-    ));
-    
+    _updateState(
+      _currentState.copyWith(isConnecting: true, isBuffering: false),
+    );
+
     try {
       // Reinitialize after reset to ensure fresh connection
       await remoteDataSource.initialize(_currentConfig!);
       await remoteDataSource.play();
-      
+
       // Clear connecting state on success
-      _updateState(_currentState.copyWith(
-        isConnecting: false,
-      ));
+      _updateState(_currentState.copyWith(isConnecting: false));
     } catch (e) {
       // Clear connecting state on error
-      _updateState(_currentState.copyWith(
-        isConnecting: false,
-      ));
+      _updateState(_currentState.copyWith(isConnecting: false));
       rethrow;
     }
   }
@@ -589,16 +702,21 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
     }
 
     final currentUrl = _availableUrls[_currentUrlIndex];
-    DebugLogger.log('[RadioPlayerRepository] Attempting play with URL: $currentUrl (attempt ${_currentRetryAttempt + 1})', tag: 'RadioPlayerRepository');
+    DebugLogger.log(
+      '[RadioPlayerRepository] Attempting play with URL: $currentUrl (attempt ${_currentRetryAttempt + 1})',
+      tag: 'RadioPlayerRepository',
+    );
 
     // Update state to show connecting
-    _updateState(_currentState.copyWith(
-      isConnecting: true,
-      isBuffering: false,
-      isRetrying: _currentRetryAttempt > 0,
-      retryAttempt: _currentRetryAttempt,
-      currentBackupUrlIndex: _currentUrlIndex,
-    ));
+    _updateState(
+      _currentState.copyWith(
+        isConnecting: true,
+        isBuffering: false,
+        isRetrying: _currentRetryAttempt > 0,
+        retryAttempt: _currentRetryAttempt,
+        currentBackupUrlIndex: _currentUrlIndex,
+      ),
+    );
 
     try {
       // Always reinitialize after reset to ensure fresh connection
@@ -626,31 +744,43 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
       // Performance tracking
       int? connectionTimeMs;
       if (_playStartTime != null) {
-        connectionTimeMs =
-            DateTime.now().difference(_playStartTime!).inMilliseconds;
-        DebugLogger.log('[RadioPlayerRepository] Connection completed in ${connectionTimeMs}ms', tag: 'RadioPlayerRepository');
+        connectionTimeMs = DateTime.now()
+            .difference(_playStartTime!)
+            .inMilliseconds;
+        DebugLogger.log(
+          '[RadioPlayerRepository] Connection completed in ${connectionTimeMs}ms',
+          tag: 'RadioPlayerRepository',
+        );
       }
 
-      _updateState(_currentState.copyWith(
-        isConnecting: false,
-        isBuffering: false,
-        isRetrying: false,
-        retryAttempt: 0,
-        currentUrl: currentUrl,
-        errorMessage: null,
-        lastErrorTimestamp: null,
-        resumeTimeMs: connectionTimeMs,
-      ));
+      _updateState(
+        _currentState.copyWith(
+          isConnecting: false,
+          isBuffering: false,
+          isRetrying: false,
+          retryAttempt: 0,
+          currentUrl: currentUrl,
+          errorMessage: null,
+          lastErrorTimestamp: null,
+          resumeTimeMs: connectionTimeMs,
+        ),
+      );
     } catch (e) {
-      DebugLogger.logError('Play attempt failed', error: e, tag: 'RadioPlayerRepository');
+      DebugLogger.logError(
+        'Play attempt failed',
+        error: e,
+        tag: 'RadioPlayerRepository',
+      );
 
       // Update error state
-      _updateState(_currentState.copyWith(
-        isConnecting: false,
-        isBuffering: false,
-        errorMessage: e.toString(),
-        lastErrorTimestamp: DateTime.now(),
-      ));
+      _updateState(
+        _currentState.copyWith(
+          isConnecting: false,
+          isBuffering: false,
+          errorMessage: e.toString(),
+          lastErrorTimestamp: DateTime.now(),
+        ),
+      );
 
       // Schedule retry if we haven't exceeded max attempts
       if (_currentRetryAttempt < RadioConfig.maxRetryAttempts - 1) {
@@ -677,7 +807,10 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
     final delayMs = RadioConfig.retryBackoffDelays[_currentRetryAttempt];
     _currentRetryAttempt++;
 
-    DebugLogger.log('[RadioPlayerRepository] Scheduling retry in ${delayMs}ms (attempt $_currentRetryAttempt)', tag: 'RadioPlayerRepository');
+    DebugLogger.log(
+      '[RadioPlayerRepository] Scheduling retry in ${delayMs}ms (attempt $_currentRetryAttempt)',
+      tag: 'RadioPlayerRepository',
+    );
 
     _retryTimer?.cancel();
     _retryTimer = Timer(Duration(milliseconds: delayMs), () {
@@ -692,9 +825,7 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
       return const Right(unit);
     } catch (e) {
       final failure = ServerFailure('Failed to pause radio: ${e.toString()}');
-      _updateState(_currentState.copyWith(
-        errorMessage: failure.message,
-      ));
+      _updateState(_currentState.copyWith(errorMessage: failure.message));
       return Left(failure);
     }
   }
@@ -708,11 +839,10 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
       _updateState(const RadioPlayerEntity.initial());
       return const Right(unit);
     } catch (e) {
-      final failure =
-          ServerFailure('Failed to reset radio player: ${e.toString()}');
-      _updateState(_currentState.copyWith(
-        errorMessage: failure.message,
-      ));
+      final failure = ServerFailure(
+        'Failed to reset radio player: ${e.toString()}',
+      );
+      _updateState(_currentState.copyWith(errorMessage: failure.message));
       return Left(failure);
     }
   }
@@ -724,7 +854,11 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
     RadioEntity config,
   ) async {
     try {
-      final albumArtUrl = await albumArtService.getAlbumArtUrl(artist, title, config);
+      final albumArtUrl = await albumArtService.getAlbumArtUrl(
+        artist,
+        title,
+        config,
+      );
       if (albumArtUrl != null && albumArtUrl.isNotEmpty) {
         return Right(albumArtUrl);
       } else {
@@ -754,11 +888,10 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
       );
       return const Right(unit);
     } catch (e) {
-      final failure =
-          ServerFailure('Failed to set custom metadata: ${e.toString()}');
-      _updateState(_currentState.copyWith(
-        errorMessage: failure.message,
-      ));
+      final failure = ServerFailure(
+        'Failed to set custom metadata: ${e.toString()}',
+      );
+      _updateState(_currentState.copyWith(errorMessage: failure.message));
       return Left(failure);
     }
   }
@@ -783,11 +916,10 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
       );
       return const Right(unit);
     } catch (e) {
-      final failure =
-          ServerFailure('Failed to update station: ${e.toString()}');
-      _updateState(_currentState.copyWith(
-        errorMessage: failure.message,
-      ));
+      final failure = ServerFailure(
+        'Failed to update station: ${e.toString()}',
+      );
+      _updateState(_currentState.copyWith(errorMessage: failure.message));
       return Left(failure);
     }
   }
@@ -804,11 +936,10 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
       );
       return const Right(unit);
     } catch (e) {
-      final failure =
-          ServerFailure('Failed to set navigation controls: ${e.toString()}');
-      _updateState(_currentState.copyWith(
-        errorMessage: failure.message,
-      ));
+      final failure = ServerFailure(
+        'Failed to set navigation controls: ${e.toString()}',
+      );
+      _updateState(_currentState.copyWith(errorMessage: failure.message));
       return Left(failure);
     }
   }
@@ -819,11 +950,8 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
       await remoteDataSource.setVolume(volume);
       return const Right(unit);
     } catch (e) {
-      final failure =
-          ServerFailure('Failed to set volume: ${e.toString()}');
-      _updateState(_currentState.copyWith(
-        errorMessage: failure.message,
-      ));
+      final failure = ServerFailure('Failed to set volume: ${e.toString()}');
+      _updateState(_currentState.copyWith(errorMessage: failure.message));
       return Left(failure);
     }
   }
@@ -845,27 +973,36 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
       if (RadioConfig.enableVerboseLogging) {
-        DebugLogger.log('[RadioPlayerRepository] App paused/detached, stopping metadata polling', tag: 'RadioPlayerRepository');
+        DebugLogger.log(
+          '[RadioPlayerRepository] App paused/detached, stopping metadata polling',
+          tag: 'RadioPlayerRepository',
+        );
       }
       _stopMetadataPolling();
     } else if (state == AppLifecycleState.resumed) {
       if (RadioConfig.enableVerboseLogging) {
-        DebugLogger.log('[RadioPlayerRepository] App resumed, checking if polling needed', tag: 'RadioPlayerRepository');
+        DebugLogger.log(
+          '[RadioPlayerRepository] App resumed, checking if polling needed',
+          tag: 'RadioPlayerRepository',
+        );
       }
       // Smart state clearing: preserve cached album art for current track if available
       final currentArtist = _currentState.currentArtist;
       final currentTitle = _currentState.currentTitle;
-      unawaited(albumArtService.clearStaleState(
-        currentArtist: currentArtist,
-        currentTitle: currentTitle,
-      ));
+      unawaited(
+        albumArtService.clearStaleState(
+          currentArtist: currentArtist,
+          currentTitle: currentTitle,
+        ),
+      );
       // Resume polling if we are initialized, have config, and NOT playing audio
-      if (_currentState.isInitialized && 
-          _currentConfig != null && 
+      if (_currentState.isInitialized &&
+          _currentConfig != null &&
           !_isAudioActuallyPlaying) {
-         _startMetadataPolling();
+        _startMetadataPolling();
       }
     }
   }
@@ -895,10 +1032,12 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
         .replaceAll(RegExp(r'\s+'), ' ')
         .trim();
 
-    final normalizedArtist = (sanitizedArtist != null && sanitizedArtist.isNotEmpty)
+    final normalizedArtist =
+        (sanitizedArtist != null && sanitizedArtist.isNotEmpty)
         ? sanitizedArtist
         : RadioConfig.fallbackArtist;
-    final normalizedTitle = (sanitizedTitle != null && sanitizedTitle.isNotEmpty)
+    final normalizedTitle =
+        (sanitizedTitle != null && sanitizedTitle.isNotEmpty)
         ? sanitizedTitle
         : RadioConfig.fallbackTitle;
 
@@ -915,23 +1054,65 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
       return;
     }
 
-    _updateState(_currentState.copyWith(
-      currentArtist: newArtist,
-      currentTitle: newTitle,
-      errorMessage: null,
-    ));
+    _updateState(
+      _currentState.copyWith(
+        currentArtist: newArtist,
+        currentTitle: newTitle,
+        errorMessage: null,
+      ),
+    );
+
+    _detectRequestPlayback(
+      requestId: result.requestId,
+      isExplicitRequest: result.isRequest,
+      artist: newArtist,
+      title: newTitle,
+    );
 
     if ((_currentConfig?.showAlbumCover ?? false) &&
         (newArtist.isNotEmpty || newTitle.isNotEmpty) &&
         _currentConfig != null) {
       // Metadata changed, force refresh album art
       albumArtService.fetchAndBroadcast(
-        newArtist, 
-        newTitle, 
+        newArtist,
+        newTitle,
         _currentConfig!,
         forceRefresh: true,
       );
     }
+  }
+
+  void _detectRequestPlayback({
+    String? requestId,
+    required bool isExplicitRequest,
+    required String artist,
+    required String title,
+  }) {
+    final matched = pendingRequestTracker.matchPlayed(
+      requestId: requestId,
+      artist: artist,
+      title: title,
+      isExplicitRequest: isExplicitRequest,
+    );
+
+    if (matched == null) {
+      return;
+    }
+
+    final notification = NotificationItem(
+      id: '${DateTime.now().millisecondsSinceEpoch}-${matched.requestId ?? artist}',
+      kind: NotificationKind.requestPlayed,
+      title: 'Requested track is now playing',
+      body: '$artist - $title',
+      createdAt: DateTime.now(),
+      artist: artist,
+      trackTitle: title,
+      requestId: matched.requestId,
+    );
+
+    unawaited(
+      notificationCenterRepository.add(notification, pushToSystem: true),
+    );
   }
 
   Future<void> _prepareMetadataPolling(RadioEntity config) async {
@@ -982,7 +1163,6 @@ class RadioPlayerRepositoryImpl with WidgetsBindingObserver implements RadioPlay
     nowPlayingPollingService.stop();
     _isMetadataPollingActive = false;
   }
-
 }
 
 class _NormalizedMetadata {
@@ -991,4 +1171,3 @@ class _NormalizedMetadata {
 
   const _NormalizedMetadata(this.artist, this.title);
 }
-

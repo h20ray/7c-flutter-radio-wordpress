@@ -294,5 +294,8 @@
   "share_quote_subject": "Daily Quote",
   "share_error_capture_failed": "Failed to capture image",
   "quote_dialog_title": "Quote of the Day",
-  "quote_default_message": "Have a wonderful day!"
+  "quote_default_message": "Have a wonderful day!",
+  "notification_center_title": "Notifications",
+  "notification_center_mark_all": "Mark all as read",
+  "notification_center_empty": "No notifications yet"
 }

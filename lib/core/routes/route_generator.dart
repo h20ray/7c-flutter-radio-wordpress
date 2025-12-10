@@ -23,6 +23,7 @@ import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
 import '../../features/shoutbox/presentation/pages/shoutbox_page.dart';
 import '../../features/tamtama/presentation/bloc/tamtama_bloc.dart';
+import '../../features/notification_center/presentation/pages/notification_center_page.dart';
 import '../../config/app_config.dart';
 import '../di/injection_container.dart';
 import '../services/deep_link_service.dart';
@@ -118,6 +119,11 @@ class RouteGenerator {
         );
       case AppRoutes.radioAbout:
         return _buildPageRoute(settings, (context) => const RadioAboutPage());
+      case AppRoutes.notificationCenter:
+        return _buildPageRoute(
+          settings,
+          (context) => const NotificationCenterPage(),
+        );
       default:
         if (settings.name?.startsWith('/auth/') ?? false) {
           return _handleAuthDeepLink(settings);
@@ -160,6 +166,7 @@ class RouteGenerator {
       AppRoutes.lyrics,
       AppRoutes.request,
       AppRoutes.radioAbout,
+      AppRoutes.notificationCenter,
     ];
     return knownRoutes.contains(routeName);
   }

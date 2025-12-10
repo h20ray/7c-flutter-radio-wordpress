@@ -103,12 +103,15 @@ class _HomeScreenState extends State<HomeScreen> with NavBarRouteSyncMixin {
     final double headerHeight = 180 + statusBarHeight;
     final double headerStackHeight =
         headerHeight + (DesignTokens.cardHeightStandard - cardOverlap);
-    
+
     final safeAreaBottom = MediaQuery.of(context).padding.bottom;
     const bottomSpacing = DesignTokens.spacingS;
     const extraSpacing = DesignTokens.spacingXl;
     final totalBottomSpacing =
-        FloatingBottomNavBar.totalHeight + bottomSpacing + safeAreaBottom + extraSpacing;
+        FloatingBottomNavBar.totalHeight +
+        bottomSpacing +
+        safeAreaBottom +
+        extraSpacing;
 
     final buildDuration = DateTime.now().difference(buildStart);
     DebugLogger.log(
@@ -123,7 +126,7 @@ class _HomeScreenState extends State<HomeScreen> with NavBarRouteSyncMixin {
         final navigator = Navigator.of(context);
         final currentRoute = ModalRoute.of(context);
         final isHomeRoute = currentRoute?.settings.name == AppRoutes.home;
-        
+
         if (navigator.canPop()) {
           navigator.pop();
         } else if (isHomeRoute) {
@@ -191,8 +194,8 @@ class _HomeScreenState extends State<HomeScreen> with NavBarRouteSyncMixin {
                                 _selectedTabIndex = index;
                               });
                               context.read<HomeBloc>().add(
-                                    TabChangedEvent(index),
-                                  );
+                                TabChangedEvent(index),
+                              );
                             },
                           ),
                           const SizedBox(height: DesignTokens.spacingM),
@@ -204,7 +207,8 @@ class _HomeScreenState extends State<HomeScreen> with NavBarRouteSyncMixin {
                         child: Column(
                           children: [
                             _DeferredSection(
-                              placeholderBuilder: (context) => const _TamtamaPlaceholder(),
+                              placeholderBuilder: (context) =>
+                                  const _TamtamaPlaceholder(),
                               builder: (context) => const TamtamaSection(),
                             ),
                             const SizedBox(height: DesignTokens.spacingXl),
@@ -213,7 +217,8 @@ class _HomeScreenState extends State<HomeScreen> with NavBarRouteSyncMixin {
                       ),
                     SliverToBoxAdapter(
                       child: _DeferredSection(
-                        placeholderBuilder: (context) => const _CarouselPlaceholder(),
+                        placeholderBuilder: (context) =>
+                            const _CarouselPlaceholder(),
                         builder: (context) => const LatestNewsCarousel(),
                       ),
                     ),
@@ -222,7 +227,8 @@ class _HomeScreenState extends State<HomeScreen> with NavBarRouteSyncMixin {
                     ),
                     SliverToBoxAdapter(
                       child: _DeferredSection(
-                        placeholderBuilder: (context) => const _NewsListPlaceholder(),
+                        placeholderBuilder: (context) =>
+                            const _NewsListPlaceholder(),
                         builder: (context) => const HomeNewsListSection(),
                         delay: const Duration(milliseconds: 48),
                       ),
@@ -249,9 +255,7 @@ class _HomeScreenState extends State<HomeScreen> with NavBarRouteSyncMixin {
                         : const Offset(0, -1),
                     child: TickerMode(
                       enabled: _showStickyPlayer,
-                      child: const RepaintBoundary(
-                        child: HomeStickyPlayer(),
-                      ),
+                      child: const RepaintBoundary(child: HomeStickyPlayer()),
                     ),
                   ),
                 ),
