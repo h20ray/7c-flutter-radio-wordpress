@@ -12,6 +12,7 @@ import '../../domain/usecases/play_radio.dart';
 import '../../domain/usecases/pause_radio.dart';
 import '../../domain/usecases/reset_radio_player.dart';
 import '../../../gamification/domain/usecases/record_listening_session.dart';
+import '../../../tamtama/presentation/bloc/tamtama_bloc.dart';
 import '../../domain/repositories/song_history_repository.dart';
 import '../bloc/radio_bloc.dart';
 import 'radio_player_event.dart';
@@ -29,6 +30,7 @@ class RadioPlayerBloc extends Bloc<RadioPlayerEvent, RadioPlayerState> {
   final RadioBloc radioConfigBloc;
   final RecordListeningSession recordListeningSession;
   final SongHistoryRepository? songHistoryRepository;
+  final TamtamaBloc? tamtamaBloc;
 
   StreamSubscription<RadioPlayerEntity>? _playerStateSubscription;
   StreamSubscription<RadioState>? _radioConfigSubscription;
@@ -76,6 +78,7 @@ class RadioPlayerBloc extends Bloc<RadioPlayerEvent, RadioPlayerState> {
     required this.radioConfigBloc,
     required this.recordListeningSession,
     this.songHistoryRepository,
+    this.tamtamaBloc,
   }) : super(const RadioPlayerState.initial()) {
     // 1) Register event handlers FIRST
     on<RadioPlayerEvent>(_onRadioPlayerEvent);
@@ -776,6 +779,8 @@ class RadioPlayerBloc extends Bloc<RadioPlayerEvent, RadioPlayerState> {
       _sessionStart ??= DateTime.now();
       if (!hadSession) {
         _startListeningFlushTimer();
+        // Notify TamTama that listening started
+        tamtamaBloc?.add(const TamtamaEvent.setListening(true));
       }
     } else {
       _stopListeningFlushTimer();
@@ -783,6 +788,8 @@ class RadioPlayerBloc extends Bloc<RadioPlayerEvent, RadioPlayerState> {
       _lastMetadataArtist = null;
       _lastMetadataTitle = null;
       unawaited(_flushListeningSession());
+      // Notify TamTama that listening stopped
+      tamtamaBloc?.add(const TamtamaEvent.setListening(false));
     }
   }
 
@@ -821,6 +828,14 @@ class RadioPlayerBloc extends Bloc<RadioPlayerEvent, RadioPlayerState> {
         return;
       }
       await recordListeningSession(duration);
+      
+      // Send listening rewards to TamTama
+      final minutes = duration.inMinutes;
+      if (minutes > 0 && tamtamaBloc != null) {
+        final stationId = _currentConfig?.streamUrl ?? 'unknown';
+        tamtamaBloc!.add(TamtamaEvent.onListeningTick(minutes, stationId));
+      }
+      
       _sessionStart = keepSessionActive ? now : null;
     } finally {
       _isFlushingListeningSession = false;

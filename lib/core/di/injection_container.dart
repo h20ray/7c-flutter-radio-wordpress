@@ -114,6 +114,7 @@ import '../../features/categories/domain/repositories/category_repository.dart';
 // TamTama feature imports
 import '../../features/tamtama/data/datasources/tamtama_local_data_source.dart';
 import '../../features/tamtama/data/repositories/tamtama_repository_impl.dart';
+import '../../features/tamtama/data/services/tamtama_tick_service.dart';
 import '../../features/tamtama/domain/repositories/tamtama_repository.dart';
 import '../../features/tamtama/presentation/bloc/tamtama_bloc.dart';
 
@@ -196,13 +197,13 @@ Future<void> initDependencies() async {
 
   // Initialize features
   _initNotificationCenter();
-  _initRadio();
+  _initTamtama(); // Must be before Radio for integration
   _initGamification();
+  _initRadio();
   _initShoutbox();
   _initWordPress();
   _initCategories();
   _initHome();
-  _initTamtama();
   _initAuth();
   _initSettings();
   
@@ -320,6 +321,7 @@ void _initRadio() {
       radioConfigBloc: getIt<RadioBloc>(),
       recordListeningSession: getIt(),
       songHistoryRepository: getIt<SongHistoryRepository>(),
+      tamtamaBloc: getIt<TamtamaBloc>(),
     ),
   );
 
@@ -527,10 +529,19 @@ void _initTamtama() {
   getIt.registerLazySingleton<TamtamaLocalDataSource>(
     () => TamtamaLocalDataSourceImpl(),
   );
-  getIt.registerLazySingleton<TamtamaRepository>(
-    () => TamtamaRepositoryImpl(localDataSource: getIt()),
+  getIt.registerLazySingleton<TamtamaTickService>(
+    () => TamtamaTickService(),
   );
-  getIt.registerFactory(() => TamtamaBloc(repository: getIt()));
+  getIt.registerLazySingleton<TamtamaRepository>(
+    () => TamtamaRepositoryImpl(
+      localDataSource: getIt(),
+      tickService: getIt(),
+    ),
+  );
+  getIt.registerLazySingleton(() => TamtamaBloc(
+    repository: getIt(),
+    tickService: getIt(),
+  ));
 }
 
 void _initAuth() {
