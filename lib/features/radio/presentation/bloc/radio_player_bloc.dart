@@ -1,22 +1,23 @@
 import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../config/app_config.dart';
-import '../../../../core/error/failures.dart';
-import '../../../../core/audio/audio_focus_manager.dart';
+
 import '../../../../config/radio_config.dart';
+import '../../../../core/audio/audio_focus_manager.dart';
+import '../../../../core/error/failures.dart';
+import '../../../../core/utils/debug_logger.dart';
+import '../../../tamtama/presentation/bloc/tamtama_bloc.dart';
 import '../../domain/entities/radio_entity.dart';
 import '../../domain/entities/radio_player_entity.dart';
 import '../../domain/repositories/radio_player_repository.dart';
-import '../../domain/usecases/initialize_radio_player.dart';
-import '../../domain/usecases/play_radio.dart';
-import '../../domain/usecases/pause_radio.dart';
-import '../../domain/usecases/reset_radio_player.dart';
-import '../../../gamification/domain/usecases/record_listening_session.dart';
-import '../../../tamtama/presentation/bloc/tamtama_bloc.dart';
 import '../../domain/repositories/song_history_repository.dart';
+import '../../domain/usecases/initialize_radio_player.dart';
+import '../../domain/usecases/pause_radio.dart';
+import '../../domain/usecases/play_radio.dart';
+import '../../domain/usecases/reset_radio_player.dart';
 import '../bloc/radio_bloc.dart';
+import '../controllers/listening_session_controller.dart';
 import 'radio_player_event.dart';
-import '../../../../core/utils/debug_logger.dart';
 import 'radio_player_state.dart';
 
 /// BLoC for managing radio player state and operations
@@ -28,9 +29,9 @@ class RadioPlayerBloc extends Bloc<RadioPlayerEvent, RadioPlayerState> {
   final ResetRadioPlayer resetRadioPlayer;
   final RadioPlayerRepository repository;
   final RadioBloc radioConfigBloc;
-  final RecordListeningSession recordListeningSession;
   final SongHistoryRepository? songHistoryRepository;
   final TamtamaBloc? tamtamaBloc;
+  final ListeningSessionController listeningSessionController;
 
   StreamSubscription<RadioPlayerEntity>? _playerStateSubscription;
   StreamSubscription<RadioState>? _radioConfigSubscription;
@@ -59,16 +60,6 @@ class RadioPlayerBloc extends Bloc<RadioPlayerEvent, RadioPlayerState> {
   // Audio focus state management
   bool _wasPlayingBeforeFocusLoss = false;
   bool _canAutoResume = false;
-  DateTime? _sessionStart;
-  Timer? _listeningFlushTimer;
-  bool _isFlushingListeningSession = false;
-  
-  // Metadata change tracking for optimized flush
-  String? _lastMetadataArtist;
-  String? _lastMetadataTitle;
-  Timer? _metadataFlushDebounceTimer;
-  static const Duration _metadataFlushDebounceDelay = Duration(seconds: 2);
-
   RadioPlayerBloc({
     required this.initializeRadioPlayer,
     required this.playRadio,
@@ -76,9 +67,9 @@ class RadioPlayerBloc extends Bloc<RadioPlayerEvent, RadioPlayerState> {
     required this.resetRadioPlayer,
     required this.repository,
     required this.radioConfigBloc,
-    required this.recordListeningSession,
     this.songHistoryRepository,
     this.tamtamaBloc,
+    required this.listeningSessionController,
   }) : super(const RadioPlayerState.initial()) {
     // 1) Register event handlers FIRST
     on<RadioPlayerEvent>(_onRadioPlayerEvent);
@@ -507,7 +498,7 @@ class RadioPlayerBloc extends Bloc<RadioPlayerEvent, RadioPlayerState> {
 
   /// Handle playback state changed event
   void _onPlaybackStateChanged(bool isPlaying, Emitter<RadioPlayerState> emit) {
-    _handleListeningSession(isPlaying);
+    listeningSessionController.handlePlayback(isPlaying, _currentConfig);
     final currentState = state;
     currentState.maybeWhen(
       ready: (currentIsPlaying, currentUrl, currentArtist, currentTitle,
@@ -571,40 +562,18 @@ class RadioPlayerBloc extends Bloc<RadioPlayerEvent, RadioPlayerState> {
             _trackSong(artist, title, currentAlbumArtUrl);
           }
           
-          // Flush listening session on metadata change (optimized with debounce)
-          _handleMetadataChangeFlush(artist, title, isPlaying);
+          listeningSessionController.handleMetadataChange(
+            artist,
+            title,
+            isPlaying,
+            _currentConfig,
+          );
         }
       },
       orElse: () {},
     );
   }
   
-  /// Handle flush on metadata change with debouncing to optimize battery usage
-  void _handleMetadataChangeFlush(String? artist, String? title, bool isPlaying) {
-    // Only flush if actually playing and we have an active session
-    if (!isPlaying || _sessionStart == null) {
-      return;
-    }
-    
-    // Check if metadata actually changed (not just a duplicate update)
-    if (_lastMetadataArtist == artist && _lastMetadataTitle == title) {
-      return;
-    }
-    
-    // Update last known metadata
-    _lastMetadataArtist = artist;
-    _lastMetadataTitle = title;
-    
-    // Cancel existing debounce timer
-    _metadataFlushDebounceTimer?.cancel();
-    
-    // Debounce the flush to avoid rapid metadata changes causing excessive flushes
-    // This is especially important for radio streams that might send metadata updates frequently
-    _metadataFlushDebounceTimer = Timer(_metadataFlushDebounceDelay, () {
-      unawaited(_flushListeningSession(keepSessionActive: true));
-    });
-  }
-
   /// Track song in history
   void _trackSong(String artist, String title, String? albumArtUrl) {
     if (songHistoryRepository == null) return;
@@ -763,85 +732,12 @@ class RadioPlayerBloc extends Bloc<RadioPlayerEvent, RadioPlayerState> {
 
   @override
   Future<void> close() async {
-    _stopListeningFlushTimer();
-    _metadataFlushDebounceTimer?.cancel();
-    await _flushListeningSession();
+    await listeningSessionController.dispose();
     unawaited(_playerStateSubscription?.cancel());
     unawaited(_radioConfigSubscription?.cancel());
     unawaited(_audioFocusSubscription?.cancel());
     unawaited(_audioFocusEventSubscription?.cancel());
     return super.close();
   }
-
-  void _handleListeningSession(bool isPlaying) {
-    if (isPlaying) {
-      final hadSession = _sessionStart != null;
-      _sessionStart ??= DateTime.now();
-      if (!hadSession) {
-        _startListeningFlushTimer();
-        // Notify TamTama that listening started
-        tamtamaBloc?.add(const TamtamaEvent.setListening(true));
-      }
-    } else {
-      _stopListeningFlushTimer();
-      _metadataFlushDebounceTimer?.cancel();
-      _lastMetadataArtist = null;
-      _lastMetadataTitle = null;
-      unawaited(_flushListeningSession());
-      // Notify TamTama that listening stopped
-      tamtamaBloc?.add(const TamtamaEvent.setListening(false));
-    }
-  }
-
-  void _startListeningFlushTimer() {
-    _listeningFlushTimer?.cancel();
-    _listeningFlushTimer = Timer.periodic(
-      AppConfig.listeningFlushInterval,
-      (timer) => unawaited(_flushListeningSession(keepSessionActive: true)),
-    );
-  }
-
-  void _stopListeningFlushTimer() {
-    _listeningFlushTimer?.cancel();
-    _listeningFlushTimer = null;
-  }
-
-  Future<void> _flushListeningSession({bool keepSessionActive = false}) async {
-    if (_isFlushingListeningSession) {
-      return;
-    }
-    final start = _sessionStart;
-    if (start == null) {
-      return;
-    }
-    final now = DateTime.now();
-    final duration = now.difference(start);
-    if (keepSessionActive && duration < _minListeningFlushDelta) {
-      return;
-    }
-    _isFlushingListeningSession = true;
-    try {
-      if (duration.inSeconds <= 0) {
-        if (!keepSessionActive) {
-          _sessionStart = null;
-        }
-        return;
-      }
-      await recordListeningSession(duration);
-      
-      // Send listening rewards to TamTama
-      final minutes = duration.inMinutes;
-      if (minutes > 0 && tamtamaBloc != null) {
-        final stationId = _currentConfig?.streamUrl ?? 'unknown';
-        tamtamaBloc!.add(TamtamaEvent.onListeningTick(minutes, stationId));
-      }
-      
-      _sessionStart = keepSessionActive ? now : null;
-    } finally {
-      _isFlushingListeningSession = false;
-    }
-  }
-
-  static const Duration _minListeningFlushDelta = Duration(seconds: 5);
 }
 

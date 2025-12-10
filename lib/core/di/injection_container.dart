@@ -15,44 +15,11 @@ import '../services/sleep_timer_service.dart';
 import '../utils/debug_logger.dart';
 
 // Radio feature imports
-import '../../features/radio/data/datasources/radio_remote_datasource.dart';
-import '../../features/radio/data/datasources/radio_player_remote_datasource.dart';
-import '../../features/radio/data/repositories/radio_repository_impl.dart';
-import '../../features/radio/data/repositories/radio_player_repository_impl.dart';
-import '../../features/radio/data/repositories/album_art_repository_impl.dart';
+import '../../features/radio/di/radio_injection.dart';
+import '../../features/radio/data/repositories/greeting_repository.dart';
 import '../../features/radio/data/services/album_art_service.dart';
-import '../../features/radio/data/services/now_playing_polling_service.dart';
-import '../../features/radio/domain/repositories/radio_repository.dart';
-import '../../features/radio/domain/repositories/radio_player_repository.dart';
-import '../../features/radio/domain/repositories/album_art_repository.dart';
-import '../../features/radio/domain/usecases/get_radio_config.dart';
-import '../../features/radio/domain/usecases/initialize_radio_player.dart';
-import '../../features/radio/domain/usecases/play_radio.dart';
-import '../../features/radio/domain/usecases/pause_radio.dart';
-import '../../features/radio/domain/usecases/reset_radio_player.dart';
-import '../../features/radio/domain/usecases/get_album_art_url.dart';
-import '../../features/radio/presentation/bloc/radio_bloc.dart';
 import '../../features/radio/presentation/bloc/radio_player_bloc.dart';
 import '../../features/radio/presentation/bloc/radio_player_event.dart';
-import '../../features/radio/data/datasources/song_history_local_data_source.dart';
-import '../../features/radio/data/datasources/song_history_remote_data_source.dart';
-import '../../features/radio/data/datasources/song_history_azuracast_data_source.dart';
-import '../../features/radio/data/repositories/song_history_repository_impl.dart';
-import '../../features/radio/data/repositories/song_history_azuracast_repository_impl.dart';
-import '../../features/radio/domain/repositories/song_history_repository.dart';
-import '../../features/radio/presentation/bloc/song_history_bloc.dart';
-import '../../config/radio_config.dart';
-import '../../features/radio/data/datasources/lyrics_local_data_source.dart';
-import '../../features/radio/data/datasources/lyrics_remote_data_source.dart';
-import '../../features/radio/data/repositories/lyrics_repository_impl.dart';
-import '../../features/radio/domain/repositories/lyrics_repository.dart';
-import '../../features/radio/presentation/bloc/lyrics_bloc.dart';
-import '../../features/radio/data/datasources/request_remote_data_source.dart';
-import '../../features/radio/data/datasources/request_azuracast_data_source.dart';
-import '../../features/radio/data/repositories/request_repository_impl.dart';
-import '../../features/radio/domain/repositories/request_repository.dart';
-import '../../features/radio/presentation/bloc/request_bloc.dart';
-import '../../features/radio/data/repositories/greeting_repository.dart';
 
 // Notification center imports
 import '../../features/notification_center/data/datasources/notification_local_data_source.dart';
@@ -112,11 +79,7 @@ import '../../features/categories/domain/repositories/category_repository.dart';
 
 
 // TamTama feature imports
-import '../../features/tamtama/data/datasources/tamtama_local_data_source.dart';
-import '../../features/tamtama/data/repositories/tamtama_repository_impl.dart';
-import '../../features/tamtama/data/services/tamtama_tick_service.dart';
-import '../../features/tamtama/domain/repositories/tamtama_repository.dart';
-import '../../features/tamtama/presentation/bloc/tamtama_bloc.dart';
+import '../../features/tamtama/di/tamtama_injection.dart';
 
 // Auth feature imports
 import '../../features/auth/data/datasources/auth_local_datasource.dart';
@@ -197,9 +160,9 @@ Future<void> initDependencies() async {
 
   // Initialize features
   _initNotificationCenter();
-  _initTamtama(); // Must be before Radio for integration
+  initTamtamaModule(getIt);
   _initGamification();
-  _initRadio();
+  initRadioModule(getIt);
   _initShoutbox();
   _initWordPress();
   _initCategories();
@@ -262,140 +225,6 @@ void _initNotificationCenter() {
   );
   getIt.registerLazySingleton(
     () => NotificationCenterCubit(repository: getIt()),
-  );
-}
-
-void _initRadio() {
-  // Data sources
-  getIt.registerLazySingleton<RadioRemoteDataSource>(
-    () => RadioRemoteDataSourceImpl(apiClient: getIt()),
-  );
-  getIt.registerLazySingleton<RadioPlayerRemoteDataSource>(
-    () => RadioPlayerRemoteDataSourceImpl(),
-  );
-
-  // Services
-  getIt.registerLazySingleton<AlbumArtService>(() => AlbumArtService.instance);
-
-  // Repositories
-  getIt.registerLazySingleton<RadioRepository>(
-    () => RadioRepositoryImpl(remoteDataSource: getIt()),
-  );
-  getIt.registerLazySingleton<NowPlayingPollingService>(
-    () => NowPlayingPollingService(dio: getIt()),
-  );
-  getIt.registerLazySingleton<RadioPlayerRepository>(
-    () => RadioPlayerRepositoryImpl(
-      remoteDataSource: getIt(),
-      albumArtService: getIt(),
-      nowPlayingPollingService: getIt(),
-      notificationCenterRepository: getIt(),
-      pendingRequestTracker: getIt(),
-    ),
-  );
-  getIt.registerLazySingleton<AlbumArtRepository>(
-    () => AlbumArtRepositoryImpl(
-      dio: getIt(),
-      azuracastBaseUrl: null,
-      azuracastStationId: null,
-    ),
-  );
-
-  // Use cases
-  getIt.registerLazySingleton(() => GetRadioConfig(getIt()));
-  getIt.registerLazySingleton(() => InitializeRadioPlayer(getIt()));
-  getIt.registerLazySingleton(() => PlayRadio(getIt()));
-  getIt.registerLazySingleton(() => PauseRadio(getIt()));
-  getIt.registerLazySingleton(() => ResetRadioPlayer(getIt()));
-  getIt.registerLazySingleton(() => GetAlbumArtUrl(getIt()));
-
-  // BLoCs
-  getIt.registerLazySingleton(() => RadioBloc(getRadioConfig: getIt()));
-  getIt.registerLazySingleton(
-    () => RadioPlayerBloc(
-      initializeRadioPlayer: getIt(),
-      playRadio: getIt(),
-      pauseRadio: getIt(),
-      resetRadioPlayer: getIt(),
-      repository: getIt(),
-      radioConfigBloc: getIt<RadioBloc>(),
-      recordListeningSession: getIt(),
-      songHistoryRepository: getIt<SongHistoryRepository>(),
-      tamtamaBloc: getIt<TamtamaBloc>(),
-    ),
-  );
-
-  // Song History
-  // Local data source is used by both modes (for caching in Azuracast mode)
-  getIt.registerLazySingleton<SongHistoryLocalDataSource>(
-    () => SongHistoryLocalDataSourceImpl(),
-  );
-
-  if (RadioConfig.songHistoryMode == 'azuracast') {
-    getIt.registerLazySingleton<SongHistoryAzuracastDataSource>(
-      () => SongHistoryAzuracastDataSourceImpl(dio: getIt()),
-    );
-    getIt.registerLazySingleton<SongHistoryRepository>(
-      () => SongHistoryAzuracastRepositoryImpl(
-        azuracastDataSource: getIt(),
-        localDataSource: getIt(),
-        networkInfo: getIt(),
-      ),
-    );
-  } else {
-    getIt.registerLazySingleton<SongHistoryRemoteDataSource>(
-      () => SongHistoryRemoteDataSourceImpl(apiClient: getIt()),
-    );
-    getIt.registerLazySingleton<SongHistoryRepository>(
-      () => SongHistoryRepositoryImpl(
-        localDataSource: getIt(),
-        remoteDataSource: getIt(),
-      ),
-    );
-  }
-  getIt.registerFactory(() => SongHistoryBloc(repository: getIt()));
-
-  // Lyrics
-  getIt.registerLazySingleton<LyricsLocalDataSource>(
-    () => LyricsLocalDataSourceImpl(),
-  );
-  getIt.registerLazySingleton<LyricsRemoteDataSource>(
-    () => LyricsRemoteDataSourceImpl(apiClient: getIt(), dio: getIt()),
-  );
-  getIt.registerLazySingleton<LyricsRepository>(
-    () => LyricsRepositoryImpl(
-      localDataSource: getIt(),
-      remoteDataSource: getIt(),
-    ),
-  );
-  getIt.registerFactory(() => LyricsBloc(repository: getIt()));
-
-  // Request
-  getIt.registerLazySingleton<RequestRemoteDataSource>(
-    () => RequestRemoteDataSourceImpl(apiClient: getIt()),
-  );
-
-  // Register AzuraCast request data source if mode is not webview
-  if (RadioConfig.requestMode != 'webview') {
-    getIt.registerLazySingleton<RequestAzuracastDataSource>(
-      () => RequestAzuracastDataSourceImpl(dio: getIt()),
-    );
-  }
-
-  getIt.registerLazySingleton<RequestRepository>(
-    () => RequestRepositoryImpl(
-      remoteDataSource: getIt(),
-      azuracastDataSource: RadioConfig.requestMode != 'webview'
-          ? getIt<RequestAzuracastDataSource>()
-          : null,
-      pendingRequestTracker: getIt(),
-    ),
-  );
-  getIt.registerFactory(() => RequestBloc(repository: getIt()));
-
-  // Greeting
-  getIt.registerLazySingleton<GreetingRepository>(
-    () => GreetingRepository(),
   );
 }
 
@@ -523,25 +352,6 @@ void _initGamification() {
   );
 
   getIt.registerLazySingleton(() => LevelUpCelebrationService.instance);
-}
-
-void _initTamtama() {
-  getIt.registerLazySingleton<TamtamaLocalDataSource>(
-    () => TamtamaLocalDataSourceImpl(),
-  );
-  getIt.registerLazySingleton<TamtamaTickService>(
-    () => TamtamaTickService(),
-  );
-  getIt.registerLazySingleton<TamtamaRepository>(
-    () => TamtamaRepositoryImpl(
-      localDataSource: getIt(),
-      tickService: getIt(),
-    ),
-  );
-  getIt.registerLazySingleton(() => TamtamaBloc(
-    repository: getIt(),
-    tickService: getIt(),
-  ));
 }
 
 void _initAuth() {
