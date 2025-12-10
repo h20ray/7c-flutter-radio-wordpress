@@ -55,14 +55,15 @@ extension ShoutboxEventPatterns on ShoutboxEvent {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( GetMessagesEvent value)?  getMessages,TResult Function( RefreshMessagesEvent value)?  refreshMessages,TResult Function( SendMessageEvent value)?  sendMessage,TResult Function( DeleteMessageEvent value)?  deleteMessage,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( GetMessagesEvent value)?  getMessages,TResult Function( RefreshMessagesEvent value)?  refreshMessages,TResult Function( SendMessageEvent value)?  sendMessage,TResult Function( DeleteMessageEvent value)?  deleteMessage,TResult Function( ClearMessagesEvent value)?  clearMessages,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case GetMessagesEvent() when getMessages != null:
 return getMessages(_that);case RefreshMessagesEvent() when refreshMessages != null:
 return refreshMessages(_that);case SendMessageEvent() when sendMessage != null:
 return sendMessage(_that);case DeleteMessageEvent() when deleteMessage != null:
-return deleteMessage(_that);case _:
+return deleteMessage(_that);case ClearMessagesEvent() when clearMessages != null:
+return clearMessages(_that);case _:
   return orElse();
 
 }
@@ -80,14 +81,15 @@ return deleteMessage(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( GetMessagesEvent value)  getMessages,required TResult Function( RefreshMessagesEvent value)  refreshMessages,required TResult Function( SendMessageEvent value)  sendMessage,required TResult Function( DeleteMessageEvent value)  deleteMessage,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( GetMessagesEvent value)  getMessages,required TResult Function( RefreshMessagesEvent value)  refreshMessages,required TResult Function( SendMessageEvent value)  sendMessage,required TResult Function( DeleteMessageEvent value)  deleteMessage,required TResult Function( ClearMessagesEvent value)  clearMessages,}){
 final _that = this;
 switch (_that) {
 case GetMessagesEvent():
 return getMessages(_that);case RefreshMessagesEvent():
 return refreshMessages(_that);case SendMessageEvent():
 return sendMessage(_that);case DeleteMessageEvent():
-return deleteMessage(_that);case _:
+return deleteMessage(_that);case ClearMessagesEvent():
+return clearMessages(_that);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -104,14 +106,15 @@ return deleteMessage(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( GetMessagesEvent value)?  getMessages,TResult? Function( RefreshMessagesEvent value)?  refreshMessages,TResult? Function( SendMessageEvent value)?  sendMessage,TResult? Function( DeleteMessageEvent value)?  deleteMessage,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( GetMessagesEvent value)?  getMessages,TResult? Function( RefreshMessagesEvent value)?  refreshMessages,TResult? Function( SendMessageEvent value)?  sendMessage,TResult? Function( DeleteMessageEvent value)?  deleteMessage,TResult? Function( ClearMessagesEvent value)?  clearMessages,}){
 final _that = this;
 switch (_that) {
 case GetMessagesEvent() when getMessages != null:
 return getMessages(_that);case RefreshMessagesEvent() when refreshMessages != null:
 return refreshMessages(_that);case SendMessageEvent() when sendMessage != null:
 return sendMessage(_that);case DeleteMessageEvent() when deleteMessage != null:
-return deleteMessage(_that);case _:
+return deleteMessage(_that);case ClearMessagesEvent() when clearMessages != null:
+return clearMessages(_that);case _:
   return null;
 
 }
@@ -128,13 +131,14 @@ return deleteMessage(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( int limit)?  getMessages,TResult Function( int limit)?  refreshMessages,TResult Function( String username,  String message)?  sendMessage,TResult Function( int id)?  deleteMessage,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( int limit)?  getMessages,TResult Function( int limit)?  refreshMessages,TResult Function( String username,  String message)?  sendMessage,TResult Function( int id)?  deleteMessage,TResult Function()?  clearMessages,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case GetMessagesEvent() when getMessages != null:
 return getMessages(_that.limit);case RefreshMessagesEvent() when refreshMessages != null:
 return refreshMessages(_that.limit);case SendMessageEvent() when sendMessage != null:
 return sendMessage(_that.username,_that.message);case DeleteMessageEvent() when deleteMessage != null:
-return deleteMessage(_that.id);case _:
+return deleteMessage(_that.id);case ClearMessagesEvent() when clearMessages != null:
+return clearMessages();case _:
   return orElse();
 
 }
@@ -152,13 +156,14 @@ return deleteMessage(_that.id);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( int limit)  getMessages,required TResult Function( int limit)  refreshMessages,required TResult Function( String username,  String message)  sendMessage,required TResult Function( int id)  deleteMessage,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( int limit)  getMessages,required TResult Function( int limit)  refreshMessages,required TResult Function( String username,  String message)  sendMessage,required TResult Function( int id)  deleteMessage,required TResult Function()  clearMessages,}) {final _that = this;
 switch (_that) {
 case GetMessagesEvent():
 return getMessages(_that.limit);case RefreshMessagesEvent():
 return refreshMessages(_that.limit);case SendMessageEvent():
 return sendMessage(_that.username,_that.message);case DeleteMessageEvent():
-return deleteMessage(_that.id);case _:
+return deleteMessage(_that.id);case ClearMessagesEvent():
+return clearMessages();case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -175,13 +180,14 @@ return deleteMessage(_that.id);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( int limit)?  getMessages,TResult? Function( int limit)?  refreshMessages,TResult? Function( String username,  String message)?  sendMessage,TResult? Function( int id)?  deleteMessage,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( int limit)?  getMessages,TResult? Function( int limit)?  refreshMessages,TResult? Function( String username,  String message)?  sendMessage,TResult? Function( int id)?  deleteMessage,TResult? Function()?  clearMessages,}) {final _that = this;
 switch (_that) {
 case GetMessagesEvent() when getMessages != null:
 return getMessages(_that.limit);case RefreshMessagesEvent() when refreshMessages != null:
 return refreshMessages(_that.limit);case SendMessageEvent() when sendMessage != null:
 return sendMessage(_that.username,_that.message);case DeleteMessageEvent() when deleteMessage != null:
-return deleteMessage(_that.id);case _:
+return deleteMessage(_that.id);case ClearMessagesEvent() when clearMessages != null:
+return clearMessages();case _:
   return null;
 
 }
@@ -454,6 +460,38 @@ as int,
 
 
 }
+
+/// @nodoc
+
+
+class ClearMessagesEvent implements ShoutboxEvent {
+  const ClearMessagesEvent();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ClearMessagesEvent);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'ShoutboxEvent.clearMessages()';
+}
+
+
+}
+
+
+
 
 /// @nodoc
 mixin _$ShoutboxState {

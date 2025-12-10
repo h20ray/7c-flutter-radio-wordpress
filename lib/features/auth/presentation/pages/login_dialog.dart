@@ -21,6 +21,9 @@ class LoginDialog extends StatelessWidget {
       context: context,
       barrierDismissible: true,
       barrierColor: DialogOverlayTokens.of(context).barrier,
+      // Use root navigator to ensure dialog appears above all nested navigators/scaffolds
+      useRootNavigator: true,
+      useSafeArea: true,
       builder: (dialogContext) => BlocProvider.value(
         value: context.read<AuthBloc>(),
         child: const LoginDialog(),

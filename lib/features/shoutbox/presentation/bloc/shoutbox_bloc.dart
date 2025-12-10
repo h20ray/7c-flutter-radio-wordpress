@@ -15,6 +15,10 @@ class ShoutboxBloc extends Bloc<ShoutboxEvent, ShoutboxState> {
   final SendShoutboxMessage sendMessage;
   final DeleteShoutboxMessage deleteMessage;
 
+  /// Maximum number of messages to keep in memory to prevent unbounded growth.
+  /// Older messages are trimmed when this limit is exceeded.
+  static const int _maxMessagesInMemory = 100;
+
   /// Track if a fetch is in progress to prevent duplicate requests
   bool _isFetching = false;
 
@@ -30,6 +34,7 @@ class ShoutboxBloc extends Bloc<ShoutboxEvent, ShoutboxState> {
     on<RefreshMessagesEvent>(_onRefreshMessages);
     on<SendMessageEvent>(_onSendMessage);
     on<DeleteMessageEvent>(_onDeleteMessage);
+    on<ClearMessagesEvent>(_onClearMessages);
   }
 
   /// Get current messages from any state
@@ -58,7 +63,8 @@ class ShoutboxBloc extends Bloc<ShoutboxEvent, ShoutboxState> {
     return messages.map((m) => m.id).reduce((a, b) => a > b ? a : b);
   }
 
-  /// Merge new messages with existing, removing duplicates and sorting by ID asc
+  /// Merge new messages with existing, removing duplicates, sorting by ID asc,
+  /// and trimming to [_maxMessagesInMemory] to prevent unbounded memory growth.
   List<ShoutboxMessageEntity> _mergeMessages(
     List<ShoutboxMessageEntity> existing,
     List<ShoutboxMessageEntity> newMessages,
@@ -78,6 +84,11 @@ class ShoutboxBloc extends Bloc<ShoutboxEvent, ShoutboxState> {
     // Convert to list and sort by ID ascending (oldest first, newest last)
     final merged = messageMap.values.toList();
     merged.sort((a, b) => a.id.compareTo(b.id));
+    
+    // Trim oldest messages if exceeding limit (keep newest)
+    if (merged.length > _maxMessagesInMemory) {
+      return merged.sublist(merged.length - _maxMessagesInMemory);
+    }
     return merged;
   }
 
@@ -223,5 +234,13 @@ class ShoutboxBloc extends Bloc<ShoutboxEvent, ShoutboxState> {
         // Already updated optimistically, nothing to do
       },
     );
+  }
+
+  /// Clear all messages from memory (manual cleanup)
+  void _onClearMessages(
+    ClearMessagesEvent event,
+    Emitter<ShoutboxState> emit,
+  ) {
+    emit(const ShoutboxState.initial());
   }
 }

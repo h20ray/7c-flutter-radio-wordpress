@@ -202,6 +202,9 @@ Future<void> initDependencies() async {
   // Initialize greeting repository
   await getIt<GreetingRepository>().initialize();
 
+  // Initialize album art service (loads Hive cache)
+  await getIt<AlbumArtService>().initialize();
+
   // Initialize sleep timer service and wire up completion callback
   final sleepTimer = getIt<SleepTimerService>();
   await sleepTimer.initialize();

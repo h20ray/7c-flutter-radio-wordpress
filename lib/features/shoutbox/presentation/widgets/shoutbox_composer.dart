@@ -9,6 +9,7 @@ import '../../../../core/themes/design_tokens.dart';
 import '../bloc/shoutbox_bloc.dart';
 
 class ShoutboxComposer extends StatefulWidget {
+  final bool autofocus;
   final void Function(String message) onSend;
   final int maxLength;
   final ValueChanged<bool>? onFocusChanged;
@@ -17,6 +18,7 @@ class ShoutboxComposer extends StatefulWidget {
   const ShoutboxComposer({
     super.key,
     required this.onSend,
+    this.autofocus = false,
     this.maxLength = 500,
     this.onFocusChanged,
     this.textFieldKey,
@@ -42,10 +44,18 @@ class _ShoutboxComposerState extends State<ShoutboxComposer> {
     _focusNode = FocusNode();
     _focusNode.addListener(_onFocusChange);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted && widget.textFieldKey != null) {
+      if (mounted && widget.autofocus) {
         _focusNode.requestFocus();
       }
     });
+  }
+
+  @override
+  void didUpdateWidget(covariant ShoutboxComposer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.autofocus && !_focusNode.hasFocus) {
+      _focusNode.requestFocus();
+    }
   }
 
   void _onTextChanged() {
@@ -142,7 +152,7 @@ class _ShoutboxComposerState extends State<ShoutboxComposer> {
                       const ValueKey('shoutbox_textfield'),
                   controller: _messageController,
                   focusNode: _focusNode,
-                  autofocus: widget.textFieldKey != null,
+                  autofocus: widget.autofocus,
                   maxLines: 1,
                   textInputAction: TextInputAction.send,
                   textAlignVertical: TextAlignVertical.center,

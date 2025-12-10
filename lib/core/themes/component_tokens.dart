@@ -511,6 +511,15 @@ class ShoutboxTokens {
     required this.characterCountNormal,
     required this.characterCountWarning,
     required this.characterCountError,
+    // M3 Expressive message bubble tokens
+    required this.messageBubbleBackground,
+    required this.messageBubbleText,
+    required this.messageBubbleSecondary,
+    required this.messageBubbleRadius,
+    required this.messageAvatarBackground,
+    required this.messageAvatarText,
+    required this.messageAvatarRadius,
+    required this.messageTimestampColor,
   });
 
   factory ShoutboxTokens.of(BuildContext context) {
@@ -541,6 +550,19 @@ class ShoutboxTokens {
       characterCountNormal: colors.textSecondary,
       characterCountWarning: scheme.tertiary,
       characterCountError: scheme.error,
+      
+      // M3 Expressive message bubbles - uses surfaceContainerHighest for subtle distinction
+      messageBubbleBackground: isLight
+          ? colors.surfaces.surfaceContainerHigh
+          : colors.surfaces.surfaceContainerHighest,
+      messageBubbleText: scheme.onSurface,
+      messageBubbleSecondary: scheme.onSurfaceVariant,
+      // M3X recommends 20dp for chat bubbles (softer than 28dp dialogs)
+      messageBubbleRadius: 20.0,
+      messageAvatarBackground: scheme.secondaryContainer,
+      messageAvatarText: scheme.onSecondaryContainer,
+      messageAvatarRadius: DesignTokens.cornerRadiusAvatar,
+      messageTimestampColor: scheme.onSurfaceVariant,
     );
   }
 
@@ -564,5 +586,15 @@ class ShoutboxTokens {
   final Color characterCountNormal;
   final Color characterCountWarning;
   final Color characterCountError;
+
+  // M3 Expressive message bubble tokens
+  final Color messageBubbleBackground;
+  final Color messageBubbleText;
+  final Color messageBubbleSecondary;
+  final double messageBubbleRadius;
+  final Color messageAvatarBackground;
+  final Color messageAvatarText;
+  final double messageAvatarRadius;
+  final Color messageTimestampColor;
 }
 

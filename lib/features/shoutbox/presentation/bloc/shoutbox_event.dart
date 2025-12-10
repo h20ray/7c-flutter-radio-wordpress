@@ -22,4 +22,7 @@ class ShoutboxEvent with _$ShoutboxEvent {
 
   /// Delete a message (admin only)
   const factory ShoutboxEvent.deleteMessage(int id) = DeleteMessageEvent;
+
+  /// Clear all messages from memory (manual cleanup)
+  const factory ShoutboxEvent.clearMessages() = ClearMessagesEvent;
 }

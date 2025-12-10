@@ -138,7 +138,8 @@ class _ShoutboxPageViewState extends State<ShoutboxPageView> with NavBarRouteSyn
         navBarHeight + safeAreaBottom + DesignTokens.spacingM;
 
     return PopScope(
-      canPop: true,
+      // Block pop when composer is visible - back button should hide composer first
+      canPop: !_isComposerVisible,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
         // If composer is visible, hide it instead of navigating away
@@ -331,16 +332,23 @@ class _ShoutboxPageViewState extends State<ShoutboxPageView> with NavBarRouteSyn
                 ),
               ),
               // Composer overlay - positioned at screen bottom, above keyboard
-              AnimatedPositioned(
-                duration: DesignTokens.animationDurationMedium,
-                curve: DesignTokens.animationCurveSpring,
+              // Using Positioned + AnimatedSlide for smoother performance
+              Positioned(
                 left: DesignTokens.spacingL,
                 right: DesignTokens.spacingL,
-                bottom: _isComposerVisible
+                bottom: mediaQuery.viewInsets.bottom > 0
                     ? mediaQuery.viewInsets.bottom + DesignTokens.spacingS
-                    : -200,
-                child: _isComposerVisible
-                    ? Material(
+                    : safeAreaBottom + DesignTokens.spacingS,
+                child: AnimatedSlide(
+                  duration: DesignTokens.animationDurationShort, // Snappier
+                  curve: Curves.easeOutCubic,
+                  offset: _isComposerVisible ? Offset.zero : const Offset(0, 2),
+                  child: AnimatedOpacity(
+                    duration: DesignTokens.animationDurationShort,
+                    opacity: _isComposerVisible ? 1.0 : 0.0,
+                    child: IgnorePointer(
+                      ignoring: !_isComposerVisible,
+                      child: Material(
                         color: Colors.transparent,
                         child: BlocBuilder<AuthBloc, AuthState>(
                           builder: (context, authState) {
@@ -348,6 +356,7 @@ class _ShoutboxPageViewState extends State<ShoutboxPageView> with NavBarRouteSyn
                               authenticated: (_) => ShoutboxComposer(
                                 key: const ValueKey('composer'),
                                 textFieldKey: _composerTextFieldKey,
+                                autofocus: _isComposerVisible,
                                 onSend: _onSend,
                                 onFocusChanged: (isFocused) {
                                   if (!isFocused) {
@@ -359,8 +368,10 @@ class _ShoutboxPageViewState extends State<ShoutboxPageView> with NavBarRouteSyn
                             );
                           },
                         ),
-                      )
-                    : const SizedBox.shrink(),
+                      ),
+                    ),
+                  ),
+                ),
               ),
               // Bottom bar with NavBar and Play FAB
               AnimatedPositioned(
