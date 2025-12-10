@@ -373,5 +373,53 @@ class ImageCaptureService {
         )
         .toDouble();
   }
+
+  Future<void> cleanupOldShareFiles() async {
+    try {
+      final directory = await getTemporaryDirectory();
+      final files = directory.listSync();
+      final now = DateTime.now();
+      final oneHourAgo = now.subtract(const Duration(hours: 1));
+      
+      int deletedCount = 0;
+      
+      for (final file in files) {
+        if (file is! File) continue;
+        
+        final fileName = file.path.split('/').last;
+        
+        if (!fileName.endsWith('.png')) continue;
+        
+        final isShareFile = fileName.startsWith('share_') || fileName.startsWith('sticker_');
+        if (!isShareFile) continue;
+        
+        try {
+          final parts = fileName.split('_');
+          if (parts.length < 2) continue;
+          
+          final timestampStr = parts[1].replaceAll('.png', '');
+          final timestamp = int.tryParse(timestampStr);
+          
+          if (timestamp == null) continue;
+          
+          final fileTime = DateTime.fromMillisecondsSinceEpoch(timestamp);
+          
+          if (fileTime.isBefore(oneHourAgo)) {
+            await file.delete();
+            deletedCount++;
+          }
+        } catch (e) {
+          debugPrint('ImageCaptureService: Error processing file $fileName: $e');
+        }
+      }
+      
+      if (deletedCount > 0) {
+        debugPrint('ImageCaptureService: Cleaned up $deletedCount old share file(s)');
+      }
+    } catch (e, stackTrace) {
+      debugPrint('ImageCaptureService: Error cleaning up old share files: $e');
+      debugPrintStack(stackTrace: stackTrace);
+    }
+  }
 }
 

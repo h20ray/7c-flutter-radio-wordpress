@@ -7,6 +7,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../di/injection_container.dart';
 import '../error/exceptions.dart';
 import '../error/failures.dart';
+import '../services/image_capture_service.dart';
 import '../utils/debug_logger.dart';
 import '../../features/radio/presentation/bloc/radio_bloc.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
@@ -359,6 +360,12 @@ class AppInitializer {
         rethrow;
       }
     }
+    
+    unawaited(
+      getIt<ImageCaptureService>().cleanupOldShareFiles().catchError((e) {
+        DebugLogger.logError('Failed to cleanup old share files', error: e, tag: 'AppInitializer');
+      }),
+    );
   }
 
   Future<AppState> _determineAppState() async {

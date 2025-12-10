@@ -77,35 +77,82 @@ class LyricsPage extends StatelessWidget {
       );
     }
 
-    final bloc = getIt<LyricsBloc>();
-    if (bloc.state == const LyricsState.initial()) {
-      bloc.add(LyricsEvent.load(artist: artist!, title: title!));
-    }
-
-    return BlocProvider.value(
-      value: bloc,
-      child: Scaffold(
-        appBar: AppBar(title: Text('lyrics_title'.tr())),
-        body: BlocBuilder<LyricsBloc, LyricsState>(
-          builder: (context, state) {
-            return state.when(
-              initial: () => const SizedBox.shrink(),
-              loading: () => const _LyricsLoadingState(),
-              loaded: (lyrics) {
-                return _LyricsContent(
-                  lyrics: lyrics,
+    return BlocListener<RadioPlayerBloc, RadioPlayerState>(
+      listenWhen: (previous, current) {
+        String? prevArtist;
+        String? prevTitle;
+        String? currArtist;
+        String? currTitle;
+        
+        previous.maybeWhen(
+          ready: (playing, url, artist, title, albumArt, ducking, autoResume) {
+            prevArtist = artist;
+            prevTitle = title;
+          },
+          orElse: () {},
+        );
+        
+        current.maybeWhen(
+          ready: (playing, url, artist, title, albumArt, ducking, autoResume) {
+            currArtist = artist;
+            currTitle = title;
+          },
+          orElse: () {},
+        );
+        
+        return currArtist != null && 
+               currTitle != null && 
+               currArtist!.isNotEmpty && 
+               currTitle!.isNotEmpty &&
+               (currArtist != prevArtist || currTitle != prevTitle);
+      },
+      listener: (context, state) {
+        state.maybeWhen(
+          ready: (playing, url, currentArtist, currentTitle, albumArt, ducking, autoResume) {
+            if (currentArtist != null && 
+                currentTitle != null && 
+                currentArtist.isNotEmpty && 
+                currentTitle.isNotEmpty) {
+              final prefetchBloc = getIt<LyricsBloc>();
+              if (prefetchBloc.state == const LyricsState.initial()) {
+                prefetchBloc.add(LyricsEvent.load(artist: currentArtist, title: currentTitle));
+              }
+            }
+          },
+          orElse: () {},
+        );
+      },
+      child: BlocProvider(
+        create: (context) {
+          final bloc = getIt<LyricsBloc>();
+          if (bloc.state == const LyricsState.initial()) {
+            bloc.add(LyricsEvent.load(artist: artist!, title: title!));
+          }
+          return bloc;
+        },
+        child: Scaffold(
+          appBar: AppBar(title: Text('lyrics_title'.tr())),
+          body: BlocBuilder<LyricsBloc, LyricsState>(
+            builder: (context, state) {
+              return state.when(
+                initial: () => const SizedBox.shrink(),
+                loading: () => const _LyricsLoadingState(),
+                loaded: (lyrics) {
+                  return _LyricsContent(
+                    lyrics: lyrics,
+                    artist: artist!,
+                    title: title!,
+                    albumArtUrl: albumArtUrl,
+                  );
+                },
+                error: (failure) => _LyricsErrorState(
+                  failure: failure,
                   artist: artist!,
                   title: title!,
-                  albumArtUrl: albumArtUrl,
-                );
-              },
-              error: (failure) => _LyricsErrorState(
-                failure: failure,
-                artist: artist!,
-                title: title!,
-              ),
-            );
-          },
+                ),
+              );
+            },
+          ),
         ),
       ),
     );
@@ -132,7 +179,7 @@ class _LyricsContent extends StatefulWidget {
 class _LyricsContentState extends State<_LyricsContent> {
   static const int _maxCharacters = 150;
 
-  final PaletteService _paletteService = PaletteService();
+  final PaletteService _paletteService = getIt<PaletteService>();
   final Set<int> _selectedIndices = {};
   PaletteColors? _palette;
   bool _isLoadingPalette = false;

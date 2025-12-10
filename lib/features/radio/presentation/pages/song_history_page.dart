@@ -14,13 +14,14 @@ class SongHistoryPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bloc = getIt<SongHistoryBloc>();
-    if (bloc.state == const SongHistoryState.initial()) {
-      bloc.add(const SongHistoryEvent.load());
-    }
-
-    return BlocProvider.value(
-      value: bloc,
+    return BlocProvider(
+      create: (context) {
+        final bloc = getIt<SongHistoryBloc>();
+        if (bloc.state == const SongHistoryState.initial()) {
+          bloc.add(const SongHistoryEvent.load());
+        }
+        return bloc;
+      },
       child: Scaffold(
         appBar: AppBar(
           title: Text('song_history_title'.tr()),

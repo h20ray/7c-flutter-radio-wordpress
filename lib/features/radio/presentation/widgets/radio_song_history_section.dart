@@ -31,6 +31,12 @@ class _RadioSongHistorySectionState extends State<RadioSongHistorySection> {
     }
   }
 
+  @override
+  void dispose() {
+    _bloc.close();
+    super.dispose();
+  }
+
   void _refreshHistory() {
     _bloc.add(const SongHistoryEvent.load(limit: 15));
   }

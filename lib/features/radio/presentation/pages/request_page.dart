@@ -29,10 +29,10 @@ class _RequestPageState extends State<RequestPage> {
   String? _streamUrl;
   String _requestMode = 'auto';
   bool _isAzuracastAvailable = false;
-  RequestBloc? _currentBloc;
   Timer? _searchDebounce;
   bool _isInitialLoad = true;
   String? _lastQuery;
+  BuildContext? _blocContext;
 
   @override
   void initState() {
@@ -51,23 +51,24 @@ class _RequestPageState extends State<RequestPage> {
   }
 
   void _onSearchTextChanged() {
-    if (!mounted) return;
+    if (!mounted || _blocContext == null) return;
 
     _searchDebounce?.cancel();
     _searchDebounce = Timer(const Duration(milliseconds: 500), () {
-      if (!mounted || _currentBloc == null) return;
+      if (!mounted || _blocContext == null) return;
 
+      final bloc = _blocContext!.read<RequestBloc>();
       final query = _searchController.text.trim();
       if (query.isNotEmpty) {
         // Only load if query is different from last query
         if (query != _lastQuery) {
-          _loadTracks(_currentBloc!, query: query, force: true);
+          _loadTracks(bloc, query: query, force: true);
         }
       } else {
         // Clear query and load random only if we had a query before
         if (_lastQuery != null) {
           _lastQuery = null;
-          _loadTracks(_currentBloc!, random: true, force: true);
+          _loadTracks(bloc, random: true, force: true);
         }
       }
     });
@@ -148,60 +149,69 @@ class _RequestPageState extends State<RequestPage> {
       return _WebViewRequestPage();
     }
 
-    final bloc = getIt<RequestBloc>();
-    _currentBloc = bloc;
-
-    if (_isInitialLoad && bloc.state == const RequestState.initial()) {
-      _isInitialLoad = false;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          _lastQuery = null; // Initialize last query for initial random load
-          _loadTracks(bloc, random: true, force: true);
+    return BlocProvider(
+      create: (blocContext) {
+        _blocContext = blocContext;
+        final bloc = getIt<RequestBloc>();
+        
+        if (_isInitialLoad && bloc.state == const RequestState.initial()) {
+          _isInitialLoad = false;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              _lastQuery = null; // Initialize last query for initial random load
+              _loadTracks(bloc, random: true, force: true);
+            }
+          });
         }
-      });
-    }
-
-    return BlocProvider.value(
-      value: bloc,
-      child: Scaffold(
-        appBar: _buildAppBar(context, bloc),
-        body: BlocBuilder<RequestBloc, RequestState>(
-          builder: (context, state) {
-            return state.when(
-              initial: () => const SizedBox.shrink(),
-              loading: () => const _RequestLoadingState(),
-              loaded: (tracks, page, hasMore) {
-                if (tracks.isEmpty) {
-                  return _EmptyState(
-                    onShuffle: () {
+        
+        return bloc;
+      },
+      child: Builder(
+        builder: (blocContext) {
+          _blocContext = blocContext;
+          final bloc = blocContext.read<RequestBloc>();
+          
+          return Scaffold(
+            appBar: _buildAppBar(context, bloc),
+            body: BlocBuilder<RequestBloc, RequestState>(
+              builder: (context, state) {
+                return state.when(
+                  initial: () => const SizedBox.shrink(),
+                  loading: () => const _RequestLoadingState(),
+                  loaded: (tracks, page, hasMore) {
+                    if (tracks.isEmpty) {
+                      return _EmptyState(
+                        onShuffle: () {
+                          _lastQuery = null;
+                          _loadTracks(bloc, random: true, force: true);
+                        },
+                      );
+                    }
+                    return _TrackList(
+                      tracks: tracks,
+                      scrollController: _scrollController,
+                      onRequest: (track) => _submitRequest(bloc, track),
+                    );
+                  },
+                  success: () => _SuccessState(
+                    onReset: () {
+                      bloc.add(const RequestEvent.reset());
                       _lastQuery = null;
                       _loadTracks(bloc, random: true, force: true);
                     },
-                  );
-                }
-                return _TrackList(
-                  tracks: tracks,
-                  scrollController: _scrollController,
-                  onRequest: (track) => _submitRequest(bloc, track),
+                  ),
+                  error: (failure) => _ErrorState(
+                    failure: failure,
+                    onRetry: () {
+                      _lastQuery = null;
+                      _loadTracks(bloc, random: true, force: true);
+                    },
+                  ),
                 );
               },
-              success: () => _SuccessState(
-                onReset: () {
-                  bloc.add(const RequestEvent.reset());
-                  _lastQuery = null;
-                  _loadTracks(bloc, random: true, force: true);
-                },
-              ),
-              error: (failure) => _ErrorState(
-                failure: failure,
-                onRetry: () {
-                  _lastQuery = null;
-                  _loadTracks(bloc, random: true, force: true);
-                },
-              ),
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }
