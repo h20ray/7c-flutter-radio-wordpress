@@ -145,7 +145,7 @@ class RadioShareCard extends StatelessWidget {
                         style: TextStyle(
                           color: colors.textPrimary,
                           fontWeight: FontWeight.bold,
-                          fontSize: 19,
+                          fontSize: 24,
                           letterSpacing: -0.3,
                           height: 1.2,
                         ),
@@ -162,7 +162,7 @@ class RadioShareCard extends StatelessWidget {
                         style: TextStyle(
                           color: colors.textSecondary,
                           fontWeight: FontWeight.bold,
-                          fontSize: 19,
+                          fontSize: 24,
                           letterSpacing: -0.3,
                           height: 1.2,
                         ),

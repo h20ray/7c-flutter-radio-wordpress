@@ -316,6 +316,7 @@ class _LyricsContentState extends State<_LyricsContent> {
         albumArtUrl: widget.albumArtUrl,
         palette: _palette,
         isSticker: true,
+        showPreviewOnly: true,
       ),
       regularShareWidgetBuilder: () => LyricShareCard(
         lines: selectedLines,
@@ -428,7 +429,7 @@ class _LyricsContentState extends State<_LyricsContent> {
                         children: [
                           ClipRRect(
                             borderRadius: BorderRadius.circular(
-                              DesignTokens.cornerRadiusCard,
+                              DesignTokens.cornerRadiusAlbumArt,
                             ),
                             child:
                                 widget.albumArtUrl != null &&
@@ -477,50 +478,6 @@ class _LyricsContentState extends State<_LyricsContent> {
                   ),
                 ),
               ),
-              // Hint for hold-to-select
-              if (!hasSelection)
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: DesignTokens.spacingL,
-                  ),
-                  sliver: SliverToBoxAdapter(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: DesignTokens.spacingM,
-                        vertical: DesignTokens.spacingS,
-                      ),
-                      margin: const EdgeInsets.only(
-                        bottom: DesignTokens.spacingM,
-                      ),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primaryContainer.withValues(
-                          alpha: 0.3,
-                        ),
-                        borderRadius: BorderRadius.circular(
-                          DesignTokens.cornerRadiusPill,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.touch_app,
-                            size: 16,
-                            color: theme.colorScheme.onPrimaryContainer,
-                          ),
-                          const SizedBox(width: DesignTokens.spacingXs),
-                          Text(
-                            'lyrics_hold_to_select'.tr(),
-                            style: textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onPrimaryContainer,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
               SliverPadding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: DesignTokens.spacingL,
@@ -641,37 +598,36 @@ class _LyricsContentState extends State<_LyricsContent> {
               ),
             ],
           ),
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Theme.of(
-                      context,
-                    ).scaffoldBackgroundColor.withValues(alpha: 0.0),
-                    Theme.of(context).scaffoldBackgroundColor,
-                  ],
-                ),
-              ),
-              child: SafeArea(
-                top: false,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    DesignTokens.spacingL,
-                    DesignTokens.spacingL,
-                    DesignTokens.spacingL,
-                    DesignTokens.spacingL,
+          if (hasSelection)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Theme.of(
+                        context,
+                      ).scaffoldBackgroundColor.withValues(alpha: 0.0),
+                      Theme.of(context).scaffoldBackgroundColor,
+                    ],
                   ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Character counter
-                      if (hasSelection)
+                ),
+                child: SafeArea(
+                  top: false,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      DesignTokens.spacingL,
+                      DesignTokens.spacingL,
+                      DesignTokens.spacingL,
+                      DesignTokens.spacingL,
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
                         Padding(
                           padding: const EdgeInsets.only(
                             bottom: DesignTokens.spacingS,
@@ -712,30 +668,26 @@ class _LyricsContentState extends State<_LyricsContent> {
                             ],
                           ),
                         ),
-                      SizedBox(
-                        width: double.infinity,
-                        child: FilledButton.icon(
-                          onPressed: hasSelection ? _shareSelection : null,
-                          icon: const Icon(Icons.share),
-                          label: Text(
-                            hasSelection
-                                ? 'lyrics_share'.tr()
-                                : 'lyrics_hold_to_select'.tr(),
-                          ),
-                          style: FilledButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: DesignTokens.spacingL,
-                              vertical: DesignTokens.spacingM,
+                        SizedBox(
+                          width: double.infinity,
+                          child: FilledButton.icon(
+                            onPressed: _shareSelection,
+                            icon: const Icon(Icons.share),
+                            label: Text('lyrics_share'.tr()),
+                            style: FilledButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: DesignTokens.spacingL,
+                                vertical: DesignTokens.spacingM,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
         ],
       ),
     );
@@ -747,7 +699,7 @@ class _LyricsContentState extends State<_LyricsContent> {
       height: 80,
       decoration: BoxDecoration(
         color: colors.surfaces.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
+        borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusAlbumArt),
       ),
       child: Image.asset(
         RadioConfig.fallbackArtworkPath,

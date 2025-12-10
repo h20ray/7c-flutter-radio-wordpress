@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 
 import '../../../../config/radio_config.dart';
@@ -5,6 +7,7 @@ import '../../../../config/share_config.dart';
 import '../../../../core/widgets/app_network_image.dart';
 import '../../../../core/utils/palette_cache.dart';
 import '../../../../core/themes/app_color_system.dart';
+import '../../../../core/themes/design_tokens.dart';
 
 class LyricShareCard extends StatelessWidget {
   final List<String> lines;
@@ -14,6 +17,7 @@ class LyricShareCard extends StatelessWidget {
   final PaletteColors? palette;
   final bool isSticker;
   final bool hasBackground;
+  final bool showPreviewOnly;
 
   const LyricShareCard({
     super.key,
@@ -24,6 +28,7 @@ class LyricShareCard extends StatelessWidget {
     this.palette,
     this.isSticker = false,
     this.hasBackground = false,
+    this.showPreviewOnly = false,
   });
 
   @override
@@ -38,7 +43,7 @@ class LyricShareCard extends StatelessWidget {
         height: double.infinity,
         color: Colors.transparent,
         child: Center(
-          child: _buildCard(context, theme, colors, forSticker: true),
+          child: _buildStickerCard(context, theme, colors),
         ),
       );
     }
@@ -53,7 +58,9 @@ class LyricShareCard extends StatelessWidget {
       height: double.infinity,
       color: theme.scaffoldBackgroundColor,
       child: Center(
-        child: _buildCard(context, theme, colors, forSticker: true),
+        child: showPreviewOnly
+            ? _buildPreviewOnlyCard(context, theme, colors)
+            : _buildStickerCard(context, theme, colors),
       ),
     );
   }
@@ -82,10 +89,10 @@ class LyricShareCard extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           if (albumArtUrl != null && albumArtUrl!.isNotEmpty)
-            Opacity(
-              opacity: 0.35,
+            ImageFiltered(
+              imageFilter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
               child: Transform.scale(
-                scale: 1.3,
+                scale: 1.2,
                 child: DecoratedBox(
                   decoration: BoxDecoration(
                     image: DecorationImage(
@@ -114,6 +121,242 @@ class LyricShareCard extends StatelessWidget {
     );
   }
 
+  Widget _buildPreviewOnlyCard(
+    BuildContext context,
+    ThemeData theme,
+    dynamic colors,
+  ) {
+    const textColor = Colors.white;
+    final totalText = lines.join('\n');
+    final baseLyricFontSize = _calculateLyricFontSize(totalText.length, true);
+    const cardColor = Color(0xFF1C1C1E);
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const maxCardWidth = 480.0;
+        final maxHeight = constraints.maxHeight;
+        final heightScale = maxHeight.isFinite
+            ? (maxHeight / 520).clamp(0.75, 1.0)
+            : 1.0;
+
+        final cardPadding = DesignTokens.spacingXl * heightScale;
+        final lyricFontSize = baseLyricFontSize * heightScale.clamp(0.8, 1.0);
+
+        final content = Text(
+          totalText,
+          style: TextStyle(
+            color: textColor,
+            fontWeight: FontWeight.w700,
+            fontSize: lyricFontSize,
+            height: 1.22,
+            letterSpacing: -0.3,
+          ),
+        );
+
+        final scaledCard = Container(
+          constraints: const BoxConstraints(maxWidth: maxCardWidth),
+          padding: EdgeInsets.all(cardPadding),
+          decoration: BoxDecoration(
+            color: cardColor.withValues(alpha: 0.90),
+            borderRadius: BorderRadius.circular(21.0),
+          ),
+          child: content,
+        );
+
+        if (maxHeight.isFinite) {
+          return SingleChildScrollView(
+            physics: const ClampingScrollPhysics(),
+            child: scaledCard,
+          );
+        }
+
+        return scaledCard;
+      },
+    );
+  }
+
+  Widget _buildStickerCard(
+    BuildContext context,
+    ThemeData theme,
+    dynamic colors,
+  ) {
+    const textColor = Colors.white;
+    final secondaryTextColor = Colors.white.withValues(alpha: 0.65);
+    final totalText = lines.join('\n');
+    final baseLyricFontSize = _calculateLyricFontSize(totalText.length, true);
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const maxCardWidth = 480.0;
+        final maxHeight = constraints.maxHeight;
+        final heightScale = maxHeight.isFinite
+            ? (maxHeight / 520).clamp(0.75, 1.0)
+            : 1.0;
+
+        final cardPadding = DesignTokens.spacingXl * heightScale;
+        final albumArtSize = 88.0 * heightScale;
+        final spacingAfterLyrics = DesignTokens.spacingXl * heightScale;
+        final dividerSpacing = DesignTokens.spacingL * heightScale;
+        final betweenMediaSpacing = DesignTokens.spacingM * heightScale;
+        final titleFontSize = 26.0 * heightScale;
+        final artistFontSize = 22.0 * heightScale;
+        final lyricFontSize = baseLyricFontSize * heightScale.clamp(0.8, 1.0);
+        final spacingAfterCard = DesignTokens.spacingL * heightScale;
+        final logoSize = 21.0 * heightScale;
+        final logoTextSize = DesignTokens.fontSizeBodyLarge * heightScale;
+        final logoPadding = DesignTokens.spacingM * heightScale;
+
+        final cardContent = Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              totalText,
+              style: TextStyle(
+                color: textColor,
+                fontWeight: FontWeight.w700,
+                fontSize: lyricFontSize,
+                height: 1.22,
+                letterSpacing: -0.3,
+              ),
+            ),
+            SizedBox(height: spacingAfterLyrics),
+            Container(
+              height: DimensionTokens.dividerThickness,
+              decoration: BoxDecoration(
+                color: textColor.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(DimensionTokens.dividerThickness / 2),
+              ),
+            ),
+            SizedBox(height: dividerSpacing),
+            Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8.0),
+                  child: SizedBox(
+                    width: albumArtSize,
+                    height: albumArtSize,
+                    child: _buildAlbumArtThumbnail(true),
+                  ),
+                ),
+                SizedBox(width: betweenMediaSpacing),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(
+                          color: textColor,
+                          fontWeight: FontWeight.w700,
+                          fontSize: titleFontSize,
+                          letterSpacing: -0.3,
+                          height: 1.2,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: DesignTokens.spacingXs),
+                      Text(
+                        artist,
+                        style: TextStyle(
+                          color: secondaryTextColor,
+                          fontWeight: FontWeight.w600,
+                          fontSize: artistFontSize,
+                          letterSpacing: -0.2,
+                          height: 1.2,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+
+        final logoPill = Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: logoPadding,
+            vertical: logoPadding * 0.75,
+          ),
+          decoration: BoxDecoration(
+            color: textColor.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusPill),
+            border: Border.all(
+              color: textColor.withValues(alpha: 0.2),
+              width: 1.0,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (ShareConfig.useLogoAsset)
+                Image.asset(
+                  ShareConfig.logoAssetPath,
+                  width: logoSize,
+                  height: logoSize,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) =>
+                      Icon(
+                        Icons.radio,
+                        size: logoSize,
+                        color: textColor,
+                      ),
+                )
+              else
+                Icon(
+                  Icons.radio,
+                  size: logoSize,
+                  color: textColor,
+                ),
+              const SizedBox(width: DesignTokens.spacingS),
+              Text(
+                ShareConfig.appName,
+                style: TextStyle(
+                  color: textColor,
+                  fontSize: logoTextSize,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.2,
+                ),
+              ),
+            ],
+          ),
+        );
+
+        final scaledCard = Container(
+          constraints: const BoxConstraints(maxWidth: maxCardWidth),
+          padding: EdgeInsets.all(cardPadding),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1C1C1E).withValues(alpha: 0.90),
+            borderRadius: BorderRadius.circular(21.0),
+          ),
+          child: cardContent,
+        );
+
+        final column = Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (maxHeight.isFinite)
+              SingleChildScrollView(
+                physics: const ClampingScrollPhysics(),
+                child: scaledCard,
+              )
+            else
+              scaledCard,
+            SizedBox(height: spacingAfterCard),
+            logoPill,
+          ],
+        );
+
+        return column;
+      },
+    );
+  }
+
   Widget _buildCard(
     BuildContext context,
     ThemeData theme,
@@ -134,21 +377,15 @@ class LyricShareCard extends StatelessWidget {
             ? (maxHeight / 520).clamp(0.75, 1.0)
             : 1.0;
 
-        final cardPadding = (forSticker ? 27.0 : 20.0) * heightScale;
-        final albumArtSize = (forSticker ? 66.0 : 48.0) * heightScale;
-        final spacingAfterLyrics = (forSticker ? 21.0 : 18.0) * heightScale;
-        final betweenMediaSpacing = (forSticker ? 15.0 : 12.0) * heightScale;
-        final titleFontSize = (forSticker ? 20.0 : 15.0) * heightScale;
-        final artistFontSize = (forSticker ? 17.0 : 13.0) * heightScale;
-        const brandTextColor = Colors.white;
-        const brandIconBg = Colors.white;
-        const brandIconColor = Colors.black;
-        final brandCircleSize = (forSticker ? 30.0 : 26.0) * heightScale;
-        final brandIconSize = (forSticker ? 16.0 : 14.0) * heightScale;
-        final brandSpacing = (forSticker ? 8.0 : 6.0) * heightScale;
-        final brandTextSize = (forSticker ? 16.0 : 14.0) * heightScale;
-        final brandLetterSpacing = (forSticker ? 0.8 : 0.6) * heightScale;
+        final cardPadding = DesignTokens.spacingL * heightScale;
+        final albumArtSize = 72.0 * heightScale;
+        final spacingAfterLyrics = DesignTokens.spacingXl * heightScale;
+        final betweenMediaSpacing = DesignTokens.spacingM * heightScale;
+        final titleFontSize = 22.0 * heightScale;
+        final artistFontSize = 18.0 * heightScale;
         final lyricFontSize = baseLyricFontSize * heightScale.clamp(0.8, 1.0);
+        const metadataRowPadding = DesignTokens.spacingL;
+        final metadataRowBackground = Colors.black.withValues(alpha: 0.4);
 
         final content = Column(
           mainAxisSize: MainAxisSize.min,
@@ -165,93 +402,109 @@ class LyricShareCard extends StatelessWidget {
               ),
             ),
             SizedBox(height: spacingAfterLyrics),
-            Row(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(forSticker ? 8.0 : 6.0),
-                  child: SizedBox(
-                    width: albumArtSize,
-                    height: albumArtSize,
-                    child: _buildAlbumArtThumbnail(forSticker),
+            Container(
+              padding: const EdgeInsets.all(metadataRowPadding),
+              decoration: BoxDecoration(
+                color: metadataRowBackground,
+                borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusCard),
+              ),
+              child: Row(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(DesignTokens.cornerRadiusAlbumArt),
+                    child: SizedBox(
+                      width: albumArtSize,
+                      height: albumArtSize,
+                      child: _buildAlbumArtThumbnail(forSticker),
+                    ),
                   ),
-                ),
-                SizedBox(width: betweenMediaSpacing),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        title,
-                        style: TextStyle(
-                          color: textColor,
-                          fontWeight: FontWeight.w600,
-                          fontSize: titleFontSize,
-                          letterSpacing: -0.2,
+                  SizedBox(width: betweenMediaSpacing),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          title,
+                          style: TextStyle(
+                            color: textColor,
+                            fontWeight: FontWeight.w700,
+                            fontSize: titleFontSize,
+                            letterSpacing: -0.3,
+                            height: 1.2,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        artist,
-                        style: TextStyle(
-                          color: secondaryTextColor,
-                          fontWeight: FontWeight.w500,
-                          fontSize: artistFontSize,
+                        const SizedBox(height: DesignTokens.spacingXs),
+                        Text(
+                          artist,
+                          style: TextStyle(
+                            color: secondaryTextColor,
+                            fontWeight: FontWeight.w600,
+                            fontSize: artistFontSize,
+                            letterSpacing: -0.2,
+                            height: 1.2,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 2),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: brandCircleSize,
-                            height: brandCircleSize,
-                            decoration: const BoxDecoration(
-                              color: brandIconBg,
-                              shape: BoxShape.circle,
+                        const SizedBox(height: DesignTokens.spacingS),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: DesignTokens.spacingS,
+                            vertical: DesignTokens.spacingXs,
+                          ),
+                          decoration: BoxDecoration(
+                            color: textColor.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(
+                              DesignTokens.cornerRadiusPill,
                             ),
-                            child: Center(
-                              child: ShareConfig.useLogoAsset
-                                  ? Image.asset(
-                                      ShareConfig.logoAssetPath,
-                                      width: brandIconSize,
-                                      height: brandIconSize,
-                                      fit: BoxFit.contain,
-                                      color: brandIconColor,
-                                      errorBuilder:
-                                          (context, error, stackTrace) => Icon(
-                                            Icons.music_note_rounded,
-                                            size: brandIconSize,
-                                            color: brandIconColor,
-                                          ),
-                                    )
-                                  : Icon(
-                                      Icons.music_note_rounded,
-                                      size: brandIconSize,
-                                      color: brandIconColor,
-                                    ),
+                            border: Border.all(
+                              color: textColor.withValues(alpha: 0.2),
+                              width: 1.0,
                             ),
                           ),
-                          SizedBox(width: brandSpacing),
-                          Text(
-                            ShareConfig.appName,
-                            style: TextStyle(
-                              color: brandTextColor,
-                              fontSize: brandTextSize,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: brandLetterSpacing,
-                            ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (ShareConfig.useLogoAsset)
+                                Image.asset(
+                                  ShareConfig.logoAssetPath,
+                                  width: 16.0,
+                                  height: 16.0,
+                                  fit: BoxFit.contain,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      const Icon(
+                                        Icons.radio,
+                                        size: 16.0,
+                                        color: textColor,
+                                      ),
+                                )
+                              else
+                                const Icon(
+                                  Icons.radio,
+                                  size: 16.0,
+                                  color: textColor,
+                                ),
+                              const SizedBox(width: DesignTokens.spacingXs),
+                              const Text(
+                                ShareConfig.appName,
+                                style: TextStyle(
+                                  color: textColor,
+                                  fontSize: DesignTokens.fontSizeLabelLarge,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: 0.2,
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    ],
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         );
@@ -261,7 +514,7 @@ class LyricShareCard extends StatelessWidget {
           padding: EdgeInsets.all(cardPadding),
           decoration: BoxDecoration(
             color: cardColor,
-            borderRadius: BorderRadius.circular(forSticker ? 21.0 : 18.0),
+            borderRadius: BorderRadius.circular(18.0),
           ),
           child: content,
         );
@@ -309,7 +562,7 @@ class LyricShareCard extends StatelessWidget {
   }
 
   Widget _buildAlbumArtFallback(bool forSticker) {
-    final size = forSticker ? 66.0 : 52.0;
+    final size = forSticker ? 88.0 : 72.0;
     return Container(
       width: size,
       height: size,
@@ -319,7 +572,7 @@ class LyricShareCard extends StatelessWidget {
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) => Icon(
           Icons.music_note,
-          size: forSticker ? 30.0 : 24.0,
+          size: forSticker ? 40.0 : 36.0,
           color: Colors.white.withValues(alpha: 0.5),
         ),
       ),
