@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import 'pet_history.dart';
+
 /// Life stages for TamTama evolution
 enum LifeStage {
   egg,
@@ -7,6 +9,7 @@ enum LifeStage {
   child,
   teen,
   adult,
+  specialAdult,
 }
 
 /// Current behavioral state of the pet
@@ -50,7 +53,9 @@ class TamtamaEntity extends Equatable {
   final String petName;
   final int backgroundIndex;
   final int eggIndex;
-  final String? currentFormId; // sprite identifier
+  final int familyIndex;  // Pet family (1-7)
+  final int? petId;       // Numeric form ID (e.g., 15011)
+  final String? currentFormId; // sprite identifier (legacy)
 
   // Core Stats (0.0 - 100.0)
   final double hunger;    // 0 = starving, 100 = full
@@ -79,6 +84,7 @@ class TamtamaEntity extends Equatable {
 
   // Evolution tracking
   final List<String> evolutionHistory;
+  final PetHistory history;
   
   // Teen stage averages for evolution scoring (normalized 0-1)
   final double avgRoutineQuality;
@@ -94,6 +100,8 @@ class TamtamaEntity extends Equatable {
     required this.petName,
     required this.backgroundIndex,
     required this.eggIndex,
+    this.familyIndex = 1,
+    this.petId,
     this.currentFormId,
     required this.hunger,
     required this.energy,
@@ -115,6 +123,7 @@ class TamtamaEntity extends Equatable {
     this.lastCleanedAt,
     this.lastSleptAt,
     this.evolutionHistory = const [],
+    this.history = const PetHistory(),
     this.avgRoutineQuality = 0.0,
     this.avgHappiness = 0.0,
     this.avgStress = 0.0,
@@ -152,6 +161,8 @@ class TamtamaEntity extends Equatable {
     String? petName,
     int? backgroundIndex,
     int? eggIndex,
+    int? familyIndex,
+    int? petId,
     String? currentFormId,
     double? hunger,
     double? energy,
@@ -173,6 +184,7 @@ class TamtamaEntity extends Equatable {
     DateTime? lastCleanedAt,
     DateTime? lastSleptAt,
     List<String>? evolutionHistory,
+    PetHistory? history,
     double? avgRoutineQuality,
     double? avgHappiness,
     double? avgStress,
@@ -186,6 +198,8 @@ class TamtamaEntity extends Equatable {
       petName: petName ?? this.petName,
       backgroundIndex: backgroundIndex ?? this.backgroundIndex,
       eggIndex: eggIndex ?? this.eggIndex,
+      familyIndex: familyIndex ?? this.familyIndex,
+      petId: petId ?? this.petId,
       currentFormId: currentFormId ?? this.currentFormId,
       hunger: hunger ?? this.hunger,
       energy: energy ?? this.energy,
@@ -207,6 +221,7 @@ class TamtamaEntity extends Equatable {
       lastCleanedAt: lastCleanedAt ?? this.lastCleanedAt,
       lastSleptAt: lastSleptAt ?? this.lastSleptAt,
       evolutionHistory: evolutionHistory ?? this.evolutionHistory,
+      history: history ?? this.history,
       avgRoutineQuality: avgRoutineQuality ?? this.avgRoutineQuality,
       avgHappiness: avgHappiness ?? this.avgHappiness,
       avgStress: avgStress ?? this.avgStress,
@@ -223,6 +238,8 @@ class TamtamaEntity extends Equatable {
     petName,
     backgroundIndex,
     eggIndex,
+    familyIndex,
+    petId,
     currentFormId,
     hunger,
     energy,
@@ -244,6 +261,7 @@ class TamtamaEntity extends Equatable {
     lastCleanedAt,
     lastSleptAt,
     evolutionHistory,
+    history,
     avgRoutineQuality,
     avgHappiness,
     avgStress,

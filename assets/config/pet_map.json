@@ -1,0 +1,356 @@
+{
+    "meta": {
+        "version": "1.0",
+        "description": "Numeric ID to key/displayName map for TamTama pet forms"
+    },
+    "mappings": {
+        "11010": {
+            "key": "EGG_TAMAUNO_A",
+            "displayName": "Tamauno Egg A"
+        },
+        "11011": {
+            "key": "EGG_TAMAUNO_B",
+            "displayName": "Tamauno Egg B"
+        },
+        "11012": {
+            "key": "EGG_TAMAUNO_C",
+            "displayName": "Tamauno Egg C"
+        },
+        "12010": {
+            "key": "BABY_TAMAUNO",
+            "displayName": "Tamauno Baby"
+        },
+        "13010": {
+            "key": "CHILD_TAMAUNO",
+            "displayName": "Tamauno Child"
+        },
+        "14010": {
+            "key": "TEEN_TAMAUNO",
+            "displayName": "Tamauno Teen"
+        },
+        "15011": {
+            "key": "ADULT_TAMAUNO_DJSTAR",
+            "displayName": "Tamauno DJ Star"
+        },
+        "15012": {
+            "key": "ADULT_TAMAUNO_CHILLOFI",
+            "displayName": "Tamauno Chill Lo-Fi"
+        },
+        "15013": {
+            "key": "ADULT_TAMAUNO_HYPERDANCE",
+            "displayName": "Tamauno Hyper Dance"
+        },
+        "15014": {
+            "key": "ADULT_TAMAUNO_REBEL",
+            "displayName": "Tamauno Rebel Static"
+        },
+        "15015": {
+            "key": "ADULT_TAMAUNO_SCHOLAR",
+            "displayName": "Tamauno Scholar Nerd"
+        },
+        "15016": {
+            "key": "ADULT_TAMAUNO_CAREBEAR",
+            "displayName": "Tamauno Carebear Host"
+        },
+        "17010": {
+            "key": "SPECIAL_TAMAUNO_S1",
+            "displayName": "Tamauno Special 1"
+        },
+        "17011": {
+            "key": "SPECIAL_TAMAUNO_S2",
+            "displayName": "Tamauno Special 2"
+        },
+        "11020": {
+            "key": "EGG_TAMADOS_A",
+            "displayName": "Tamados Egg A"
+        },
+        "11021": {
+            "key": "EGG_TAMADOS_B",
+            "displayName": "Tamados Egg B"
+        },
+        "12020": {
+            "key": "BABY_TAMADOS",
+            "displayName": "Tamados Baby"
+        },
+        "13020": {
+            "key": "CHILD_TAMADOS",
+            "displayName": "Tamados Child"
+        },
+        "14020": {
+            "key": "TEEN_TAMADOS",
+            "displayName": "Tamados Teen"
+        },
+        "15021": {
+            "key": "ADULT_TAMADOS_DJSTAR",
+            "displayName": "Tamados DJ Star"
+        },
+        "15022": {
+            "key": "ADULT_TAMADOS_CHILLOFI",
+            "displayName": "Tamados Chill Lo-Fi"
+        },
+        "15023": {
+            "key": "ADULT_TAMADOS_HYPERDANCE",
+            "displayName": "Tamados Hyper Dance"
+        },
+        "15024": {
+            "key": "ADULT_TAMADOS_REBEL",
+            "displayName": "Tamados Rebel Static"
+        },
+        "15025": {
+            "key": "ADULT_TAMADOS_SCHOLAR",
+            "displayName": "Tamados Scholar Nerd"
+        },
+        "15026": {
+            "key": "ADULT_TAMADOS_CAREBEAR",
+            "displayName": "Tamados Carebear Host"
+        },
+        "17020": {
+            "key": "SPECIAL_TAMADOS_S1",
+            "displayName": "Tamados Special 1"
+        },
+        "11030": {
+            "key": "EGG_TAMATRES_A",
+            "displayName": "Tamatres Egg A"
+        },
+        "12030": {
+            "key": "BABY_TAMATRES",
+            "displayName": "Tamatres Baby"
+        },
+        "13030": {
+            "key": "CHILD_TAMATRES",
+            "displayName": "Tamatres Child"
+        },
+        "14030": {
+            "key": "TEEN_TAMATRES",
+            "displayName": "Tamatres Teen"
+        },
+        "15031": {
+            "key": "ADULT_TAMATRES_CAREBEAR",
+            "displayName": "Tamatres Carebear Host"
+        },
+        "15032": {
+            "key": "ADULT_TAMATRES_DJSTAR",
+            "displayName": "Tamatres DJ Star"
+        },
+        "15033": {
+            "key": "ADULT_TAMATRES_HYPERDANCE",
+            "displayName": "Tamatres Hyper Dance"
+        },
+        "15034": {
+            "key": "ADULT_TAMATRES_REBEL",
+            "displayName": "Tamatres Rebel Static"
+        },
+        "15035": {
+            "key": "ADULT_TAMATRES_SCHOLAR",
+            "displayName": "Tamatres Scholar Nerd"
+        },
+        "15036": {
+            "key": "ADULT_TAMATRES_CHILLOFI",
+            "displayName": "Tamatres Chill Lo-Fi"
+        },
+        "17030": {
+            "key": "SPECIAL_TAMATRES_S1",
+            "displayName": "Tamatres Special 1"
+        },
+        "17031": {
+            "key": "SPECIAL_TAMATRES_S2",
+            "displayName": "Tamatres Special 2"
+        },
+        "11040": {
+            "key": "EGG_TAMACUATRO_A",
+            "displayName": "Tamacuatro Egg A"
+        },
+        "11041": {
+            "key": "EGG_TAMACUATRO_B",
+            "displayName": "Tamacuatro Egg B"
+        },
+        "11042": {
+            "key": "EGG_TAMACUATRO_C",
+            "displayName": "Tamacuatro Egg C"
+        },
+        "12040": {
+            "key": "BABY_TAMACUATRO",
+            "displayName": "Tamacuatro Baby"
+        },
+        "13040": {
+            "key": "CHILD_TAMACUATRO",
+            "displayName": "Tamacuatro Child"
+        },
+        "14040": {
+            "key": "TEEN_TAMACUATRO",
+            "displayName": "Tamacuatro Teen"
+        },
+        "15041": {
+            "key": "ADULT_TAMACUATRO_DJSTAR",
+            "displayName": "Tamacuatro DJ Star"
+        },
+        "15042": {
+            "key": "ADULT_TAMACUATRO_CHILLOFI",
+            "displayName": "Tamacuatro Chill Lo-Fi"
+        },
+        "15043": {
+            "key": "ADULT_TAMACUATRO_HYPERDANCE",
+            "displayName": "Tamacuatro Hyper Dance"
+        },
+        "15044": {
+            "key": "ADULT_TAMACUATRO_REBEL",
+            "displayName": "Tamacuatro Rebel Static"
+        },
+        "15045": {
+            "key": "ADULT_TAMACUATRO_SCHOLAR",
+            "displayName": "Tamacuatro Scholar Nerd"
+        },
+        "15046": {
+            "key": "ADULT_TAMACUATRO_CAREBEAR",
+            "displayName": "Tamacuatro Carebear Host"
+        },
+        "17040": {
+            "key": "SPECIAL_TAMACUATRO_S1",
+            "displayName": "Tamacuatro Special 1"
+        },
+        "11050": {
+            "key": "EGG_TAMACINCO_A",
+            "displayName": "Tamacinco Egg A"
+        },
+        "12050": {
+            "key": "BABY_TAMACINCO",
+            "displayName": "Tamacinco Baby"
+        },
+        "13050": {
+            "key": "CHILD_TAMACINCO",
+            "displayName": "Tamacinco Child"
+        },
+        "14050": {
+            "key": "TEEN_TAMACINCO",
+            "displayName": "Tamacinco Teen"
+        },
+        "15051": {
+            "key": "ADULT_TAMACINCO_CAREBEAR",
+            "displayName": "Tamacinco Carebear Host"
+        },
+        "15052": {
+            "key": "ADULT_TAMACINCO_DJSTAR",
+            "displayName": "Tamacinco DJ Star"
+        },
+        "15053": {
+            "key": "ADULT_TAMACINCO_HYPERDANCE",
+            "displayName": "Tamacinco Hyper Dance"
+        },
+        "15054": {
+            "key": "ADULT_TAMACINCO_REBEL",
+            "displayName": "Tamacinco Rebel Static"
+        },
+        "15055": {
+            "key": "ADULT_TAMACINCO_SCHOLAR",
+            "displayName": "Tamacinco Scholar Nerd"
+        },
+        "15056": {
+            "key": "ADULT_TAMACINCO_CHILLOFI",
+            "displayName": "Tamacinco Chill Lo-Fi"
+        },
+        "17050": {
+            "key": "SPECIAL_TAMACINCO_S1",
+            "displayName": "Tamacinco Special 1"
+        },
+        "11060": {
+            "key": "EGG_TAMASEIS_A",
+            "displayName": "Tamaseis Egg A"
+        },
+        "11061": {
+            "key": "EGG_TAMASEIS_B",
+            "displayName": "Tamaseis Egg B"
+        },
+        "12060": {
+            "key": "BABY_TAMASEIS",
+            "displayName": "Tamaseis Baby"
+        },
+        "13060": {
+            "key": "CHILD_TAMASEIS",
+            "displayName": "Tamaseis Child"
+        },
+        "14060": {
+            "key": "TEEN_TAMASEIS",
+            "displayName": "Tamaseis Teen"
+        },
+        "15061": {
+            "key": "ADULT_TAMASEIS_DJSTAR",
+            "displayName": "Tamaseis DJ Star"
+        },
+        "15062": {
+            "key": "ADULT_TAMASEIS_CHILLOFI",
+            "displayName": "Tamaseis Chill Lo-Fi"
+        },
+        "15063": {
+            "key": "ADULT_TAMASEIS_HYPERDANCE",
+            "displayName": "Tamaseis Hyper Dance"
+        },
+        "15064": {
+            "key": "ADULT_TAMASEIS_REBEL",
+            "displayName": "Tamaseis Rebel Static"
+        },
+        "15065": {
+            "key": "ADULT_TAMASEIS_SCHOLAR",
+            "displayName": "Tamaseis Scholar Nerd"
+        },
+        "15066": {
+            "key": "ADULT_TAMASEIS_CAREBEAR",
+            "displayName": "Tamaseis Carebear Host"
+        },
+        "17060": {
+            "key": "SPECIAL_TAMASEIS_S1",
+            "displayName": "Tamaseis Special 1"
+        },
+        "17061": {
+            "key": "SPECIAL_TAMASEIS_S2",
+            "displayName": "Tamaseis Special 2"
+        },
+        "11070": {
+            "key": "EGG_TAMASIETE_A",
+            "displayName": "Tamasiete Egg A"
+        },
+        "12070": {
+            "key": "BABY_TAMASIETE",
+            "displayName": "Tamasiete Baby"
+        },
+        "13070": {
+            "key": "CHILD_TAMASIETE",
+            "displayName": "Tamasiete Child"
+        },
+        "14070": {
+            "key": "TEEN_TAMASIETE",
+            "displayName": "Tamasiete Teen"
+        },
+        "15071": {
+            "key": "ADULT_TAMASIETE_CAREBEAR",
+            "displayName": "Tamasiete Carebear Host"
+        },
+        "15072": {
+            "key": "ADULT_TAMASIETE_DJSTAR",
+            "displayName": "Tamasiete DJ Star"
+        },
+        "15073": {
+            "key": "ADULT_TAMASIETE_HYPERDANCE",
+            "displayName": "Tamasiete Hyper Dance"
+        },
+        "15074": {
+            "key": "ADULT_TAMASIETE_REBEL",
+            "displayName": "Tamasiete Rebel Static"
+        },
+        "15075": {
+            "key": "ADULT_TAMASIETE_SCHOLAR",
+            "displayName": "Tamasiete Scholar Nerd"
+        },
+        "15076": {
+            "key": "ADULT_TAMASIETE_CHILLOFI",
+            "displayName": "Tamasiete Chill Lo-Fi"
+        },
+        "17070": {
+            "key": "SPECIAL_TAMASIETE_S1",
+            "displayName": "Tamasiete Special 1"
+        },
+        "17000": {
+            "key": "VOIDTCHI",
+            "displayName": "Voidtchi (Neglect Form)"
+        }
+    }
+}

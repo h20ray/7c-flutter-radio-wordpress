@@ -55,7 +55,7 @@ extension TamtamaEventPatterns on TamtamaEvent {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( LoadTamtamaEvent value)?  load,TResult Function( TamtamaUpdatedEvent value)?  updated,TResult Function( TamtamaErrorEvent value)?  error,TResult Function( FeedPetEvent value)?  feedPet,TResult Function( PlayWithPetEvent value)?  playWithPet,TResult Function( CleanPetEvent value)?  cleanPet,TResult Function( ToggleSleepEvent value)?  toggleSleep,TResult Function( TickEvent value)?  tick,TResult Function( ApplyOfflineTicksEvent value)?  applyOfflineTicks,TResult Function( ListeningTickEvent value)?  onListeningTick,TResult Function( SetListeningEvent value)?  setListening,TResult Function( EconomyUpdatedEvent value)?  economyUpdated,TResult Function( DebugSetStatsEvent value)?  debugSetStats,TResult Function( DebugAddCoinsEvent value)?  debugAddCoins,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( LoadTamtamaEvent value)?  load,TResult Function( TamtamaUpdatedEvent value)?  updated,TResult Function( TamtamaErrorEvent value)?  error,TResult Function( FeedPetEvent value)?  feedPet,TResult Function( PlayWithPetEvent value)?  playWithPet,TResult Function( CleanPetEvent value)?  cleanPet,TResult Function( ToggleSleepEvent value)?  toggleSleep,TResult Function( TickEvent value)?  tick,TResult Function( RewardTickEvent value)?  rewardTick,TResult Function( AutoSaveTickEvent value)?  autoSaveTick,TResult Function( EvolutionCheckTickEvent value)?  evolutionCheckTick,TResult Function( CheckEvolutionEvent value)?  checkEvolution,TResult Function( ApplyOfflineTicksEvent value)?  applyOfflineTicks,TResult Function( ListeningTickEvent value)?  onListeningTick,TResult Function( SetListeningEvent value)?  setListening,TResult Function( EconomyUpdatedEvent value)?  economyUpdated,TResult Function( DebugSetStatsEvent value)?  debugSetStats,TResult Function( DebugAddCoinsEvent value)?  debugAddCoins,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case LoadTamtamaEvent() when load != null:
@@ -66,7 +66,11 @@ return feedPet(_that);case PlayWithPetEvent() when playWithPet != null:
 return playWithPet(_that);case CleanPetEvent() when cleanPet != null:
 return cleanPet(_that);case ToggleSleepEvent() when toggleSleep != null:
 return toggleSleep(_that);case TickEvent() when tick != null:
-return tick(_that);case ApplyOfflineTicksEvent() when applyOfflineTicks != null:
+return tick(_that);case RewardTickEvent() when rewardTick != null:
+return rewardTick(_that);case AutoSaveTickEvent() when autoSaveTick != null:
+return autoSaveTick(_that);case EvolutionCheckTickEvent() when evolutionCheckTick != null:
+return evolutionCheckTick(_that);case CheckEvolutionEvent() when checkEvolution != null:
+return checkEvolution(_that);case ApplyOfflineTicksEvent() when applyOfflineTicks != null:
 return applyOfflineTicks(_that);case ListeningTickEvent() when onListeningTick != null:
 return onListeningTick(_that);case SetListeningEvent() when setListening != null:
 return setListening(_that);case EconomyUpdatedEvent() when economyUpdated != null:
@@ -90,7 +94,7 @@ return debugAddCoins(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( LoadTamtamaEvent value)  load,required TResult Function( TamtamaUpdatedEvent value)  updated,required TResult Function( TamtamaErrorEvent value)  error,required TResult Function( FeedPetEvent value)  feedPet,required TResult Function( PlayWithPetEvent value)  playWithPet,required TResult Function( CleanPetEvent value)  cleanPet,required TResult Function( ToggleSleepEvent value)  toggleSleep,required TResult Function( TickEvent value)  tick,required TResult Function( ApplyOfflineTicksEvent value)  applyOfflineTicks,required TResult Function( ListeningTickEvent value)  onListeningTick,required TResult Function( SetListeningEvent value)  setListening,required TResult Function( EconomyUpdatedEvent value)  economyUpdated,required TResult Function( DebugSetStatsEvent value)  debugSetStats,required TResult Function( DebugAddCoinsEvent value)  debugAddCoins,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( LoadTamtamaEvent value)  load,required TResult Function( TamtamaUpdatedEvent value)  updated,required TResult Function( TamtamaErrorEvent value)  error,required TResult Function( FeedPetEvent value)  feedPet,required TResult Function( PlayWithPetEvent value)  playWithPet,required TResult Function( CleanPetEvent value)  cleanPet,required TResult Function( ToggleSleepEvent value)  toggleSleep,required TResult Function( TickEvent value)  tick,required TResult Function( RewardTickEvent value)  rewardTick,required TResult Function( AutoSaveTickEvent value)  autoSaveTick,required TResult Function( EvolutionCheckTickEvent value)  evolutionCheckTick,required TResult Function( CheckEvolutionEvent value)  checkEvolution,required TResult Function( ApplyOfflineTicksEvent value)  applyOfflineTicks,required TResult Function( ListeningTickEvent value)  onListeningTick,required TResult Function( SetListeningEvent value)  setListening,required TResult Function( EconomyUpdatedEvent value)  economyUpdated,required TResult Function( DebugSetStatsEvent value)  debugSetStats,required TResult Function( DebugAddCoinsEvent value)  debugAddCoins,}){
 final _that = this;
 switch (_that) {
 case LoadTamtamaEvent():
@@ -101,7 +105,11 @@ return feedPet(_that);case PlayWithPetEvent():
 return playWithPet(_that);case CleanPetEvent():
 return cleanPet(_that);case ToggleSleepEvent():
 return toggleSleep(_that);case TickEvent():
-return tick(_that);case ApplyOfflineTicksEvent():
+return tick(_that);case RewardTickEvent():
+return rewardTick(_that);case AutoSaveTickEvent():
+return autoSaveTick(_that);case EvolutionCheckTickEvent():
+return evolutionCheckTick(_that);case CheckEvolutionEvent():
+return checkEvolution(_that);case ApplyOfflineTicksEvent():
 return applyOfflineTicks(_that);case ListeningTickEvent():
 return onListeningTick(_that);case SetListeningEvent():
 return setListening(_that);case EconomyUpdatedEvent():
@@ -124,7 +132,7 @@ return debugAddCoins(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( LoadTamtamaEvent value)?  load,TResult? Function( TamtamaUpdatedEvent value)?  updated,TResult? Function( TamtamaErrorEvent value)?  error,TResult? Function( FeedPetEvent value)?  feedPet,TResult? Function( PlayWithPetEvent value)?  playWithPet,TResult? Function( CleanPetEvent value)?  cleanPet,TResult? Function( ToggleSleepEvent value)?  toggleSleep,TResult? Function( TickEvent value)?  tick,TResult? Function( ApplyOfflineTicksEvent value)?  applyOfflineTicks,TResult? Function( ListeningTickEvent value)?  onListeningTick,TResult? Function( SetListeningEvent value)?  setListening,TResult? Function( EconomyUpdatedEvent value)?  economyUpdated,TResult? Function( DebugSetStatsEvent value)?  debugSetStats,TResult? Function( DebugAddCoinsEvent value)?  debugAddCoins,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( LoadTamtamaEvent value)?  load,TResult? Function( TamtamaUpdatedEvent value)?  updated,TResult? Function( TamtamaErrorEvent value)?  error,TResult? Function( FeedPetEvent value)?  feedPet,TResult? Function( PlayWithPetEvent value)?  playWithPet,TResult? Function( CleanPetEvent value)?  cleanPet,TResult? Function( ToggleSleepEvent value)?  toggleSleep,TResult? Function( TickEvent value)?  tick,TResult? Function( RewardTickEvent value)?  rewardTick,TResult? Function( AutoSaveTickEvent value)?  autoSaveTick,TResult? Function( EvolutionCheckTickEvent value)?  evolutionCheckTick,TResult? Function( CheckEvolutionEvent value)?  checkEvolution,TResult? Function( ApplyOfflineTicksEvent value)?  applyOfflineTicks,TResult? Function( ListeningTickEvent value)?  onListeningTick,TResult? Function( SetListeningEvent value)?  setListening,TResult? Function( EconomyUpdatedEvent value)?  economyUpdated,TResult? Function( DebugSetStatsEvent value)?  debugSetStats,TResult? Function( DebugAddCoinsEvent value)?  debugAddCoins,}){
 final _that = this;
 switch (_that) {
 case LoadTamtamaEvent() when load != null:
@@ -135,7 +143,11 @@ return feedPet(_that);case PlayWithPetEvent() when playWithPet != null:
 return playWithPet(_that);case CleanPetEvent() when cleanPet != null:
 return cleanPet(_that);case ToggleSleepEvent() when toggleSleep != null:
 return toggleSleep(_that);case TickEvent() when tick != null:
-return tick(_that);case ApplyOfflineTicksEvent() when applyOfflineTicks != null:
+return tick(_that);case RewardTickEvent() when rewardTick != null:
+return rewardTick(_that);case AutoSaveTickEvent() when autoSaveTick != null:
+return autoSaveTick(_that);case EvolutionCheckTickEvent() when evolutionCheckTick != null:
+return evolutionCheckTick(_that);case CheckEvolutionEvent() when checkEvolution != null:
+return checkEvolution(_that);case ApplyOfflineTicksEvent() when applyOfflineTicks != null:
 return applyOfflineTicks(_that);case ListeningTickEvent() when onListeningTick != null:
 return onListeningTick(_that);case SetListeningEvent() when setListening != null:
 return setListening(_that);case EconomyUpdatedEvent() when economyUpdated != null:
@@ -158,7 +170,7 @@ return debugAddCoins(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  load,TResult Function( TamtamaEntity tamtama)?  updated,TResult Function( String message)?  error,TResult Function( FoodType? food)?  feedPet,TResult Function( ActivityType? activity)?  playWithPet,TResult Function()?  cleanPet,TResult Function()?  toggleSleep,TResult Function()?  tick,TResult Function()?  applyOfflineTicks,TResult Function( int minutes,  String stationId)?  onListeningTick,TResult Function( bool isListening)?  setListening,TResult Function( TamtamaEconomyEntity economy)?  economyUpdated,TResult Function( double? hunger,  double? energy,  double? happiness,  double? hygiene,  double? affection,  double? stress,  double? health)?  debugSetStats,TResult Function( double amount)?  debugAddCoins,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  load,TResult Function( TamtamaEntity tamtama)?  updated,TResult Function( String message)?  error,TResult Function( FoodType? food)?  feedPet,TResult Function( ActivityType? activity)?  playWithPet,TResult Function()?  cleanPet,TResult Function()?  toggleSleep,TResult Function()?  tick,TResult Function()?  rewardTick,TResult Function()?  autoSaveTick,TResult Function()?  evolutionCheckTick,TResult Function()?  checkEvolution,TResult Function()?  applyOfflineTicks,TResult Function( int minutes,  String stationId)?  onListeningTick,TResult Function( bool isListening)?  setListening,TResult Function( TamtamaEconomyEntity economy)?  economyUpdated,TResult Function( double? hunger,  double? energy,  double? happiness,  double? hygiene,  double? affection,  double? stress,  double? health)?  debugSetStats,TResult Function( double amount)?  debugAddCoins,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case LoadTamtamaEvent() when load != null:
 return load();case TamtamaUpdatedEvent() when updated != null:
@@ -168,7 +180,11 @@ return feedPet(_that.food);case PlayWithPetEvent() when playWithPet != null:
 return playWithPet(_that.activity);case CleanPetEvent() when cleanPet != null:
 return cleanPet();case ToggleSleepEvent() when toggleSleep != null:
 return toggleSleep();case TickEvent() when tick != null:
-return tick();case ApplyOfflineTicksEvent() when applyOfflineTicks != null:
+return tick();case RewardTickEvent() when rewardTick != null:
+return rewardTick();case AutoSaveTickEvent() when autoSaveTick != null:
+return autoSaveTick();case EvolutionCheckTickEvent() when evolutionCheckTick != null:
+return evolutionCheckTick();case CheckEvolutionEvent() when checkEvolution != null:
+return checkEvolution();case ApplyOfflineTicksEvent() when applyOfflineTicks != null:
 return applyOfflineTicks();case ListeningTickEvent() when onListeningTick != null:
 return onListeningTick(_that.minutes,_that.stationId);case SetListeningEvent() when setListening != null:
 return setListening(_that.isListening);case EconomyUpdatedEvent() when economyUpdated != null:
@@ -192,7 +208,7 @@ return debugAddCoins(_that.amount);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  load,required TResult Function( TamtamaEntity tamtama)  updated,required TResult Function( String message)  error,required TResult Function( FoodType? food)  feedPet,required TResult Function( ActivityType? activity)  playWithPet,required TResult Function()  cleanPet,required TResult Function()  toggleSleep,required TResult Function()  tick,required TResult Function()  applyOfflineTicks,required TResult Function( int minutes,  String stationId)  onListeningTick,required TResult Function( bool isListening)  setListening,required TResult Function( TamtamaEconomyEntity economy)  economyUpdated,required TResult Function( double? hunger,  double? energy,  double? happiness,  double? hygiene,  double? affection,  double? stress,  double? health)  debugSetStats,required TResult Function( double amount)  debugAddCoins,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  load,required TResult Function( TamtamaEntity tamtama)  updated,required TResult Function( String message)  error,required TResult Function( FoodType? food)  feedPet,required TResult Function( ActivityType? activity)  playWithPet,required TResult Function()  cleanPet,required TResult Function()  toggleSleep,required TResult Function()  tick,required TResult Function()  rewardTick,required TResult Function()  autoSaveTick,required TResult Function()  evolutionCheckTick,required TResult Function()  checkEvolution,required TResult Function()  applyOfflineTicks,required TResult Function( int minutes,  String stationId)  onListeningTick,required TResult Function( bool isListening)  setListening,required TResult Function( TamtamaEconomyEntity economy)  economyUpdated,required TResult Function( double? hunger,  double? energy,  double? happiness,  double? hygiene,  double? affection,  double? stress,  double? health)  debugSetStats,required TResult Function( double amount)  debugAddCoins,}) {final _that = this;
 switch (_that) {
 case LoadTamtamaEvent():
 return load();case TamtamaUpdatedEvent():
@@ -202,7 +218,11 @@ return feedPet(_that.food);case PlayWithPetEvent():
 return playWithPet(_that.activity);case CleanPetEvent():
 return cleanPet();case ToggleSleepEvent():
 return toggleSleep();case TickEvent():
-return tick();case ApplyOfflineTicksEvent():
+return tick();case RewardTickEvent():
+return rewardTick();case AutoSaveTickEvent():
+return autoSaveTick();case EvolutionCheckTickEvent():
+return evolutionCheckTick();case CheckEvolutionEvent():
+return checkEvolution();case ApplyOfflineTicksEvent():
 return applyOfflineTicks();case ListeningTickEvent():
 return onListeningTick(_that.minutes,_that.stationId);case SetListeningEvent():
 return setListening(_that.isListening);case EconomyUpdatedEvent():
@@ -225,7 +245,7 @@ return debugAddCoins(_that.amount);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  load,TResult? Function( TamtamaEntity tamtama)?  updated,TResult? Function( String message)?  error,TResult? Function( FoodType? food)?  feedPet,TResult? Function( ActivityType? activity)?  playWithPet,TResult? Function()?  cleanPet,TResult? Function()?  toggleSleep,TResult? Function()?  tick,TResult? Function()?  applyOfflineTicks,TResult? Function( int minutes,  String stationId)?  onListeningTick,TResult? Function( bool isListening)?  setListening,TResult? Function( TamtamaEconomyEntity economy)?  economyUpdated,TResult? Function( double? hunger,  double? energy,  double? happiness,  double? hygiene,  double? affection,  double? stress,  double? health)?  debugSetStats,TResult? Function( double amount)?  debugAddCoins,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  load,TResult? Function( TamtamaEntity tamtama)?  updated,TResult? Function( String message)?  error,TResult? Function( FoodType? food)?  feedPet,TResult? Function( ActivityType? activity)?  playWithPet,TResult? Function()?  cleanPet,TResult? Function()?  toggleSleep,TResult? Function()?  tick,TResult? Function()?  rewardTick,TResult? Function()?  autoSaveTick,TResult? Function()?  evolutionCheckTick,TResult? Function()?  checkEvolution,TResult? Function()?  applyOfflineTicks,TResult? Function( int minutes,  String stationId)?  onListeningTick,TResult? Function( bool isListening)?  setListening,TResult? Function( TamtamaEconomyEntity economy)?  economyUpdated,TResult? Function( double? hunger,  double? energy,  double? happiness,  double? hygiene,  double? affection,  double? stress,  double? health)?  debugSetStats,TResult? Function( double amount)?  debugAddCoins,}) {final _that = this;
 switch (_that) {
 case LoadTamtamaEvent() when load != null:
 return load();case TamtamaUpdatedEvent() when updated != null:
@@ -235,7 +255,11 @@ return feedPet(_that.food);case PlayWithPetEvent() when playWithPet != null:
 return playWithPet(_that.activity);case CleanPetEvent() when cleanPet != null:
 return cleanPet();case ToggleSleepEvent() when toggleSleep != null:
 return toggleSleep();case TickEvent() when tick != null:
-return tick();case ApplyOfflineTicksEvent() when applyOfflineTicks != null:
+return tick();case RewardTickEvent() when rewardTick != null:
+return rewardTick();case AutoSaveTickEvent() when autoSaveTick != null:
+return autoSaveTick();case EvolutionCheckTickEvent() when evolutionCheckTick != null:
+return evolutionCheckTick();case CheckEvolutionEvent() when checkEvolution != null:
+return checkEvolution();case ApplyOfflineTicksEvent() when applyOfflineTicks != null:
 return applyOfflineTicks();case ListeningTickEvent() when onListeningTick != null:
 return onListeningTick(_that.minutes,_that.stationId);case SetListeningEvent() when setListening != null:
 return setListening(_that.isListening);case EconomyUpdatedEvent() when economyUpdated != null:
@@ -633,6 +657,134 @@ int get hashCode => runtimeType.hashCode;
 @override
 String toString() {
   return 'TamtamaEvent.tick()';
+}
+
+
+}
+
+
+
+
+/// @nodoc
+
+
+class RewardTickEvent implements TamtamaEvent {
+  const RewardTickEvent();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RewardTickEvent);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'TamtamaEvent.rewardTick()';
+}
+
+
+}
+
+
+
+
+/// @nodoc
+
+
+class AutoSaveTickEvent implements TamtamaEvent {
+  const AutoSaveTickEvent();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AutoSaveTickEvent);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'TamtamaEvent.autoSaveTick()';
+}
+
+
+}
+
+
+
+
+/// @nodoc
+
+
+class EvolutionCheckTickEvent implements TamtamaEvent {
+  const EvolutionCheckTickEvent();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is EvolutionCheckTickEvent);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'TamtamaEvent.evolutionCheckTick()';
+}
+
+
+}
+
+
+
+
+/// @nodoc
+
+
+class CheckEvolutionEvent implements TamtamaEvent {
+  const CheckEvolutionEvent();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CheckEvolutionEvent);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'TamtamaEvent.checkEvolution()';
 }
 
 

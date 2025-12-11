@@ -1,0 +1,694 @@
+{
+    "meta": {
+        "version": "1.0",
+        "description": "TamTama evolution tree and scoring formulas for 7 families",
+        "evolutionNoiseEpsilon": 0.05,
+        "targetListenMinutesPerDay": 90,
+        "maxStreakDays": 10,
+        "maxDiversity": 10,
+        "teenDurationDays": 2
+    },
+    "families": {
+        "family01": {
+            "familyIndex": 1,
+            "ids": {
+                "eggs": [
+                    11010,
+                    11011,
+                    11012
+                ],
+                "baby": 12010,
+                "child": 13010,
+                "teen": 14010,
+                "adults": [
+                    15011,
+                    15012,
+                    15013,
+                    15014,
+                    15015,
+                    15016
+                ],
+                "specials": [
+                    17010,
+                    17011
+                ]
+            }
+        },
+        "family02": {
+            "familyIndex": 2,
+            "ids": {
+                "eggs": [
+                    11020,
+                    11021
+                ],
+                "baby": 12020,
+                "child": 13020,
+                "teen": 14020,
+                "adults": [
+                    15021,
+                    15022,
+                    15023,
+                    15024,
+                    15025,
+                    15026
+                ],
+                "specials": [
+                    17020
+                ]
+            }
+        },
+        "family03": {
+            "familyIndex": 3,
+            "ids": {
+                "eggs": [
+                    11030
+                ],
+                "baby": 12030,
+                "child": 13030,
+                "teen": 14030,
+                "adults": [
+                    15031,
+                    15032,
+                    15033,
+                    15034,
+                    15035,
+                    15036
+                ],
+                "specials": [
+                    17030,
+                    17031
+                ]
+            }
+        },
+        "family04": {
+            "familyIndex": 4,
+            "ids": {
+                "eggs": [
+                    11040,
+                    11041,
+                    11042
+                ],
+                "baby": 12040,
+                "child": 13040,
+                "teen": 14040,
+                "adults": [
+                    15041,
+                    15042,
+                    15043,
+                    15044,
+                    15045,
+                    15046
+                ],
+                "specials": [
+                    17040
+                ]
+            }
+        },
+        "family05": {
+            "familyIndex": 5,
+            "ids": {
+                "eggs": [
+                    11050
+                ],
+                "baby": 12050,
+                "child": 13050,
+                "teen": 14050,
+                "adults": [
+                    15051,
+                    15052,
+                    15053,
+                    15054,
+                    15055,
+                    15056
+                ],
+                "specials": [
+                    17050
+                ]
+            }
+        },
+        "family06": {
+            "familyIndex": 6,
+            "ids": {
+                "eggs": [
+                    11060,
+                    11061
+                ],
+                "baby": 12060,
+                "child": 13060,
+                "teen": 14060,
+                "adults": [
+                    15061,
+                    15062,
+                    15063,
+                    15064,
+                    15065,
+                    15066
+                ],
+                "specials": [
+                    17060,
+                    17061
+                ]
+            }
+        },
+        "family07": {
+            "familyIndex": 7,
+            "ids": {
+                "eggs": [
+                    11070
+                ],
+                "baby": 12070,
+                "child": 13070,
+                "teen": 14070,
+                "adults": [
+                    15071,
+                    15072,
+                    15073,
+                    15074,
+                    15075,
+                    15076
+                ],
+                "specials": [
+                    17070
+                ]
+            }
+        }
+    },
+    "youngToAdultCandidates": {
+        "14010": [
+            15011,
+            15012,
+            15013,
+            15014,
+            15015,
+            15016
+        ],
+        "14020": [
+            15021,
+            15022,
+            15023,
+            15024,
+            15025,
+            15026
+        ],
+        "14030": [
+            15031,
+            15032,
+            15033,
+            15034,
+            15035,
+            15036
+        ],
+        "14040": [
+            15041,
+            15042,
+            15043,
+            15044,
+            15045,
+            15046
+        ],
+        "14050": [
+            15051,
+            15052,
+            15053,
+            15054,
+            15055,
+            15056
+        ],
+        "14060": [
+            15061,
+            15062,
+            15063,
+            15064,
+            15065,
+            15066
+        ],
+        "14070": [
+            15071,
+            15072,
+            15073,
+            15074,
+            15075,
+            15076
+        ]
+    },
+    "scoringFormulas": {
+        "15011": {
+            "weights": {
+                "L": 0.30,
+                "S": 0.15,
+                "H": 0.25,
+                "R": 0.15,
+                "A": 0.10,
+                "D": 0.05
+            },
+            "archetype": "djStar"
+        },
+        "15012": {
+            "weights": {
+                "L": 0.20,
+                "S": 0.10,
+                "H": 0.30,
+                "R": 0.20,
+                "A": 0.10,
+                "D": 0.10
+            },
+            "archetype": "chillLoFi"
+        },
+        "15013": {
+            "weights": {
+                "L": 0.40,
+                "S": 0.20,
+                "H": 0.15,
+                "R": 0.10,
+                "A": 0.10,
+                "D": 0.05
+            },
+            "archetype": "hyperDance"
+        },
+        "15014": {
+            "weights": {
+                "R": 0.35,
+                "H": 0.20,
+                "A": 0.15,
+                "L": 0.10,
+                "D": 0.10,
+                "T_inv": 0.10
+            },
+            "archetype": "rebelStatic"
+        },
+        "15015": {
+            "weights": {
+                "L": 0.35,
+                "D": 0.25,
+                "H": 0.15,
+                "A": 0.15,
+                "R": 0.10
+            },
+            "archetype": "scholarNerd"
+        },
+        "15016": {
+            "weights": {
+                "H": 0.30,
+                "R": 0.25,
+                "A": 0.20,
+                "L": 0.15,
+                "D": 0.10
+            },
+            "archetype": "carebearHost"
+        },
+        "15021": {
+            "weights": {
+                "L": 0.28,
+                "S": 0.12,
+                "H": 0.26,
+                "R": 0.14,
+                "A": 0.10,
+                "D": 0.10
+            },
+            "archetype": "djStar"
+        },
+        "15022": {
+            "weights": {
+                "H": 0.32,
+                "R": 0.22,
+                "A": 0.18,
+                "L": 0.12,
+                "D": 0.08,
+                "T_inv": 0.08
+            },
+            "archetype": "chillLoFi"
+        },
+        "15023": {
+            "weights": {
+                "L": 0.38,
+                "S": 0.18,
+                "H": 0.12,
+                "R": 0.12,
+                "A": 0.10,
+                "D": 0.10
+            },
+            "archetype": "hyperDance"
+        },
+        "15024": {
+            "weights": {
+                "R": 0.34,
+                "H": 0.22,
+                "A": 0.16,
+                "L": 0.10,
+                "D": 0.10,
+                "T_inv": 0.08
+            },
+            "archetype": "rebelStatic"
+        },
+        "15025": {
+            "weights": {
+                "L": 0.36,
+                "D": 0.24,
+                "H": 0.16,
+                "A": 0.14,
+                "R": 0.10
+            },
+            "archetype": "scholarNerd"
+        },
+        "15026": {
+            "weights": {
+                "H": 0.30,
+                "R": 0.25,
+                "A": 0.20,
+                "L": 0.10,
+                "D": 0.15
+            },
+            "archetype": "carebearHost"
+        },
+        "15031": {
+            "weights": {
+                "A": 0.35,
+                "H": 0.25,
+                "R": 0.15,
+                "L": 0.15,
+                "D": 0.10
+            },
+            "archetype": "carebearHost"
+        },
+        "15032": {
+            "weights": {
+                "L": 0.30,
+                "S": 0.20,
+                "H": 0.20,
+                "R": 0.15,
+                "D": 0.10,
+                "A": 0.05
+            },
+            "archetype": "djStar"
+        },
+        "15033": {
+            "weights": {
+                "L": 0.42,
+                "S": 0.18,
+                "H": 0.12,
+                "R": 0.12,
+                "A": 0.08,
+                "D": 0.08
+            },
+            "archetype": "hyperDance"
+        },
+        "15034": {
+            "weights": {
+                "R": 0.33,
+                "H": 0.25,
+                "A": 0.18,
+                "L": 0.12,
+                "D": 0.12
+            },
+            "archetype": "rebelStatic"
+        },
+        "15035": {
+            "weights": {
+                "L": 0.34,
+                "D": 0.26,
+                "H": 0.16,
+                "A": 0.14,
+                "R": 0.10
+            },
+            "archetype": "scholarNerd"
+        },
+        "15036": {
+            "weights": {
+                "H": 0.31,
+                "R": 0.24,
+                "A": 0.20,
+                "L": 0.15,
+                "D": 0.10
+            },
+            "archetype": "chillLoFi"
+        },
+        "15041": {
+            "weights": {
+                "L": 0.28,
+                "H": 0.30,
+                "R": 0.18,
+                "A": 0.14,
+                "D": 0.10
+            },
+            "archetype": "djStar"
+        },
+        "15042": {
+            "weights": {
+                "H": 0.34,
+                "R": 0.22,
+                "A": 0.18,
+                "L": 0.12,
+                "D": 0.14
+            },
+            "archetype": "chillLoFi"
+        },
+        "15043": {
+            "weights": {
+                "L": 0.40,
+                "S": 0.20,
+                "H": 0.12,
+                "R": 0.12,
+                "A": 0.08,
+                "D": 0.08
+            },
+            "archetype": "hyperDance"
+        },
+        "15044": {
+            "weights": {
+                "R": 0.32,
+                "H": 0.24,
+                "A": 0.18,
+                "L": 0.12,
+                "D": 0.14
+            },
+            "archetype": "rebelStatic"
+        },
+        "15045": {
+            "weights": {
+                "L": 0.36,
+                "D": 0.24,
+                "H": 0.18,
+                "A": 0.12,
+                "R": 0.10
+            },
+            "archetype": "scholarNerd"
+        },
+        "15046": {
+            "weights": {
+                "H": 0.30,
+                "R": 0.25,
+                "A": 0.20,
+                "L": 0.15,
+                "D": 0.10
+            },
+            "archetype": "carebearHost"
+        },
+        "15051": {
+            "weights": {
+                "H": 0.30,
+                "A": 0.30,
+                "R": 0.15,
+                "L": 0.15,
+                "D": 0.10
+            },
+            "archetype": "carebearHost"
+        },
+        "15052": {
+            "weights": {
+                "L": 0.34,
+                "S": 0.16,
+                "H": 0.24,
+                "R": 0.14,
+                "A": 0.12
+            },
+            "archetype": "djStar"
+        },
+        "15053": {
+            "weights": {
+                "L": 0.38,
+                "S": 0.18,
+                "H": 0.14,
+                "R": 0.10,
+                "A": 0.10,
+                "D": 0.10
+            },
+            "archetype": "hyperDance"
+        },
+        "15054": {
+            "weights": {
+                "R": 0.30,
+                "H": 0.26,
+                "A": 0.18,
+                "L": 0.12,
+                "D": 0.14
+            },
+            "archetype": "rebelStatic"
+        },
+        "15055": {
+            "weights": {
+                "L": 0.36,
+                "D": 0.24,
+                "H": 0.16,
+                "A": 0.14,
+                "R": 0.10
+            },
+            "archetype": "scholarNerd"
+        },
+        "15056": {
+            "weights": {
+                "H": 0.32,
+                "R": 0.26,
+                "A": 0.18,
+                "L": 0.14,
+                "D": 0.10
+            },
+            "archetype": "chillLoFi"
+        },
+        "15061": {
+            "weights": {
+                "L": 0.30,
+                "H": 0.28,
+                "R": 0.16,
+                "A": 0.14,
+                "D": 0.12
+            },
+            "archetype": "djStar"
+        },
+        "15062": {
+            "weights": {
+                "H": 0.34,
+                "R": 0.20,
+                "A": 0.18,
+                "L": 0.14,
+                "D": 0.14
+            },
+            "archetype": "chillLoFi"
+        },
+        "15063": {
+            "weights": {
+                "L": 0.38,
+                "S": 0.18,
+                "H": 0.14,
+                "R": 0.12,
+                "A": 0.09,
+                "D": 0.09
+            },
+            "archetype": "hyperDance"
+        },
+        "15064": {
+            "weights": {
+                "R": 0.32,
+                "H": 0.24,
+                "A": 0.18,
+                "L": 0.13,
+                "D": 0.13
+            },
+            "archetype": "rebelStatic"
+        },
+        "15065": {
+            "weights": {
+                "L": 0.36,
+                "D": 0.24,
+                "H": 0.16,
+                "A": 0.14,
+                "R": 0.10
+            },
+            "archetype": "scholarNerd"
+        },
+        "15066": {
+            "weights": {
+                "H": 0.30,
+                "R": 0.25,
+                "A": 0.20,
+                "L": 0.15,
+                "D": 0.10
+            },
+            "archetype": "carebearHost"
+        },
+        "15071": {
+            "weights": {
+                "H": 0.30,
+                "A": 0.30,
+                "R": 0.16,
+                "L": 0.14,
+                "D": 0.10
+            },
+            "archetype": "carebearHost"
+        },
+        "15072": {
+            "weights": {
+                "L": 0.34,
+                "S": 0.16,
+                "H": 0.24,
+                "R": 0.14,
+                "A": 0.12
+            },
+            "archetype": "djStar"
+        },
+        "15073": {
+            "weights": {
+                "L": 0.38,
+                "S": 0.18,
+                "H": 0.14,
+                "R": 0.10,
+                "A": 0.10,
+                "D": 0.10
+            },
+            "archetype": "hyperDance"
+        },
+        "15074": {
+            "weights": {
+                "R": 0.30,
+                "H": 0.26,
+                "A": 0.18,
+                "L": 0.12,
+                "D": 0.14
+            },
+            "archetype": "rebelStatic"
+        },
+        "15075": {
+            "weights": {
+                "L": 0.36,
+                "D": 0.24,
+                "H": 0.16,
+                "A": 0.14,
+                "R": 0.10
+            },
+            "archetype": "scholarNerd"
+        },
+        "15076": {
+            "weights": {
+                "H": 0.32,
+                "R": 0.26,
+                "A": 0.18,
+                "L": 0.14,
+                "D": 0.10
+            },
+            "archetype": "chillLoFi"
+        }
+    },
+    "hardOverrides": [
+        {
+            "name": "VoidtchiOverride",
+            "condition": {
+                "neglectScoreTeen": {
+                    "gte": 90
+                },
+                "avgAffection": {
+                    "lte": 20
+                }
+            },
+            "result": "ghostSignal",
+            "resultId": 17000
+        }
+    ],
+    "weightKeys": {
+        "L": "avgListeningMinutesPerDay",
+        "S": "avgStress",
+        "H": "avgHappiness",
+        "R": "avgRoutineQuality",
+        "A": "avgAffection",
+        "D": "avgStationDiversity",
+        "T_inv": "neglectScoreTeenInverse"
+    }
+}

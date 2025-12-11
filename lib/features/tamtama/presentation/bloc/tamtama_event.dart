@@ -15,6 +15,10 @@ class TamtamaEvent with _$TamtamaEvent {
   
   // Tick System
   const factory TamtamaEvent.tick() = TickEvent;
+  const factory TamtamaEvent.rewardTick() = RewardTickEvent;
+  const factory TamtamaEvent.autoSaveTick() = AutoSaveTickEvent;
+  const factory TamtamaEvent.evolutionCheckTick() = EvolutionCheckTickEvent;
+  const factory TamtamaEvent.checkEvolution() = CheckEvolutionEvent;
   const factory TamtamaEvent.applyOfflineTicks() = ApplyOfflineTicksEvent;
   
   // Radio Integration

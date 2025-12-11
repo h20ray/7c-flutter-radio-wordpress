@@ -3,10 +3,22 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-import '../../domain/entities/tamtama_entity.dart';
-import '../../domain/entities/tamtama_economy_entity.dart';
-import '../../domain/repositories/tamtama_repository.dart';
 import '../../data/services/tamtama_tick_service.dart';
+import '../../domain/entities/tamtama_economy_entity.dart';
+import '../../domain/entities/tamtama_entity.dart';
+import '../../domain/usecases/add_listening_rewards.dart';
+import '../../domain/usecases/apply_offline_ticks.dart';
+import '../../domain/usecases/apply_tick.dart';
+import '../../domain/usecases/clean_pet.dart';
+import '../../domain/usecases/evolve_pet.dart';
+import '../../domain/usecases/feed_pet.dart';
+import '../../domain/usecases/get_economy.dart';
+import '../../domain/usecases/get_tamtama.dart';
+import '../../domain/usecases/play_with_pet.dart';
+import '../../domain/usecases/save_tamtama.dart';
+import '../../domain/usecases/set_sleep_mode.dart';
+import '../../domain/usecases/watch_economy.dart';
+import '../../domain/usecases/watch_tamtama.dart';
 
 part 'tamtama_bloc.freezed.dart';
 part 'tamtama_event.dart';
@@ -14,18 +26,47 @@ part 'tamtama_state.dart';
 
 /// BLoC for managing TamTama virtual pet state
 class TamtamaBloc extends Bloc<TamtamaEvent, TamtamaState> {
-  final TamtamaRepository repository;
   final TamtamaTickService tickService;
+  final GetTamtama getTamtama;
+  final SaveTamtama saveTamtama;
+  final GetEconomy getEconomy;
+  final WatchTamtama watchTamtama;
+  final WatchEconomy watchEconomy;
+  final FeedPet feedPet;
+  final PlayWithPet playWithPet;
+  final CleanPet cleanPet;
+  final SetSleepMode setSleepMode;
+  final ApplyTick applyTick;
+  final ApplyOfflineTicks applyOfflineTicks;
+  final AddListeningRewards addListeningRewards;
+  final EvolvePet evolvePet;
   final String userId;
 
   StreamSubscription? _tamtamaSubscription;
   StreamSubscription? _economySubscription;
+  StreamSubscription<TieredTickEvent>? _tieredTickSubscription;
   Timer? _tickTimer;
   bool _isListening = false;
+  
+  // Teen stage listening tracking for evolution scoring
+  int _teenListeningMinutes = 0;
+  int _teenDaysTracked = 0;
 
   TamtamaBloc({
-    required this.repository,
     required this.tickService,
+    required this.getTamtama,
+    required this.saveTamtama,
+    required this.getEconomy,
+    required this.watchTamtama,
+    required this.watchEconomy,
+    required this.feedPet,
+    required this.playWithPet,
+    required this.cleanPet,
+    required this.setSleepMode,
+    required this.applyTick,
+    required this.applyOfflineTicks,
+    required this.addListeningRewards,
+    required this.evolvePet,
     this.userId = 'local_user',
   }) : super(const TamtamaState.initial()) {
     // Lifecycle
@@ -42,6 +83,10 @@ class TamtamaBloc extends Bloc<TamtamaEvent, TamtamaState> {
     
     // Tick System
     on<TickEvent>(_onTick);
+    on<RewardTickEvent>(_onRewardTick);
+    on<AutoSaveTickEvent>(_onAutoSaveTick);
+    on<EvolutionCheckTickEvent>(_onEvolutionCheckTick);
+    on<CheckEvolutionEvent>(_onCheckEvolution);
     on<ApplyOfflineTicksEvent>(_onApplyOfflineTicks);
     
     // Radio Integration
@@ -59,11 +104,11 @@ class TamtamaBloc extends Bloc<TamtamaEvent, TamtamaState> {
     emit(const TamtamaState.loading());
     
     // Apply offline ticks first
-    await repository.applyOfflineTicks(userId);
+    await applyOfflineTicks(ApplyOfflineTicksParams(userId));
     
     // Fetch current state
-    final petResult = await repository.fetch(userId);
-    final economyResult = await repository.getEconomy(userId);
+    final petResult = await getTamtama(GetTamtamaParams(userId));
+    final economyResult = await getEconomy(GetEconomyParams(userId));
     
     petResult.fold(
       (failure) => emit(TamtamaState.error(failure.message)),
@@ -120,7 +165,7 @@ class TamtamaBloc extends Bloc<TamtamaEvent, TamtamaState> {
 
   Future<void> _onFeedPet(FeedPetEvent event, Emitter<TamtamaState> emit) async {
     final food = event.food ?? FoodType.snack;
-    final result = await repository.feedPet(userId, food);
+    final result = await feedPet(FeedPetParams(userId: userId, food: food));
     
     result.fold(
       (failure) {
@@ -131,7 +176,7 @@ class TamtamaBloc extends Bloc<TamtamaEvent, TamtamaState> {
     );
     
     // Refresh economy
-    final economyResult = await repository.getEconomy(userId);
+    final economyResult = await getEconomy(GetEconomyParams(userId));
     economyResult.fold(
       (failure) {},
       (economy) => add(TamtamaEvent.economyUpdated(economy)),
@@ -140,14 +185,14 @@ class TamtamaBloc extends Bloc<TamtamaEvent, TamtamaState> {
 
   Future<void> _onPlayWithPet(PlayWithPetEvent event, Emitter<TamtamaState> emit) async {
     final activity = event.activity ?? ActivityType.quickPlay;
-    final result = await repository.playWithPet(userId, activity);
+    final result = await playWithPet(PlayWithPetParams(userId: userId, activity: activity));
     
     result.fold(
       (failure) {},
       (tamtama) => add(TamtamaEvent.updated(tamtama)),
     );
     
-    final economyResult = await repository.getEconomy(userId);
+    final economyResult = await getEconomy(GetEconomyParams(userId));
     economyResult.fold(
       (failure) {},
       (economy) => add(TamtamaEvent.economyUpdated(economy)),
@@ -155,14 +200,14 @@ class TamtamaBloc extends Bloc<TamtamaEvent, TamtamaState> {
   }
 
   Future<void> _onCleanPet(CleanPetEvent event, Emitter<TamtamaState> emit) async {
-    final result = await repository.cleanPet(userId);
+    final result = await cleanPet(CleanPetParams(userId));
     
     result.fold(
       (failure) {},
       (tamtama) => add(TamtamaEvent.updated(tamtama)),
     );
     
-    final economyResult = await repository.getEconomy(userId);
+    final economyResult = await getEconomy(GetEconomyParams(userId));
     economyResult.fold(
       (failure) {},
       (economy) => add(TamtamaEvent.economyUpdated(economy)),
@@ -174,7 +219,7 @@ class TamtamaBloc extends Bloc<TamtamaEvent, TamtamaState> {
     if (currentState is! TamtamaLoaded) return;
     
     final isSleeping = currentState.tamtama.petState == PetState.sleeping;
-    final result = await repository.setSleepMode(userId, !isSleeping);
+    final result = await setSleepMode(SetSleepModeParams(userId: userId, sleeping: !isSleeping));
     
     result.fold(
       (failure) {},
@@ -190,20 +235,112 @@ class TamtamaBloc extends Bloc<TamtamaEvent, TamtamaState> {
     
     final isSleeping = currentState.tamtama.petState == PetState.sleeping;
     
-    final result = await repository.applyTick(
-      userId,
-      isListening: _isListening,
-      isSleeping: isSleeping,
+    final result = await applyTick(
+      ApplyTickParams(
+        userId: userId,
+        isListening: _isListening,
+        isSleeping: isSleeping,
+      ),
     );
     
     result.fold(
       (failure) {},
-      (tamtama) => add(TamtamaEvent.updated(tamtama)),
+      (tamtama) {
+        add(TamtamaEvent.updated(tamtama));
+        // Track listening for teen stage evolution scoring
+        if (_isListening && tamtama.lifeStage == LifeStage.teen) {
+          _teenListeningMinutes++;
+        }
+      },
+    );
+  }
+
+  /// Handle reward tick (every 5 minutes) - apply radio listening rewards
+  Future<void> _onRewardTick(RewardTickEvent event, Emitter<TamtamaState> emit) async {
+    if (!_isListening) return;
+    
+    final currentState = state;
+    if (currentState is! TamtamaLoaded) return;
+    
+    // Apply 5 minutes of listening rewards
+    final result = await addListeningRewards(
+      AddListeningRewardsParams(
+        userId: userId,
+        minutes: TamtamaTickService.rewardTickMinutes,
+        stationId: 'default',
+      ),
+    );
+    
+    result.fold(
+      (failure) {},
+      (economy) => add(TamtamaEvent.economyUpdated(economy)),
+    );
+  }
+
+  /// Handle auto-save tick (every 10 minutes) - persist current state
+  Future<void> _onAutoSaveTick(AutoSaveTickEvent event, Emitter<TamtamaState> emit) async {
+    final currentState = state;
+    if (currentState is! TamtamaLoaded) return;
+    
+    // Force save current state
+    await saveTamtama(SaveTamtamaParams(currentState.tamtama));
+    
+    // Update teen stage averages if in teen stage
+    if (currentState.tamtama.lifeStage == LifeStage.teen) {
+      _teenDaysTracked++;
+      await _updateTeenAverages(currentState.tamtama, emit);
+    }
+  }
+
+  /// Handle evolution check tick (every 30 minutes) - check for evolution
+  Future<void> _onEvolutionCheckTick(EvolutionCheckTickEvent event, Emitter<TamtamaState> emit) async {
+    add(const TamtamaEvent.checkEvolution());
+  }
+
+  /// Update teen stage averages for evolution scoring
+  Future<void> _updateTeenAverages(TamtamaEntity tamtama, Emitter<TamtamaState> emit) async {
+    // Calculate running average of listening minutes
+    final avgListeningPerDay = _teenDaysTracked > 0 
+        ? _teenListeningMinutes / _teenDaysTracked 
+        : 0.0;
+    
+    // Calculate current happiness/stress/affection as running average
+    const alpha = 0.1; // Smoothing factor for exponential moving average
+    final newAvgHappiness = tamtama.avgHappiness * (1 - alpha) + (tamtama.happiness / 100.0) * alpha;
+    final newAvgStress = tamtama.avgStress * (1 - alpha) + (tamtama.stress / 100.0) * alpha;
+    final newAvgAffection = tamtama.avgAffection * (1 - alpha) + (tamtama.affection / 100.0) * alpha;
+    
+    final updated = tamtama.copyWith(
+      avgListeningMinutesPerDay: avgListeningPerDay,
+      avgHappiness: newAvgHappiness,
+      avgStress: newAvgStress,
+      avgAffection: newAvgAffection,
+      neglectScoreTeen: tamtama.neglectScore, // Snapshot current neglect
+    );
+    
+    final result = await saveTamtama(SaveTamtamaParams(updated));
+    result.fold(
+      (failure) {},
+      (saved) => add(TamtamaEvent.updated(saved)),
+    );
+  }
+
+  Future<void> _onCheckEvolution(CheckEvolutionEvent event, Emitter<TamtamaState> emit) async {
+    final result = await evolvePet(EvolvePetParams(userId: userId));
+    
+    result.fold(
+      (failure) {
+        // Silent failure for evolution check is fine
+      },
+      (tamtama) {
+        // If state changed (evolved), this will trigger update
+        add(TamtamaEvent.updated(tamtama));
+      },
     );
   }
 
   Future<void> _onApplyOfflineTicks(ApplyOfflineTicksEvent event, Emitter<TamtamaState> emit) async {
-    final result = await repository.applyOfflineTicks(userId);
+    final result = await applyOfflineTicks(ApplyOfflineTicksParams(userId));
     
     result.fold(
       (failure) {},
@@ -214,10 +351,12 @@ class TamtamaBloc extends Bloc<TamtamaEvent, TamtamaState> {
   // --- Radio Integration ---
 
   Future<void> _onListeningTick(ListeningTickEvent event, Emitter<TamtamaState> emit) async {
-    final result = await repository.addListeningRewards(
-      userId,
-      event.minutes,
-      event.stationId,
+    final result = await addListeningRewards(
+      AddListeningRewardsParams(
+        userId: userId,
+        minutes: event.minutes,
+        stationId: event.stationId,
+      ),
     );
     
     result.fold(
@@ -226,7 +365,7 @@ class TamtamaBloc extends Bloc<TamtamaEvent, TamtamaState> {
     );
     
     // Also fetch updated pet (XP increased)
-    final petResult = await repository.fetch(userId);
+    final petResult = await getTamtama(GetTamtamaParams(userId));
     petResult.fold(
       (failure) {},
       (tamtama) => add(TamtamaEvent.updated(tamtama)),
@@ -267,7 +406,7 @@ class TamtamaBloc extends Bloc<TamtamaEvent, TamtamaState> {
       lastUpdateAt: DateTime.now(),
     );
     
-    final result = await repository.save(updated);
+    final result = await saveTamtama(SaveTamtamaParams(updated));
     result.fold(
       (failure) {},
       (tamtama) => add(TamtamaEvent.updated(tamtama)),
@@ -292,7 +431,7 @@ class TamtamaBloc extends Bloc<TamtamaEvent, TamtamaState> {
 
   void _startSubscriptions() {
     _tamtamaSubscription?.cancel();
-    _tamtamaSubscription = repository.watch(userId).listen((result) {
+    _tamtamaSubscription = watchTamtama(userId).listen((result) {
       result.fold(
         (failure) => add(TamtamaEvent.error(failure.message)),
         (tamtama) => add(TamtamaEvent.updated(tamtama)),
@@ -300,7 +439,7 @@ class TamtamaBloc extends Bloc<TamtamaEvent, TamtamaState> {
     });
 
     _economySubscription?.cancel();
-    _economySubscription = repository.watchEconomy(userId).listen((result) {
+    _economySubscription = watchEconomy(userId).listen((result) {
       result.fold(
         (failure) {},
         (economy) => add(TamtamaEvent.economyUpdated(economy)),
@@ -310,8 +449,29 @@ class TamtamaBloc extends Bloc<TamtamaEvent, TamtamaState> {
 
   void _startTickTimer() {
     _tickTimer?.cancel();
-    _tickTimer = Timer.periodic(const Duration(minutes: 1), (_) {
-      add(const TamtamaEvent.tick());
+    _tieredTickSubscription?.cancel();
+    
+    // Subscribe to tiered tick stream for multi-interval events
+    _tieredTickSubscription = tickService.tieredTickStream.listen((event) {
+      switch (event.type) {
+        case TickType.base:
+          add(const TamtamaEvent.tick());
+          break;
+        case TickType.reward:
+          add(const TamtamaEvent.rewardTick());
+          break;
+        case TickType.autoSave:
+          add(const TamtamaEvent.autoSaveTick());
+          break;
+        case TickType.evolutionCheck:
+          add(const TamtamaEvent.evolutionCheckTick());
+          break;
+      }
+    });
+    
+    // Start the tick service (this emits to the stream)
+    tickService.startTicking((delta) {
+      // Base tick deltas are handled via stream events
     });
   }
 
@@ -319,6 +479,7 @@ class TamtamaBloc extends Bloc<TamtamaEvent, TamtamaState> {
   Future<void> close() {
     _tamtamaSubscription?.cancel();
     _economySubscription?.cancel();
+    _tieredTickSubscription?.cancel();
     _tickTimer?.cancel();
     tickService.dispose();
     return super.close();

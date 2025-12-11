@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import '../../domain/entities/pet_history.dart';
 import '../../domain/entities/tamtama_entity.dart';
 
 /// TamTama model with JSON serialization for Hive persistence
@@ -9,6 +10,8 @@ class TamtamaModel extends TamtamaEntity {
     required super.petName,
     required super.backgroundIndex,
     required super.eggIndex,
+    super.familyIndex,
+    super.petId,
     super.currentFormId,
     required super.hunger,
     required super.energy,
@@ -30,6 +33,7 @@ class TamtamaModel extends TamtamaEntity {
     super.lastCleanedAt,
     super.lastSleptAt,
     super.evolutionHistory,
+    super.history,
     super.avgRoutineQuality,
     super.avgHappiness,
     super.avgStress,
@@ -55,6 +59,8 @@ class TamtamaModel extends TamtamaEntity {
       petName: petName,
       backgroundIndex: backgroundIndex,
       eggIndex: eggIndex,
+      familyIndex: 1,
+      petId: 11010 + (eggIndex - 1),  // Default egg ID based on egg variant
       hunger: 80.0,
       energy: 100.0,
       happiness: 70.0,
@@ -69,6 +75,7 @@ class TamtamaModel extends TamtamaEntity {
       neglectScore: 0.0,
       createdAt: now,
       lastUpdateAt: now,
+      history: PetHistory(stageHistory: [11010 + (eggIndex - 1)]),
     );
   }
 
@@ -79,6 +86,8 @@ class TamtamaModel extends TamtamaEntity {
       petName: entity.petName,
       backgroundIndex: entity.backgroundIndex,
       eggIndex: entity.eggIndex,
+      familyIndex: entity.familyIndex,
+      petId: entity.petId,
       currentFormId: entity.currentFormId,
       hunger: entity.hunger,
       energy: entity.energy,
@@ -100,6 +109,7 @@ class TamtamaModel extends TamtamaEntity {
       lastCleanedAt: entity.lastCleanedAt,
       lastSleptAt: entity.lastSleptAt,
       evolutionHistory: entity.evolutionHistory,
+      history: entity.history,
       avgRoutineQuality: entity.avgRoutineQuality,
       avgHappiness: entity.avgHappiness,
       avgStress: entity.avgStress,
@@ -128,12 +138,16 @@ class TamtamaModel extends TamtamaEntity {
         (eggIndex != null && eggIndex >= 1 && eggIndex <= totalEggs)
             ? eggIndex
             : (Random().nextInt(totalEggs) + 1);
+    final rawHistory = map['history'];
+    final historyMap = rawHistory is Map ? Map<String, dynamic>.from(rawHistory) : null;
 
     return TamtamaModel(
       userId: userId,
       petName: map['petName'] as String? ?? 'TamTama',
       backgroundIndex: validBackgroundIndex,
       eggIndex: validEggIndex,
+      familyIndex: (map['familyIndex'] as int?) ?? 1,
+      petId: map['petId'] as int?,
       currentFormId: map['currentFormId'] as String?,
       hunger: (map['hunger'] as num?)?.toDouble() ?? 80.0,
       energy: (map['energy'] as num?)?.toDouble() ?? 100.0,
@@ -179,6 +193,7 @@ class TamtamaModel extends TamtamaEntity {
               ?.map((e) => e as String)
               .toList() ??
           [],
+      history: historyMap != null ? PetHistory.fromMap(historyMap) : const PetHistory(),
       avgRoutineQuality: (map['avgRoutineQuality'] as num?)?.toDouble() ?? 0.0,
       avgHappiness: (map['avgHappiness'] as num?)?.toDouble() ?? 0.0,
       avgStress: (map['avgStress'] as num?)?.toDouble() ?? 0.0,
@@ -216,6 +231,8 @@ class TamtamaModel extends TamtamaEntity {
     String? petName,
     int? backgroundIndex,
     int? eggIndex,
+    int? familyIndex,
+    int? petId,
     String? currentFormId,
     double? hunger,
     double? energy,
@@ -237,6 +254,7 @@ class TamtamaModel extends TamtamaEntity {
     DateTime? lastCleanedAt,
     DateTime? lastSleptAt,
     List<String>? evolutionHistory,
+    PetHistory? history,
     double? avgRoutineQuality,
     double? avgHappiness,
     double? avgStress,
@@ -250,6 +268,8 @@ class TamtamaModel extends TamtamaEntity {
       petName: petName ?? this.petName,
       backgroundIndex: backgroundIndex ?? this.backgroundIndex,
       eggIndex: eggIndex ?? this.eggIndex,
+      familyIndex: familyIndex ?? this.familyIndex,
+      petId: petId ?? this.petId,
       currentFormId: currentFormId ?? this.currentFormId,
       hunger: hunger ?? this.hunger,
       energy: energy ?? this.energy,
@@ -271,6 +291,7 @@ class TamtamaModel extends TamtamaEntity {
       lastCleanedAt: lastCleanedAt ?? this.lastCleanedAt,
       lastSleptAt: lastSleptAt ?? this.lastSleptAt,
       evolutionHistory: evolutionHistory ?? this.evolutionHistory,
+      history: history ?? this.history,
       avgRoutineQuality: avgRoutineQuality ?? this.avgRoutineQuality,
       avgHappiness: avgHappiness ?? this.avgHappiness,
       avgStress: avgStress ?? this.avgStress,
@@ -288,6 +309,8 @@ class TamtamaModel extends TamtamaEntity {
       'petName': petName,
       'backgroundIndex': backgroundIndex,
       'eggIndex': eggIndex,
+      'familyIndex': familyIndex,
+      'petId': petId,
       'currentFormId': currentFormId,
       'hunger': hunger,
       'energy': energy,
@@ -309,6 +332,7 @@ class TamtamaModel extends TamtamaEntity {
       'lastCleanedAt': lastCleanedAt?.toIso8601String(),
       'lastSleptAt': lastSleptAt?.toIso8601String(),
       'evolutionHistory': evolutionHistory,
+      'history': history.toMap(),
       'avgRoutineQuality': avgRoutineQuality,
       'avgHappiness': avgHappiness,
       'avgStress': avgStress,

@@ -10,10 +10,10 @@ import '../../domain/entities/tamtama_entity.dart';
 import '../../domain/entities/tamtama_economy_entity.dart';
 import '../bloc/tamtama_bloc.dart';
 import 'background_sprite.dart';
-import 'egg_sprite.dart';
 import 'tamtama_stats_card.dart';
 import 'tamtama_care_controls.dart';
 import 'tamtama_economy_display.dart';
+import 'tamtama_sprite_widget.dart';
 
 class TamtamaSection extends StatelessWidget {
   const TamtamaSection({super.key});
@@ -107,7 +107,7 @@ class TamtamaSection extends StatelessWidget {
                     ),
                     child: _TamtamaSpriteContainer(
                       backgroundIndex: tamtama.backgroundIndex,
-                      eggIndex: tamtama.eggIndex,
+                      tamtama: tamtama,
                     ),
                   ),
                 ),
@@ -220,11 +220,11 @@ class TamtamaSection extends StatelessWidget {
 
 class _TamtamaSpriteContainer extends StatelessWidget {
   final int backgroundIndex;
-  final int eggIndex;
+  final TamtamaEntity tamtama;
 
   const _TamtamaSpriteContainer({
     required this.backgroundIndex,
-    required this.eggIndex,
+    required this.tamtama,
   });
 
   @override
@@ -236,9 +236,12 @@ class _TamtamaSpriteContainer extends StatelessWidget {
           key: ValueKey('bg_$backgroundIndex'),
           index: backgroundIndex,
         ),
-        EggSprite(
-          key: ValueKey('egg_$eggIndex'),
-          eggIndex: eggIndex,
+        Center(
+          child: TamtamaSpriteWidget(
+            key: ValueKey('sprite_${tamtama.lifeStage}_${tamtama.petState}'),
+            tamtama: tamtama,
+            size: 150, // Slightly smaller than container to fit well
+          ),
         ),
       ],
     );

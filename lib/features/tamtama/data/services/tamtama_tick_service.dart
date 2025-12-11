@@ -3,6 +3,34 @@ import 'dart:async';
 import '../../domain/entities/tamtama_entity.dart';
 import '../models/tamtama_model.dart';
 
+/// Types of ticks in the multi-tier timer system
+enum TickType {
+  /// 1 minute - needs decay (hunger, energy, hygiene)
+  base,
+  
+  /// 5 minutes - radio rewards application
+  reward,
+  
+  /// 10 minutes - auto-save to persistent storage
+  autoSave,
+  
+  /// 30 minutes - evolution window check
+  evolutionCheck,
+}
+
+/// Event emitted by tiered tick system
+class TieredTickEvent {
+  final TickType type;
+  final TamtamaTickDelta? delta;
+  final int tickCount; // Total base ticks since start
+  
+  const TieredTickEvent({
+    required this.type,
+    this.delta,
+    this.tickCount = 0,
+  });
+}
+
 /// Data class representing changes from a tick
 class TamtamaTickDelta {
   final double hungerDelta;
@@ -49,7 +77,18 @@ class TamtamaTickDelta {
 class TamtamaTickService {
   Timer? _tickTimer;
   void Function(TamtamaTickDelta delta)? _onTick;
+  void Function(TieredTickEvent event)? _onTieredTick;
   bool _isListening = false;
+  int _baseTickCount = 0;
+  
+  // Stream controller for tiered ticks
+  final StreamController<TieredTickEvent> _tickStreamController = 
+      StreamController<TieredTickEvent>.broadcast();
+
+  /// Tick intervals as per blueprint
+  static const int rewardTickMinutes = 5;    // Every 5 min: radio rewards
+  static const int autoSaveMinutes = 10;     // Every 10 min: auto-save
+  static const int evolutionCheckMinutes = 30; // Every 30 min: evolution check
 
   /// Decay rates per minute (when not sleeping)
   static const double hungerDecayPerMinute = 0.15; // ~11 hours to empty
@@ -68,15 +107,79 @@ class TamtamaTickService {
   static const double energyRecoveryWhileSleeping = 0.8;
   static const double stressReductionWhileSleeping = 0.1;
   static const double hungerDecayWhileSleeping = 0.05;
+  
+  /// Stream of tiered tick events for reactive listening
+  Stream<TieredTickEvent> get tieredTickStream => _tickStreamController.stream;
 
   /// Start the tick timer (1 tick per minute)
   void startTicking(void Function(TamtamaTickDelta delta) onTick) {
     _onTick = onTick;
     _tickTimer?.cancel();
+    _baseTickCount = 0;
     _tickTimer = Timer.periodic(const Duration(minutes: 1), (_) {
-      final delta = computeTickDelta();
-      _onTick?.call(delta);
+      _handleBaseTick();
     });
+  }
+  
+  /// Start with tiered tick callback support
+  void startTieredTicking({
+    required void Function(TamtamaTickDelta delta) onBaseTick,
+    void Function(TieredTickEvent event)? onTieredTick,
+  }) {
+    _onTick = onBaseTick;
+    _onTieredTick = onTieredTick;
+    _tickTimer?.cancel();
+    _baseTickCount = 0;
+    _tickTimer = Timer.periodic(const Duration(minutes: 1), (_) {
+      _handleBaseTick();
+    });
+  }
+  
+  void _handleBaseTick() {
+    _baseTickCount++;
+    
+    // Always compute and emit base tick delta
+    final delta = computeTickDelta();
+    _onTick?.call(delta);
+    
+    // Emit base tick event
+    final baseEvent = TieredTickEvent(
+      type: TickType.base,
+      delta: delta,
+      tickCount: _baseTickCount,
+    );
+    _tickStreamController.add(baseEvent);
+    _onTieredTick?.call(baseEvent);
+    
+    // Check for reward tick (every 5 min)
+    if (_baseTickCount % rewardTickMinutes == 0) {
+      final rewardEvent = TieredTickEvent(
+        type: TickType.reward,
+        tickCount: _baseTickCount,
+      );
+      _tickStreamController.add(rewardEvent);
+      _onTieredTick?.call(rewardEvent);
+    }
+    
+    // Check for auto-save tick (every 10 min)
+    if (_baseTickCount % autoSaveMinutes == 0) {
+      final saveEvent = TieredTickEvent(
+        type: TickType.autoSave,
+        tickCount: _baseTickCount,
+      );
+      _tickStreamController.add(saveEvent);
+      _onTieredTick?.call(saveEvent);
+    }
+    
+    // Check for evolution check tick (every 30 min)
+    if (_baseTickCount % evolutionCheckMinutes == 0) {
+      final evolutionEvent = TieredTickEvent(
+        type: TickType.evolutionCheck,
+        tickCount: _baseTickCount,
+      );
+      _tickStreamController.add(evolutionEvent);
+      _onTieredTick?.call(evolutionEvent);
+    }
   }
 
   /// Stop the tick timer
@@ -206,5 +309,6 @@ class TamtamaTickService {
 
   void dispose() {
     stopTicking();
+    _tickStreamController.close();
   }
 }

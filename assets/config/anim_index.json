@@ -1,0 +1,95 @@
+{
+    "meta": {
+        "version": "1.0",
+        "description": "Animation ID to animation type mapping for TamTama sprites"
+    },
+    "animations": {
+        "01": {
+            "key": "idle",
+            "displayName": "Idle",
+            "defaultFps": 8,
+            "loop": true
+        },
+        "02": {
+            "key": "blink",
+            "displayName": "Blink",
+            "defaultFps": 6,
+            "loop": false
+        },
+        "03": {
+            "key": "smile",
+            "displayName": "Smile",
+            "defaultFps": 10,
+            "loop": false
+        },
+        "04": {
+            "key": "sad",
+            "displayName": "Sad",
+            "defaultFps": 8,
+            "loop": true
+        },
+        "05": {
+            "key": "angry",
+            "displayName": "Angry",
+            "defaultFps": 10,
+            "loop": true
+        },
+        "06": {
+            "key": "hungry",
+            "displayName": "Hungry",
+            "defaultFps": 8,
+            "loop": true
+        },
+        "07": {
+            "key": "eating",
+            "displayName": "Eating",
+            "defaultFps": 12,
+            "loop": false
+        },
+        "08": {
+            "key": "sleeping",
+            "displayName": "Sleeping",
+            "defaultFps": 6,
+            "loop": true
+        },
+        "09": {
+            "key": "walking",
+            "displayName": "Walking",
+            "defaultFps": 10,
+            "loop": true
+        },
+        "10": {
+            "key": "evolution",
+            "displayName": "Evolution Transition",
+            "defaultFps": 12,
+            "loop": false
+        },
+        "11": {
+            "key": "special",
+            "displayName": "Special Reaction",
+            "defaultFps": 10,
+            "loop": false
+        },
+        "12": {
+            "key": "radio",
+            "displayName": "Radio Listen Reaction",
+            "defaultFps": 10,
+            "loop": true
+        }
+    },
+    "filePattern": "{petId}_{animId}.png",
+    "metaPattern": "{petId}.meta.json",
+    "defaultFrameCounts": {
+        "idle": 10,
+        "blink": 4,
+        "smile": 6,
+        "sad": 6,
+        "hungry": 6,
+        "eating": 10,
+        "sleeping": 10,
+        "walking": 12,
+        "evolution": 22,
+        "special": 12,
+        "radio": 12
+    }
+}

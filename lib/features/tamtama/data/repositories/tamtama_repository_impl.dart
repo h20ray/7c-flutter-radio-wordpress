@@ -1,8 +1,9 @@
 import 'package:dartz/dartz.dart';
 
 import '../../../../core/error/failures.dart';
-import '../../domain/entities/tamtama_entity.dart';
+import '../../domain/entities/pet_action_record.dart';
 import '../../domain/entities/tamtama_economy_entity.dart';
+import '../../domain/entities/tamtama_entity.dart';
 import '../../domain/repositories/tamtama_repository.dart';
 import '../datasources/tamtama_local_data_source.dart';
 import '../models/tamtama_model.dart';
@@ -78,6 +79,17 @@ class TamtamaRepositoryImpl implements TamtamaRepository {
         hygiene: (current.hygiene - hygieneDecrease).clamp(0.0, 100.0),
         lastFedAt: DateTime.now(),
         lastUpdateAt: DateTime.now(),
+        history: current.history.addAction(
+          PetActionRecord(
+            type: PetActionType.feed,
+            timestamp: DateTime.now(),
+            deltas: {
+              'hunger': hungerGain,
+              'happiness': happinessGain,
+              'hygiene': -hygieneDecrease,
+            },
+          ),
+        ),
       ));
       
       await localDataSource.save(updated);
@@ -127,6 +139,19 @@ class TamtamaRepositoryImpl implements TamtamaRepository {
         stress: (current.stress - 5.0).clamp(0.0, 100.0),
         lastPlayedAt: DateTime.now(),
         lastUpdateAt: DateTime.now(),
+        history: current.history.addAction(
+          PetActionRecord(
+            type: PetActionType.play,
+            timestamp: DateTime.now(),
+            deltas: {
+              'happiness': happinessGain,
+              'energy': -energyDecrease,
+              'affection': affectionGain,
+              'hygiene': -hygieneDecrease,
+              'stress': -5.0,
+            },
+          ),
+        ),
       ));
       
       await localDataSource.save(updated);
@@ -162,6 +187,17 @@ class TamtamaRepositoryImpl implements TamtamaRepository {
         stress: (current.stress - 5.0).clamp(0.0, 100.0),
         lastCleanedAt: DateTime.now(),
         lastUpdateAt: DateTime.now(),
+        history: current.history.addAction(
+          PetActionRecord(
+            type: PetActionType.clean,
+            timestamp: DateTime.now(),
+            deltas: const {
+              'hygiene': 40.0,
+              'happiness': 2.0,
+              'stress': -5.0,
+            },
+          ),
+        ),
       ));
       
       await localDataSource.save(updated);
@@ -187,6 +223,12 @@ class TamtamaRepositoryImpl implements TamtamaRepository {
         petState: sleeping ? PetState.sleeping : PetState.idle,
         lastSleptAt: sleeping ? DateTime.now() : current.lastSleptAt,
         lastUpdateAt: DateTime.now(),
+        history: current.history.addAction(
+          PetActionRecord(
+            type: sleeping ? PetActionType.sleep : PetActionType.wake,
+            timestamp: DateTime.now(),
+          ),
+        ),
       ));
       
       await localDataSource.save(updated);
@@ -286,6 +328,15 @@ class TamtamaRepositoryImpl implements TamtamaRepository {
         xp: petModel.xp + xpGained,
         petState: PetState.listening,
         lastUpdateAt: now,
+        history: petModel.history.addAction(
+          PetActionRecord(
+            type: PetActionType.listening,
+            timestamp: now,
+            deltas: {
+              'xp': xpGained,
+            },
+          ),
+        ),
       ));
       await localDataSource.save(updatedPet);
       
@@ -333,7 +384,27 @@ class TamtamaRepositoryImpl implements TamtamaRepository {
         current: current,
       );
       
-      final updated = tickService.applyDelta(current, delta);
+      final updated = tickService
+          .applyDelta(current, delta)
+          .copyWith(
+            history: current.history.addAction(
+              PetActionRecord(
+                type: PetActionType.tick,
+                timestamp: DateTime.now(),
+                deltas: {
+                  'hunger': delta.hungerDelta,
+                  'energy': delta.energyDelta,
+                  'happiness': delta.happinessDelta,
+                  'hygiene': delta.hygieneDelta,
+                  'affection': delta.affectionDelta,
+                  'stress': delta.stressDelta,
+                  'health': delta.healthDelta,
+                  'neglect': delta.neglectScoreDelta,
+                  'xp': delta.xpDelta,
+                },
+              ),
+            ),
+          );
       await localDataSource.save(updated);
       
       return Right(updated);
@@ -356,7 +427,27 @@ class TamtamaRepositoryImpl implements TamtamaRepository {
         return Right(current);
       }
       
-      final updated = tickService.applyDelta(current, delta);
+      final updated = tickService
+          .applyDelta(current, delta)
+          .copyWith(
+            history: current.history.addAction(
+              PetActionRecord(
+                type: PetActionType.tick,
+                timestamp: DateTime.now(),
+                deltas: {
+                  'hunger': delta.hungerDelta,
+                  'energy': delta.energyDelta,
+                  'happiness': delta.happinessDelta,
+                  'hygiene': delta.hygieneDelta,
+                  'affection': delta.affectionDelta,
+                  'stress': delta.stressDelta,
+                  'health': delta.healthDelta,
+                  'neglect': delta.neglectScoreDelta,
+                  'xp': delta.xpDelta,
+                },
+              ),
+            ),
+          );
       await localDataSource.save(updated);
       
       return Right(updated);
