@@ -4,10 +4,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/themes/app_color_system.dart';
 import '../../../../core/themes/component_tokens.dart';
+import '../../../../core/di/injection_container.dart';
 import '../../../../core/themes/design_tokens.dart';
 import '../../../../core/utils/debug_logger.dart';
 import '../../domain/entities/tamtama_entity.dart';
 import '../../domain/entities/tamtama_economy_entity.dart';
+import '../../domain/services/pet_map_service.dart';
 import '../bloc/tamtama_bloc.dart';
 import 'background_sprite.dart';
 import 'tamtama_stats_card.dart';
@@ -74,7 +76,20 @@ class TamtamaSection extends StatelessWidget {
                   color: colors.textPrimary,
                 ),
               ),
-              TamtamaEconomyDisplay(economy: economy),
+              Row(
+                children: [
+                  TamtamaEconomyDisplay(economy: economy),
+                  const SizedBox(width: DesignTokens.spacingS),
+                  IconButton(
+                    icon: const Icon(Icons.refresh, size: 20),
+                    color: colors.textSecondary,
+                    tooltip: 'Reset Tamtama (Test RNG)',
+                    onPressed: () {
+                      context.read<TamtamaBloc>().add(const TamtamaEvent.reset());
+                    },
+                  ),
+                ],
+              ),
             ],
           ),
         ),
@@ -139,15 +154,42 @@ class TamtamaSection extends StatelessWidget {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                tamtama.petName,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: colors.textPrimary,
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      tamtama.petName,
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        color: colors.textPrimary,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    if (tamtama.petId != null)
+                                      Builder(
+                                        builder: (context) {
+                                          final petMap = getIt<PetMapService>();
+                                          final formName = petMap.getDisplayName(tamtama.petId!);
+                                          if (formName != 'Unknown Pet') {
+                                            return Text(
+                                              formName,
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.normal,
+                                                color: colors.textSecondary,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            );
+                                          }
+                                          return const SizedBox.shrink();
+                                        },
+                                      ),
+                                  ],
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
                               ),
                               _LevelTag(
                                 level: tamtama.level,

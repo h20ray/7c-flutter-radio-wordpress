@@ -51,7 +51,7 @@ class TamtamaModel extends TamtamaEntity {
     final random = Random();
     final backgroundIndex = random.nextInt(totalBackgrounds) + 1;
     final eggIndex = random.nextInt(totalEggs) + 1;
-    final petName = _generateRandomPetName();
+    const petName = 'TamTama';
     final now = DateTime.now();
 
     return TamtamaModel(
@@ -204,25 +204,6 @@ class TamtamaModel extends TamtamaEntity {
           (map['avgStationDiversity'] as num?)?.toDouble() ?? 0.0,
       neglectScoreTeen: (map['neglectScoreTeen'] as num?)?.toDouble() ?? 0.0,
     );
-  }
-
-  static String _generateRandomPetName() {
-    final names = [
-      'TamTama',
-      'Radio',
-      'Wave',
-      'Tune',
-      'Beat',
-      'Sound',
-      'Melody',
-      'Harmony',
-      'Rhythm',
-      'Echo',
-      'Sonic',
-      'Tempo',
-    ];
-    final random = Random();
-    return names[random.nextInt(names.length)];
   }
 
   @override

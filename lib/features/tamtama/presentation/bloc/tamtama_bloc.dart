@@ -10,6 +10,7 @@ import '../../domain/usecases/add_listening_rewards.dart';
 import '../../domain/usecases/apply_offline_ticks.dart';
 import '../../domain/usecases/apply_tick.dart';
 import '../../domain/usecases/clean_pet.dart';
+import '../../domain/usecases/delete_tamtama.dart';
 import '../../domain/usecases/evolve_pet.dart';
 import '../../domain/usecases/feed_pet.dart';
 import '../../domain/usecases/get_economy.dart';
@@ -40,6 +41,7 @@ class TamtamaBloc extends Bloc<TamtamaEvent, TamtamaState> {
   final ApplyOfflineTicks applyOfflineTicks;
   final AddListeningRewards addListeningRewards;
   final EvolvePet evolvePet;
+  final DeleteTamtama deleteTamtama;
   final String userId;
 
   StreamSubscription? _tamtamaSubscription;
@@ -67,6 +69,7 @@ class TamtamaBloc extends Bloc<TamtamaEvent, TamtamaState> {
     required this.applyOfflineTicks,
     required this.addListeningRewards,
     required this.evolvePet,
+    required this.deleteTamtama,
     this.userId = 'local_user',
   }) : super(const TamtamaState.initial()) {
     // Lifecycle
@@ -96,6 +99,9 @@ class TamtamaBloc extends Bloc<TamtamaEvent, TamtamaState> {
     // Debug
     on<DebugSetStatsEvent>(_onDebugSetStats);
     on<DebugAddCoinsEvent>(_onDebugAddCoins);
+    
+    // Reset
+    on<ResetTamtamaEvent>(_onReset);
   }
 
   // --- Lifecycle ---
@@ -416,15 +422,39 @@ class TamtamaBloc extends Bloc<TamtamaEvent, TamtamaState> {
   Future<void> _onDebugAddCoins(DebugAddCoinsEvent event, Emitter<TamtamaState> emit) async {
     final currentState = state;
     if (currentState is! TamtamaLoaded) return;
-    
+
     final current = currentState.economy;
     final updated = current.copyWith(
       coins: current.coins + event.amount,
       lastUpdatedAt: DateTime.now(),
     );
-    
+
     // Need to save via data source directly for debug
     add(TamtamaEvent.economyUpdated(updated));
+  }
+
+  // --- Reset ---
+
+  Future<void> _onReset(ResetTamtamaEvent event, Emitter<TamtamaState> emit) async {
+    emit(const TamtamaState.loading());
+    
+    // ignore: unawaited_futures
+    _tamtamaSubscription?.cancel();
+    // ignore: unawaited_futures
+    _economySubscription?.cancel();
+    // ignore: unawaited_futures
+    _tieredTickSubscription?.cancel();
+    // ignore: unawaited_futures
+    _tickTimer?.cancel();
+    
+    final result = await deleteTamtama(DeleteTamtamaParams(userId));
+    
+    result.fold(
+      (failure) => emit(TamtamaState.error(failure.message)),
+      (_) {
+        add(const TamtamaEvent.load());
+      },
+    );
   }
 
   // --- Private Helpers ---

@@ -6,6 +6,7 @@ import 'package:tujuhcahaya_wprs/features/tamtama/domain/usecases/add_listening_
 import 'package:tujuhcahaya_wprs/features/tamtama/domain/usecases/apply_offline_ticks.dart';
 import 'package:tujuhcahaya_wprs/features/tamtama/domain/usecases/apply_tick.dart';
 import 'package:tujuhcahaya_wprs/features/tamtama/domain/usecases/clean_pet.dart';
+import 'package:tujuhcahaya_wprs/features/tamtama/domain/usecases/delete_tamtama.dart';
 import 'package:tujuhcahaya_wprs/features/tamtama/domain/usecases/evolve_pet.dart';
 import 'package:tujuhcahaya_wprs/features/tamtama/domain/usecases/feed_pet.dart';
 import 'package:tujuhcahaya_wprs/features/tamtama/domain/usecases/get_economy.dart';
@@ -43,6 +44,8 @@ class _MockAddListeningRewards extends Mock implements AddListeningRewards {}
 
 class _MockEvolvePet extends Mock implements EvolvePet {}
 
+class _MockDeleteTamtama extends Mock implements DeleteTamtama {}
+
 void main() {
   test('TamtamaBloc starts with initial state', () {
     final bloc = TamtamaBloc(
@@ -60,6 +63,7 @@ void main() {
       applyOfflineTicks: _MockApplyOfflineTicks(),
       addListeningRewards: _MockAddListeningRewards(),
       evolvePet: _MockEvolvePet(),
+      deleteTamtama: _MockDeleteTamtama(),
     );
 
     expect(bloc.state, const TamtamaState.initial());

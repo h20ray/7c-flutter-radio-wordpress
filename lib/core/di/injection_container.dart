@@ -80,6 +80,10 @@ import '../../features/categories/domain/repositories/category_repository.dart';
 
 // TamTama feature imports
 import '../../features/tamtama/di/tamtama_injection.dart';
+import '../../features/tamtama/domain/services/animation_service.dart';
+import '../../features/tamtama/domain/services/evolution_config_service.dart';
+import '../../features/tamtama/domain/services/pet_map_service.dart';
+import '../../features/tamtama/domain/services/tamtama_evolution_service.dart';
 
 // Auth feature imports
 import '../../features/auth/data/datasources/auth_local_datasource.dart';
@@ -178,6 +182,20 @@ Future<void> initDependencies() async {
 
   // Initialize album art service (loads Hive cache)
   await getIt<AlbumArtService>().initialize();
+
+  // Initialize TamTama services
+  if (getIt.isRegistered<PetMapService>()) {
+    await getIt<PetMapService>().load();
+  }
+  if (getIt.isRegistered<AnimationService>()) {
+    await getIt<AnimationService>().initialize();
+  }
+  if (getIt.isRegistered<EvolutionConfigService>()) {
+    await getIt<EvolutionConfigService>().load();
+  }
+  if (getIt.isRegistered<TamtamaEvolutionService>()) {
+    await getIt<TamtamaEvolutionService>().initialize();
+  }
 
   // Initialize sleep timer service and wire up completion callback
   final sleepTimer = getIt<SleepTimerService>();

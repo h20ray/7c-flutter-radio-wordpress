@@ -69,22 +69,17 @@ flutter:
     - assets/others/
     - assets/config/
     - assets/sprites/
-    - assets/sprites/backgrounds/
-    - assets/sprites/game_level_listening/
-    - assets/sprites/eggs/
     - assets/sprites/11010/
     - assets/sprites/11011/
     - assets/sprites/11012/
-    - assets/sprites/12010/
-    - assets/sprites/13010/
-    - assets/sprites/14010/
-    - assets/sprites/15011/
-    - assets/sprites/15012/
-    - assets/sprites/15013/
-    - assets/sprites/15014/
-    - assets/sprites/15015/
-    - assets/sprites/15016/
-    - assets/sprites/17010/
+    - assets/sprites/11013/
+    - assets/sprites/backgrounds/
+    - assets/sprites/eggs/
+    - assets/sprites/game_level_listening/
+    - assets/sprites/tama_1baby/
+    - assets/sprites/tama_2child/
+    - assets/sprites/tama_3teen/
+    - assets/sprites/tama_4adult/
 
   fonts:
     - family: Inter

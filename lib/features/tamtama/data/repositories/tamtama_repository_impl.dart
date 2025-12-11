@@ -5,6 +5,7 @@ import '../../domain/entities/pet_action_record.dart';
 import '../../domain/entities/tamtama_economy_entity.dart';
 import '../../domain/entities/tamtama_entity.dart';
 import '../../domain/repositories/tamtama_repository.dart';
+import '../../domain/services/pet_map_service.dart';
 import '../datasources/tamtama_local_data_source.dart';
 import '../models/tamtama_model.dart';
 import '../models/tamtama_economy_model.dart';
@@ -14,10 +15,12 @@ import '../services/tamtama_tick_service.dart';
 class TamtamaRepositoryImpl implements TamtamaRepository {
   final TamtamaLocalDataSource localDataSource;
   final TamtamaTickService tickService;
+  final PetMapService petMapService;
 
   TamtamaRepositoryImpl({
     required this.localDataSource,
     required this.tickService,
+    required this.petMapService,
   });
 
   // --- Pet State ---
@@ -25,7 +28,17 @@ class TamtamaRepositoryImpl implements TamtamaRepository {
   @override
   Future<Either<Failure, TamtamaEntity>> fetch(String userId) async {
     try {
-      final tamtama = await localDataSource.fetch(userId);
+      var tamtama = await localDataSource.fetch(userId);
+      
+      // Update petName from displayName if petId exists
+      if (tamtama.petId != null && petMapService.isLoaded) {
+        final displayName = petMapService.getDisplayName(tamtama.petId!);
+        if (displayName != 'Unknown Pet' && tamtama.petName != displayName) {
+          tamtama = tamtama.copyWith(petName: displayName);
+          await localDataSource.save(tamtama);
+        }
+      }
+      
       return Right(tamtama);
     } catch (error) {
       return Left(CacheFailure(error.toString()));
@@ -35,7 +48,16 @@ class TamtamaRepositoryImpl implements TamtamaRepository {
   @override
   Future<Either<Failure, TamtamaEntity>> save(TamtamaEntity tamtama) async {
     try {
-      final model = TamtamaModel.fromEntity(tamtama);
+      // Update petName from displayName if petId exists
+      TamtamaEntity updatedTamtama = tamtama;
+      if (tamtama.petId != null && petMapService.isLoaded) {
+        final displayName = petMapService.getDisplayName(tamtama.petId!);
+        if (displayName != 'Unknown Pet') {
+          updatedTamtama = tamtama.copyWith(petName: displayName);
+        }
+      }
+      
+      final model = TamtamaModel.fromEntity(updatedTamtama);
       await localDataSource.save(model);
       return Right(model);
     } catch (error) {

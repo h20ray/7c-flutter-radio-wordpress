@@ -4,7 +4,15 @@ import 'package:flutter/services.dart';
 
 import '../../../../core/utils/debug_logger.dart';
 
-/// Pet form mapping from numeric ID to display information
+/// Pet form mapping from numeric ID to display information.
+/// 
+/// Each pet form has three identifiers:
+/// - **id**: Opaque numeric asset identifier (e.g., 11010, 15011)
+///   Used by engine, file system, and asset paths
+/// - **key**: Stable semantic identifier (e.g., "EGG_TAMAUNO_A", "ADULT_TAMAUNO_DJSTAR")
+///   Used by developers, designers, evolution logic, and BLoC state
+/// - **displayName**: UI-facing name (e.g., "Tamauno Egg A", "Tamauno DJ Star")
+///   Used for user display and localization
 class PetFormInfo {
   final int id;
   final String key;
@@ -25,7 +33,25 @@ class PetFormInfo {
   }
 }
 
-/// Service for loading and accessing pet ID to name mappings
+/// Service for loading and accessing pet ID to name mappings.
+/// 
+/// Maps numeric pet IDs to semantic keys and display names.
+/// Loads from `assets/config/pet_map.json`.
+/// 
+/// Usage:
+/// ```dart
+/// final petMap = getIt<PetMapService>();
+/// await petMap.load();
+/// 
+/// // Get display name for UI
+/// final name = petMap.getDisplayName(15011); // "Tamauno DJ Star"
+/// 
+/// // Get key for code logic
+/// final key = petMap.getKey(15011); // "ADULT_TAMAUNO_DJSTAR"
+/// 
+/// // Reverse lookup: key -> ID
+/// final id = petMap.getIdByKey("ADULT_TAMAUNO_DJSTAR"); // 15011
+/// ```
 class PetMapService {
   static const String _configPath = 'assets/config/pet_map.json';
 

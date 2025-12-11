@@ -39,4 +39,7 @@ class TamtamaEvent with _$TamtamaEvent {
     double? health,
   }) = DebugSetStatsEvent;
   const factory TamtamaEvent.debugAddCoins(double amount) = DebugAddCoinsEvent;
+  
+  // Reset
+  const factory TamtamaEvent.reset() = ResetTamtamaEvent;
 }

@@ -21,7 +21,7 @@ enum AnimationType {
 /// 
 /// Supports both:
 /// - Legacy path structure: assets/sprites/tama_1baby/idle.png
-/// - New numeric ID structure: assets/sprites/15011/15011_01.png
+/// - New numeric ID structure: assets/sprites/15011/15011_01_00.png
 class TamtamaSpriteService {
   final PetMapService? petMapService;
   
@@ -34,50 +34,60 @@ class TamtamaSpriteService {
   });
 
   /// Returns the asset path for the pet's current state.
+  /// Uses the numeric ID path format: {petId}/{petId}_{animId}_{frame}.png
   String getSpritePath(TamtamaEntity pet, [AnimationType animation = AnimationType.idle]) {
-    // Try numeric ID path if enabled and petId exists
-    if (useNumericIds && pet.petId != null) {
+    // For egg stage, use the petId-based path (11010, 11011, etc.)
+    if (pet.lifeStage == LifeStage.egg) {
+      // Egg petId is 110{familyIndex}{eggIndex}0 or derivable from eggIndex
+      // Default to 11010 for family 1, egg variant 0
+      final eggPetId = pet.petId ?? (11000 + (pet.familyIndex * 10) + pet.eggIndex);
+      return _getNumericSpritePath(eggPetId, animation);
+    }
+    
+    // Use numeric ID path if petId exists
+    if (pet.petId != null) {
       return _getNumericSpritePath(pet.petId!, animation);
     }
     
-    // Fall back to legacy path structure
+    // Fall back to legacy path structure for old data
     return _getLegacySpritePath(pet, animation);
   }
   
   /// Get sprite path using numeric ID structure
-  /// Schema: assets/sprites/{petId}/{animName}.png
+  /// Schema: assets/sprites/{petId}/{petId}_{animId}_{frame}.png
   String _getNumericSpritePath(int petId, AnimationType animation) {
-    final animName = _getAnimationName(animation);
-    return 'assets/sprites/$petId/$animName.png';
+    final animCode = _getAnimationCode(animation);
+    return 'assets/sprites/$petId/${petId}_${animCode}_00.png';
   }
   
-  /// Get animation file name from type
-  String _getAnimationName(AnimationType type) {
+  /// Get two-digit animation code from AnimationType
+  /// Maps to anim_index.json codes
+  String _getAnimationCode(AnimationType type) {
     switch (type) {
       case AnimationType.idle:
-        return 'idle';
+        return '01';
       case AnimationType.blink:
-        return 'blink';
+        return '02';
       case AnimationType.smile:
-        return 'smile';
+        return '03';
       case AnimationType.sad:
-        return 'sad';
+        return '04';
       case AnimationType.angry:
-        return 'angry';
+        return '05';
       case AnimationType.hungry:
-        return 'hungry';
+        return '06';
       case AnimationType.eating:
-        return 'eating';
+        return '07';
       case AnimationType.sleeping:
-        return 'sleeping';
+        return '08';
       case AnimationType.walking:
-        return 'walking';
+        return '09';
       case AnimationType.evolution:
-        return 'evolution';
+        return '10';
       case AnimationType.special:
-        return 'special';
+        return '11';
       case AnimationType.radio:
-        return 'radio';
+        return '12';
     }
   }
 
@@ -190,7 +200,7 @@ class TamtamaSpriteService {
 
   /// Returns the fallback sprite path (Egg) to use if the specific sprite is missing.
   String getFallbackSpritePath() {
-    return 'assets/sprites/11010/idle.png';
+    return 'assets/sprites/11010/11010_01_00.png';
   }
   
   /// Get metadata file path for numeric ID pets

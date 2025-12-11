@@ -75,12 +75,18 @@
             "displayName": "Radio Listen Reaction",
             "defaultFps": 10,
             "loop": true
+        },
+        "13": {
+            "key": "wiggle",
+            "displayName": "Wiggle",
+            "defaultFps": 8,
+            "loop": true
         }
     },
     "filePattern": "{petId}_{animId}.png",
     "metaPattern": "{petId}.meta.json",
     "defaultFrameCounts": {
-        "idle": 10,
+        "idle": 4,
         "blink": 4,
         "smile": 6,
         "sad": 6,
@@ -88,7 +94,8 @@
         "eating": 10,
         "sleeping": 10,
         "walking": 12,
-        "evolution": 22,
+        "wiggle": 4,
+        "evolution": 3,
         "special": 12,
         "radio": 12
     }

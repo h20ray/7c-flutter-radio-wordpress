@@ -1,0 +1,20 @@
+{
+  "id": 11012,
+  "animations": {
+    "idle": {
+      "file": "11012_01_00.png",
+      "frames": 4,
+      "fps": 6
+    },
+    "wiggle": {
+      "file": "11012_13_00.png",
+      "frames": 4,
+      "fps": 8
+    },
+    "evolution": {
+      "file": "11012_10_00.png",
+      "frames": 3,
+      "fps": 10
+    }
+  }
+}
