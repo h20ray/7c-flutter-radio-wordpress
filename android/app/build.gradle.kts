@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     id("kotlin-android")
+    id("org.jetbrains.kotlin.plugin.compose")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
@@ -27,7 +28,7 @@ android {
 
     defaultConfig {
         applicationId = "com.tujuhcahaya.wprs"
-        minSdk = 25
+        minSdk = 26
         targetSdk = 35
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -40,6 +41,11 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+    
+    // Enable Compose for Glance widgets
+    buildFeatures {
+        compose = true
+    }
 }
 
 flutter {
@@ -48,4 +54,14 @@ flutter {
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+    
+    // Jetpack Glance for home screen widgets
+    implementation("androidx.glance:glance-appwidget:1.1.0")
+    implementation("androidx.glance:glance-material3:1.1.0")
+    
+    // Compose dependencies required by Glance
+    implementation(platform("androidx.compose:compose-bom:2024.06.00"))
+    implementation("androidx.compose.runtime:runtime")
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.ui:ui-graphics")
 }

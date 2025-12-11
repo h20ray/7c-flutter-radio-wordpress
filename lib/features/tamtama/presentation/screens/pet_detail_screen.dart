@@ -2,9 +2,12 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/themes/action_chip_tokens.dart';
 import '../../../../core/themes/app_color_system.dart';
 import '../../../../core/themes/design_tokens.dart';
+import '../../../../core/widgets/haptic_widgets.dart';
 import '../../domain/entities/tamtama_entity.dart';
+import '../../domain/entities/tamtama_economy_entity.dart';
 import '../bloc/tamtama_bloc.dart';
 import '../widgets/tamtama_sprite_widget.dart';
 import '../widgets/background_sprite.dart';
@@ -20,6 +23,7 @@ class PetDetailScreen extends StatelessWidget {
         return state.maybeWhen(
           loaded: (tamtama, economy, isListening) => _PetDetailContent(
             tamtama: tamtama,
+            economy: economy,
             isListening: isListening,
           ),
           orElse: () => const Center(child: CircularProgressIndicator()),
@@ -31,10 +35,12 @@ class PetDetailScreen extends StatelessWidget {
 
 class _PetDetailContent extends StatelessWidget {
   final TamtamaEntity tamtama;
+  final TamtamaEconomyEntity economy;
   final bool isListening;
 
   const _PetDetailContent({
     required this.tamtama,
+    required this.economy,
     required this.isListening,
   });
 
@@ -54,7 +60,14 @@ class _PetDetailContent extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _PetHeroSection(tamtama: tamtama),
+            _PetHeroSection(
+              tamtama: tamtama,
+              economy: economy,
+              isGuest: tamtama.userId == 'local_user',
+              onHatchTap: () {
+                context.read<TamtamaBloc>().add(const TamtamaEvent.checkEvolution());
+              },
+            ),
             const SizedBox(height: DesignTokens.spacingL),
             _StatsSection(tamtama: tamtama),
             const SizedBox(height: DesignTokens.spacingL),
@@ -72,12 +85,22 @@ class _PetDetailContent extends StatelessWidget {
 
 class _PetHeroSection extends StatelessWidget {
   final TamtamaEntity tamtama;
+  final TamtamaEconomyEntity economy;
+  final bool isGuest;
+  final VoidCallback onHatchTap;
 
-  const _PetHeroSection({required this.tamtama});
+  const _PetHeroSection({
+    required this.tamtama,
+    required this.economy,
+    required this.isGuest,
+    required this.onHatchTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
+    final isHatchReady =
+        tamtama.lifeStage == LifeStage.egg && economy.totalListeningMinutes >= 60;
 
     return Container(
       height: 200,
@@ -143,6 +166,16 @@ class _PetHeroSection extends StatelessWidget {
                 ),
               ),
             ),
+            if (isGuest && isHatchReady)
+              Positioned(
+                bottom: DesignTokens.spacingM,
+                left: DesignTokens.spacingM,
+                right: DesignTokens.spacingM,
+                child: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: _HatchPill(onTap: onHatchTap),
+                ),
+              ),
           ],
         ),
       ),
@@ -181,6 +214,42 @@ class _PetHeroSection extends StatelessWidget {
       case LifeStage.specialAdult:
         return Colors.amber;
     }
+  }
+}
+
+class _HatchPill extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _HatchPill({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = ActionChipTokens.of(context);
+    final theme = Theme.of(context);
+
+    return HapticGestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: DesignTokens.animationDurationShort,
+        padding: tokens.padding,
+        decoration: BoxDecoration(
+          color: tokens.background,
+          borderRadius: BorderRadius.circular(tokens.cornerRadius),
+          border: Border.all(color: tokens.border, width: 1),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.auto_awesome, color: tokens.icon, size: tokens.iconSize),
+            SizedBox(width: tokens.spacing),
+            Text(
+              'Hatch',
+              style: theme.textTheme.labelLarge?.copyWith(color: tokens.text),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

@@ -15,18 +15,34 @@ class EvolvePet implements UseCase<TamtamaEntity, EvolvePetParams> {
   @override
   Future<Either<Failure, TamtamaEntity>> call(EvolvePetParams params) async {
     final petResult = await repository.fetch(params.userId);
+    final economyResult = await repository.getEconomy(params.userId);
 
     return petResult.fold(
       (failure) => Left(failure),
       (pet) async {
-        if (!evolutionService.shouldEvolve(pet)) {
-          // If not ready, return current pet without changes
-          // Or we could return a specific failure if we wanted to enforce it
-          return Right(pet);
-        }
+        return economyResult.fold(
+          (failure) => Left(failure),
+          (economy) async {
+            final hasListeningRequirement =
+                pet.lifeStage != LifeStage.egg || economy.totalListeningMinutes >= 60;
 
-        final evolvedPet = evolutionService.evolve(pet);
-        return await repository.save(evolvedPet);
+            if (!hasListeningRequirement) {
+              return const Left(
+                ValidationFailure('Listen to radio for 60 minutes to hatch'),
+              );
+            }
+
+            if (!evolutionService.shouldEvolve(pet)) {
+              return Right(pet);
+            }
+
+            final evolvedPet = evolutionService
+                .evolve(pet)
+                .copyWith(lastUpdateAt: DateTime.now());
+
+            return await repository.save(evolvedPet);
+          },
+        );
       },
     );
   }

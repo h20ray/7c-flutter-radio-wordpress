@@ -1,10 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../../core/di/injection_container.dart';
+import '../../../../core/utils/haptic_feedback_helper.dart';
+import '../../data/services/home_widget_service.dart';
 import '../../domain/entities/tamtama_entity.dart';
 import '../services/tamtama_sprite_service.dart';
 
@@ -25,6 +28,7 @@ class TamtamaSpriteWidget extends StatefulWidget {
 class _TamtamaSpriteWidgetState extends State<TamtamaSpriteWidget>
     with TickerProviderStateMixin {
   late final TamtamaSpriteService _spriteService;
+  late final HomeWidgetService? _homeWidgetService;
   late final AnimationController _jumpController;
   late final Animation<Offset> _jumpAnimation;
 
@@ -37,6 +41,7 @@ class _TamtamaSpriteWidgetState extends State<TamtamaSpriteWidget>
   void initState() {
     super.initState();
     _spriteService = getIt<TamtamaSpriteService>();
+    _homeWidgetService = getIt<HomeWidgetService>();
 
     // Setup jump animation (on tap/event) - 300ms for snappy tamagotchi feel
     _jumpController = AnimationController(
@@ -288,12 +293,32 @@ class _TamtamaSpriteWidgetState extends State<TamtamaSpriteWidget>
     }
   }
 
+  /// Long-press to add widget to home screen (Android only)
+  Future<void> _onLongPress() async {
+    if (!Platform.isAndroid) return;
+    
+    // Haptic feedback for long-press action
+    HapticFeedbackHelper.heavyImpact();
+    
+    final result = await _homeWidgetService?.requestPinWidget();
+    
+    if (mounted && result == true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Adding TamTama widget to home screen...'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final fallbackPath = _spriteService.getFallbackSpritePath();
 
     return GestureDetector(
       onTap: _onTap,
+      onLongPress: _onLongPress,
       child: AnimatedBuilder(
         animation: Listenable.merge([
           _jumpController,

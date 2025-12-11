@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Tujuh Cahaya Radio</string>
+    
+    <!-- TamTama Widget -->
+    <string name="tamtama_widget_name">TamTama Pet</string>
+    <string name="tamtama_widget_description">Display your TamTama virtual pet on your home screen. See pet stats and tap to interact.</string>
+</resources>

@@ -399,6 +399,13 @@ class TamtamaRepositoryImpl implements TamtamaRepository {
   }) async {
     try {
       final current = await localDataSource.fetch(userId);
+      if (current.lifeStage == LifeStage.egg) {
+        final updated = TamtamaModel.fromEntity(
+          current.copyWith(lastUpdateAt: DateTime.now()),
+        );
+        await localDataSource.save(updated);
+        return Right(updated);
+      }
       
       final delta = tickService.computeTickDelta(
         isListening: isListening,
@@ -439,6 +446,13 @@ class TamtamaRepositoryImpl implements TamtamaRepository {
   Future<Either<Failure, TamtamaEntity>> applyOfflineTicks(String userId) async {
     try {
       final current = await localDataSource.fetch(userId);
+      if (current.lifeStage == LifeStage.egg) {
+        final updated = TamtamaModel.fromEntity(
+          current.copyWith(lastUpdateAt: DateTime.now()),
+        );
+        await localDataSource.save(updated);
+        return Right(updated);
+      }
       
       final delta = tickService.computeOfflineTicks(
         lastUpdateAt: current.lastUpdateAt,

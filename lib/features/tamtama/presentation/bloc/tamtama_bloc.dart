@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../data/services/home_widget_service.dart';
 import '../../data/services/tamtama_tick_service.dart';
 import '../../domain/entities/tamtama_economy_entity.dart';
 import '../../domain/entities/tamtama_entity.dart';
@@ -42,7 +43,10 @@ class TamtamaBloc extends Bloc<TamtamaEvent, TamtamaState> {
   final AddListeningRewards addListeningRewards;
   final EvolvePet evolvePet;
   final DeleteTamtama deleteTamtama;
+  final HomeWidgetService? homeWidgetService;
   final String userId;
+
+  bool get _isGuest => userId == 'local_user';
 
   StreamSubscription? _tamtamaSubscription;
   StreamSubscription? _economySubscription;
@@ -70,6 +74,7 @@ class TamtamaBloc extends Bloc<TamtamaEvent, TamtamaState> {
     required this.addListeningRewards,
     required this.evolvePet,
     required this.deleteTamtama,
+    this.homeWidgetService,
     this.userId = 'local_user',
   }) : super(const TamtamaState.initial()) {
     // Lifecycle
@@ -129,6 +134,7 @@ class TamtamaBloc extends Bloc<TamtamaEvent, TamtamaState> {
             ));
             _startSubscriptions();
             _startTickTimer();
+            _maybeAutoHatch(tamtama, economy);
           },
         );
       },
@@ -143,11 +149,22 @@ class TamtamaBloc extends Bloc<TamtamaEvent, TamtamaState> {
           economy: economy,
           isListening: isListening,
         ));
+        // Sync to home screen widget
+        _syncToHomeWidget(event.tamtama);
       },
       orElse: () {
         // If not loaded yet, just store the tamtama
       },
     );
+  }
+
+  /// Sync TamTama data to native home screen widget
+  Future<void> _syncToHomeWidget(TamtamaEntity tamtama) async {
+    try {
+      await homeWidgetService?.syncToWidget(tamtama);
+    } catch (e) {
+      // Silent failure for widget sync - non-critical
+    }
   }
 
   void _onEconomyUpdated(EconomyUpdatedEvent event, Emitter<TamtamaState> emit) {
@@ -158,6 +175,7 @@ class TamtamaBloc extends Bloc<TamtamaEvent, TamtamaState> {
           economy: event.economy,
           isListening: isListening,
         ));
+        _maybeAutoHatch(tamtama, event.economy);
       },
       orElse: () {},
     );
@@ -503,6 +521,18 @@ class TamtamaBloc extends Bloc<TamtamaEvent, TamtamaState> {
     tickService.startTicking((delta) {
       // Base tick deltas are handled via stream events
     });
+  }
+
+  bool _isHatchReady(TamtamaEntity tamtama, TamtamaEconomyEntity economy) {
+    return tamtama.lifeStage == LifeStage.egg &&
+        economy.totalListeningMinutes >= 60;
+  }
+
+  void _maybeAutoHatch(TamtamaEntity tamtama, TamtamaEconomyEntity economy) {
+    if (_isGuest) return;
+    if (_isHatchReady(tamtama, economy)) {
+      add(const TamtamaEvent.checkEvolution());
+    }
   }
 
   @override
